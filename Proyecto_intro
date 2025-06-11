@@ -1,3 +1,13 @@
-#Empezamos aqui 
-def pinga (): 
-    return "hola steadman metete ya "
+#                   PROYECTO DE BOMBERMAN 
+#                  BENJAMIN ORTIZ 2025064599
+#                     STEADMAN MURILLO 
+#           IC-1802 INTRODUCCION A LA PROGRAMACION 
+#                     I SEMESTRE DE 2025
+
+class Jugador : 
+    def __init__(self, canvas, pos_x, pos_y ):
+        self.canvas = canvas
+        self.x= pos_x
+        self.y= pos_y
+
+#TODO : LITERALMENTE ABSOLUTAMENTE TODO. 
