@@ -9,7 +9,7 @@ import random
 import threading
 import os 
 import sys
-
+reloj=pygame.time.Clock()
 class Jugador : 
     def __init__(self, canvas, pos_x, pos_y , velocidad):
         self.canvas = canvas
@@ -28,7 +28,11 @@ pygame.display.set_caption("Proyecto Bomberman")
 
 
 
-
-
+while True : 
+    for event in pygame.event.get() :
+        if event.type== pygame.QUIT : 
+            exit()
+    pygame.display.flip()
+    reloj.tick(45)
 #TODO : LITERALMENTE ABSOLUTAMENTE TODO. 
 
