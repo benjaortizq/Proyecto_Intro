@@ -1,0 +1,3 @@
+#Empezamos aqui 
+def pinga (): 
+    return "hola steadman metete ya "
