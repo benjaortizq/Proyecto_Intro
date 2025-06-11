@@ -4,15 +4,31 @@
 #           IC-1802 INTRODUCCION A LA PROGRAMACION 
 #                     I SEMESTRE DE 2025
 
+import pygame
+import random 
+import threading
+import os 
+import sys
+
 class Jugador : 
-    def __init__(self, canvas, pos_x, pos_y ):
+    def __init__(self, canvas, pos_x, pos_y , velocidad):
         self.canvas = canvas
         self.x= pos_x
         self.y= pos_y
+        self.velocidad= velocidad
+        self.sprite = player_sprite
+
         
+
+pygame.init()
+screen= pygame.display.set_mode((800,800))
+pygame.display.set_caption("Proyecto Bomberman")
+
+#------------sprites del juego ------
+
 
 
 
 
 #TODO : LITERALMENTE ABSOLUTAMENTE TODO. 
-#adasdasdas
+
