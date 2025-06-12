@@ -16,7 +16,6 @@ class Jugador :
         self.x= pos_x
         self.y= pos_y
         self.velocidad= velocidad
-        self.sprite = player_sprite
 
         
 
@@ -28,6 +27,7 @@ pygame.display.set_caption("Proyecto Bomberman")
 
 
 
+
 while True : 
     for event in pygame.event.get() :
         if event.type== pygame.QUIT : 
@@ -35,4 +35,7 @@ while True :
     pygame.display.flip()
     reloj.tick(45)
 #TODO : LITERALMENTE ABSOLUTAMENTE TODO. 
-
+# ---------------------------------------DEFINICION DE CLASES : 
+# JUGADOR 
+# jugador va a a tener 3 sublases ( las de los 3 posibles personajes jugables )
+#
