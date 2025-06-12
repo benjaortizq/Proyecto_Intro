@@ -1,41 +1,14 @@
 #                   PROYECTO DE BOMBERMAN 
 #                  BENJAMIN ORTIZ 2025064599
-#                     STEADMAN MURILLO 
+#                  STEADMAN MURILLO 2025097768
 #           IC-1802 INTRODUCCION A LA PROGRAMACION 
 #                     I SEMESTRE DE 2025
 
-import pygame
-import random 
-import threading
-import os 
-import sys
-reloj=pygame.time.Clock()
 class Jugador : 
-    def __init__(self, canvas, pos_x, pos_y , velocidad):
+    def __init__(self, canvas, pos_x, pos_y ):
         self.canvas = canvas
         self.x= pos_x
         self.y= pos_y
-        self.velocidad= velocidad
 
-        
-
-pygame.init()
-screen= pygame.display.set_mode((800,800))
-pygame.display.set_caption("Proyecto Bomberman")
-
-#------------sprites del juego ------
-
-
-
-
-while True : 
-    for event in pygame.event.get() :
-        if event.type== pygame.QUIT : 
-            exit()
-    pygame.display.flip()
-    reloj.tick(45)
 #TODO : LITERALMENTE ABSOLUTAMENTE TODO. 
-# ---------------------------------------DEFINICION DE CLASES : 
-# JUGADOR 
-# jugador va a a tener 3 sublases ( las de los 3 posibles personajes jugables )
-#
+
