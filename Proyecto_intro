@@ -4,15 +4,31 @@
 #           IC-1802 INTRODUCCION A LA PROGRAMACION 
 #                     I SEMESTRE DE 2025
 
+
+import pygame 
+import random 
+import sys 
+import os 
+
+
 class Jugador : 
-    def __init__(self, canvas, pos_x, pos_y ):
-        self.canvas = canvas
+    def __init__(self, frame, pos_x, pos_y,skin ):
+        self.frame = frame
         self.x= pos_x
         self.y= pos_y
+        self.skin =skin
+
+    def mover (self,dx,dy, obstaculo) : 
+        new_x = self.x + dx     #crea el x,y nuevos sumando el desplazamiento x y
+        new_y = self.y + dy
+        if 0 <= new_x < GRID_SIZE and 0 <= new_y < GRID_SIZE:
+
+        
 
 #TODO : LITERALMENTE ABSOLUTAMENTE TODO. 
 # ---------------------------------------DEFINICION DE CLASES : 
 # JUGADOR 
 # jugador va a a tener 3 sublases ( las de los 3 posibles personajes jugables )
 # ENEMIGO VA ATENER 2 SUBCLASES ( BOSS , NOMRAL )
-# OBTACULO IGUAL  (ROMPUBLE Y NO EXP[LOTABLE) ])
+# Obstaculo igual va a tener 2 clases   (Rompible y no romble ) ])
+# steadman come picha 
