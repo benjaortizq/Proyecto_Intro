@@ -23,6 +23,8 @@ class Jugador :
         new_y = self.y + dy
         if 0 <= new_x < GRID_SIZE and 0 <= new_y < GRID_SIZE:
 
+
+
         
 
 #TODO : LITERALMENTE ABSOLUTAMENTE TODO. 
@@ -32,3 +34,15 @@ class Jugador :
 # ENEMIGO VA ATENER 2 SUBCLASES ( BOSS , NOMRAL )
 # Obstaculo igual va a tener 2 clases   (Rompible y no romble ) ])
 # steadman come picha 
+
+
+#-----------------------pygame------------------------------
+VIEW_PIXELS = 600
+VIEW_CELLS = 10
+DRAW_CELLS = 11  
+GRID_SIZE = 10
+CELL_SIZE = VIEW_PIXELS // VIEW_CELLS
+CAM_LERP = 0.29
+VIEW_X = (600 - VIEW_PIXELS) // 2
+VIEW_Y = (600 - VIEW_PIXELS) // 2
+
