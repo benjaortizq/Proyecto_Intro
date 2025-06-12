@@ -18,10 +18,32 @@ class Jugador :
         self.y= pos_y
         self.skin =skin
 
-    def mover (self,dx,dy, obstaculo) : 
-        new_x = self.x + dx     #crea el x,y nuevos sumando el desplazamiento x y
-        new_y = self.y + dy
-        if 0 <= new_x < GRID_SIZE and 0 <= new_y < GRID_SIZE:
+    def mover(self):
+        new_x = self.x + self.direccion[0]
+        new_y = self.y + self.direccion[1]
+        frame_x, frame_y, frame_w, frame_h = self.frame_rect
+        new_x = max(frame_x, min(new_x, frame_x + frame_w - self.ancho_personaje))
+        new_y = max(frame_y, min(new_y, frame_y + frame_h - self.alto_personaje))
+        
+        self.x = new_x
+        self.y = new_y
+
+    def dibujar(self, pantalla):
+        pantalla.blit(self.skin, (self.x, self.y))
+    
+    def actualizar_direccion(self, teclas):
+        self.direccion = [0, 0]
+        
+        # Actualizar según teclas presionadas
+        if teclas[K_w] or teclas[K_UP]:
+            self.direccion[1] = -self.velocidad
+        if teclas[K_s] or teclas[K_DOWN]:
+            self.direccion[1] = self.velocidad
+        if teclas[K_a] or teclas[K_LEFT]:
+            self.direccion[0] = -self.velocidad
+        if teclas[K_d] or teclas[K_RIGHT]:
+            self.direccion[0] = self.velocidad
+
 
 
 
@@ -42,7 +64,45 @@ VIEW_CELLS = 10
 DRAW_CELLS = 11  
 GRID_SIZE = 10
 CELL_SIZE = VIEW_PIXELS // VIEW_CELLS
+FRAME_JUEGO = (100, 80, 600, 400)
 CAM_LERP = 0.29
 VIEW_X = (600 - VIEW_PIXELS) // 2
 VIEW_Y = (600 - VIEW_PIXELS) // 2
 
+pygame.init()
+screen= pygame.display.set_mode((1000,1000))
+pygame.display.set_caption("picha")
+reloj = pygame.time.Clock()
+
+
+
+
+
+while True:
+
+    screen.fill("white")
+    
+    jugador = Jugador(FRAME_JUEGO,FRAME_JUEGO[0] + FRAME_JUEGO[2]//2 - 20,FRAME_JUEGO[1] + FRAME_JUEGO[3]//2 - 20, "white")
+
+    pygame.draw.rect(screen, (20, 20, 30), FRAME_JUEGO)
+    pygame.draw.rect(screen, (70, 70, 120), FRAME_JUEGO, 3)
+    
+    # Manejar eventos
+    for e in pygame.event.get():
+        if e.type== pygame.QUIT : 
+            exit()
+
+    
+    # Actualizar dirección según teclas presionadas
+    teclas = pygame.key.get_pressed()
+    jugador.actualizar_direccion(teclas)
+    
+    # Mover y dibujar jugador
+    jugador.mover()
+    jugador.dibujar(screen)
+    
+    # Actualizar pantalla
+    pygame.display.flip()
+    reloj.tick(60)
+
+pygame.quit()
