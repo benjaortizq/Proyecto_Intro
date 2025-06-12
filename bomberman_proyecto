@@ -21,22 +21,28 @@ class Jugador :
         self.skin = skin
     def mover(self): #metodo para mover al jugador, recibe el frame actual y la velocidad: 
         #metodo para mover al jugador, recibe el frame actual
-
+        largo= self.frame.get_width() #ancho del frame
+        alto= self.frame.get_height()
+        #verifica que el jugador no se salga del frame
         keys = pg.key.get_pressed()
-        if keys[pg.K_LEFT]:
+        if keys[pg.K_LEFT] and self.x > 0:
             self.x -= self.velocidad
-        if keys[pg.K_RIGHT]:
+        if keys[pg.K_RIGHT] and self.x + self.skin.get_width() < largo:
             self.x += self.velocidad
-        if keys[pg.K_UP]:  
+        if keys[pg.K_UP] and self.y > 0:
             self.y -= self.velocidad
-        if keys[pg.K_DOWN]:
+        if keys[pg.K_DOWN] and self.y + self.skin.get_height() < alto:
             self.y += self.velocidad
         #actualiza la posicion del jugador en el frame  
         self.frame.blit(self.skin, (self.x, self.y))
-
 class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
-    def __init__(self, frame, pos_x, pos_y, skin):
-        super().__init__(frame, pos_x, pos_y,5,skin) #llama al constructor de la clase padre
+    def __init__(self, frame, pos_x, pos_y, skin,habilidad):
+        super().__init__(frame, pos_x, pos_y,5,skin)
+        self.habilidad=habilidad
+    def ejecutar_habilidad(self ) :
+        keys = pg.key.get_pressed()
+        if keys[pg.K_SPACE]:  # Si se presiona la tecla de espacio
+            print(f"Ejecutando habilidad: {self.habilidad}")  
 
 
 
@@ -58,17 +64,21 @@ reloj = pg.time.Clock() #reloj comun para controlar FPS
 estado= "start" #se inicializa el estado del juego como "start", que representa el menu de inicio
 #-----------------------SPRITES------------------------------
 
-# JUGADOR  :
-placeholder_skin= pg.image.load("assets/sprites/perro.png") #placeholder para el skin del jugador
-
+#placeholders 
+placeholder_skin= pg.image.load("assets/sprites/perro.png").convert_alpha() #placeholder para el skin del jugador
+game_surface = pg.Surface((800,450)) #superficie del juego, que es el fondo de la pantalla
 #-----------------------JUGADORES------------------------------
 #instancia del jugador 1    
-Player_1 = Jugador_1(screen, 100, 100, placeholder_skin) #crea una instancia del jugador 1 con el frame, posicion y skin
+Player_1 = Jugador_1(game_surface, 100, 100, placeholder_skin, "me gusta el pito") #crea una instancia del jugador 1 con el frame, posicion y skin
 
 #estados de juego :
 def pantalla_inicio() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE INICIO
-    screen.fill("white") 
-    Player_1.mover()  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
+    screen.fill("white")
+    game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
+    Player_1.mover()
+    Player_1.ejecutar_habilidad() 
+    screen.blit(game_surface,(0,150))  # Dibuja la superficie del juego en la pantalla
+
 
 while True:
     #cambiador de estado
