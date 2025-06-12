@@ -1,0 +1,46 @@
+#                   PROYECTO DE BOMBERMAN 
+#                  BENJAMIN ORTIZ 2025064599
+#                  STEADMAN MURILLO 2025097768
+#           IC-1802 INTRODUCCION A LA PROGRAMACION 
+#                     I SEMESTRE DE 2025
+
+
+import pygame as pg
+import random 
+import sys 
+import os 
+
+#Aqui epiezan las clases del juego
+# Clase Jugador
+class Jugador : 
+    def __init__(self, frame, pos_x, pos_y ): #clase padre de jugador  (atributos de frame, y psocicion de X, Y y frame)
+        self.frame = frame
+        self.x= pos_x
+        self.y= pos_y
+
+
+
+
+        
+
+#TODO : LITERALMENTE ABSOLUTAMENTE TODO.
+
+
+#-----------------------pygame------------------------------
+
+#commons de pygame (literalmente el inicio de pygame)
+pg.init()
+screen= pg.display.set_mode((800, 600)) #tamano de pantalla
+pg.display.set_caption("picha") #Nombre de la ventana
+reloj = pg.time.Clock() #reloj comun para controlar FPS
+
+#SPRITES
+# JUGADOR  : 
+#- se va a tener que crear un sprite para cada jugador, y cada uno va a tener su skin
+placeholder_skin= pygame.import.image("placeholder.png") #placeholder para el skin del jugador
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()  
