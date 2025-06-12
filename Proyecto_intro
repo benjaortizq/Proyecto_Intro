@@ -38,4 +38,5 @@ while True :
 # ---------------------------------------DEFINICION DE CLASES : 
 # JUGADOR 
 # jugador va a a tener 3 sublases ( las de los 3 posibles personajes jugables )
-#
+# ENEMIGO VA ATENER 2 SUBCLASES ( BOSS , NOMRAL )
+# OBTACULO IGUAL  (ROMPUBLE Y NO EXP[LOTABLE) ])
