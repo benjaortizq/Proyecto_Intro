@@ -13,10 +13,30 @@ import os
 #Aqui epiezan las clases del juego
 # Clase Jugador
 class Jugador : 
-    def __init__(self, frame, pos_x, pos_y ): #clase padre de jugador  (atributos de frame, y psocicion de X, Y y frame)
+    def __init__(self, frame, pos_x, pos_y , velocidad, skin): #clase padre de jugador  (atributos de frame, y psocicion de X, Y y frame)
         self.frame = frame
         self.x= pos_x
         self.y= pos_y
+        self.velocidad = velocidad #asigna la velocidad del jugador
+        self.skin = skin
+    def mover(self): #metodo para mover al jugador, recibe el frame actual y la velocidad: 
+        #metodo para mover al jugador, recibe el frame actual
+
+        keys = pg.key.get_pressed()
+        if keys[pg.K_LEFT]:
+            self.x -= self.velocidad
+        if keys[pg.K_RIGHT]:
+            self.x += self.velocidad
+        if keys[pg.K_UP]:  
+            self.y -= self.velocidad
+        if keys[pg.K_DOWN]:
+            self.y += self.velocidad
+        #actualiza la posicion del jugador en el frame  
+        self.frame.blit(self.skin, (self.x, self.y))
+
+class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
+    def __init__(self, frame, pos_x, pos_y, skin):
+        super().__init__(frame, pos_x, pos_y,5,skin) #llama al constructor de la clase padre
 
 
 
@@ -31,16 +51,34 @@ class Jugador :
 #commons de pygame (literalmente el inicio de pygame)
 pg.init()
 screen= pg.display.set_mode((800, 600)) #tamano de pantalla
-pg.display.set_caption("picha") #Nombre de la ventana
+pg.display.set_caption("El hombre que tiraba bombas") #Nombre de la ventana
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
-#SPRITES
-# JUGADOR  : 
-#- se va a tener que crear un sprite para cada jugador, y cada uno va a tener su skin
-placeholder_skin= pygame.import.image("placeholder.png") #placeholder para el skin del jugador
+#-----------------------GLOBALES------------------------------
+estado= "menu" #estado del juego, puede ser "menu", "juego", "pausa", etc.  
+#-----------------------SPRITES------------------------------
 
+# JUGADOR  :
+placeholder_skin= pg.image.load("assets/sprites/perro.png") #placeholder para el skin del jugador
+
+#-----------------------JUGADORES------------------------------
+#instancia del jugador 1    
+Player_1 = Jugador_1(screen, 100, 100, placeholder_skin) #crea una instancia del jugador 1 con el frame, posicion y skin
+
+#estados de juego :
+def pantalla_inicio() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE INICIO
+    screen.fill("white") 
+    Player_1.mover()  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
+
+#ALERTS : 
 while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
+    #cambiador de estado
+    if estado == "menu":
+        pantalla_inicio()  # Llama a la función para mostrar la pantalla de inicio
+
+    for event in pg.event.get():
+        if event.type == pg.QUIT:
+            pg.quit()
             sys.exit()  
+    pg.display.flip()
+    reloj.tick(45)
