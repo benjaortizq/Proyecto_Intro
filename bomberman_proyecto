@@ -55,7 +55,7 @@ pg.display.set_caption("El hombre que tiraba bombas") #Nombre de la ventana
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 #-----------------------GLOBALES------------------------------
-estado= "menu" #estado del juego, puede ser "menu", "juego", "pausa", etc.  
+estado= "start" #se inicializa el estado del juego como "start", que representa el menu de inicio
 #-----------------------SPRITES------------------------------
 
 # JUGADOR  :
@@ -70,10 +70,9 @@ def pantalla_inicio() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE INICIO
     screen.fill("white") 
     Player_1.mover()  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
 
-#ALERTS : 
 while True:
     #cambiador de estado
-    if estado == "menu":
+    if estado == "start":    #SI EL ESTADO ES MENU, MUESTRA LA PANTALLA DE INICIO
         pantalla_inicio()  # Llama a la función para mostrar la pantalla de inicio
 
     for event in pg.event.get():
