@@ -27,6 +27,24 @@ class SpriteSheet ():
 
         return image
 
+class Boton : 
+    def __init__(self, x, y, width, height, text, font, color, hover_color):
+        self.rect = pg.Rect(x, y, width, height)  # Crea un rectángulo para el botón
+        self.text = text  # Texto del botón
+        self.font = font  # Fuente del texto
+        self.color = color  # Color normal del botón
+        self.hover_color = hover_color  # Color al pasar el mouse sobre el botón
+
+    def draw(self, surface):
+        mouse_pos = pg.mouse.get_pos()  # Obtiene la posición del mouse
+        if self.rect.collidepoint(mouse_pos):  # Verifica si el mouse está sobre el botón
+            pg.draw.rect(surface, self.hover_color, self.rect)  # Dibuja el botón con el color de hover
+        else:
+            pg.draw.rect(surface, self.color, self.rect)  # Dibuja el botón con el color normal
+        
+        text_surface = self.font.render(self.text, True, (255, 255, 255))  # Renderiza el texto del botón
+        text_rect = text_surface.get_rect(center=self.rect.center)  # Centra el texto en el botón
+        surface.blit(text_surface, text_rect)  # Dibuja el texto en la superficie
 # -------------------------------------------------------CLASES DEL JUEGO-------------------------------------------
 # Clase Jugador: Representa al jugador en el juego.
 class Jugador : 
@@ -106,10 +124,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
             self.ejecutando_habilidad = False
             self.cambiar_spritesheet(self.spritesheet_idle)
             print("Habilidad detenida al soltar espacio")
-class Preview_J(Jugador_1) :
-    def __init__(self, area_juego, pos_x, pos_y, spritesheet,frame_count,F_w,f_H,scale,colour):
-        super().__init__(area_juego, pos_x, pos_y, spritesheet,frame_count,F_w,f_H,scale,colour,"placeholder")
-        self.habilidad= "placeholder" #placeholder para la habilidad del jugador
+
 
 
 #TODO : LITERALMENTE ABSOLUTAMENTE TODO.
@@ -132,14 +147,14 @@ estado= "juego" #se inicializa el estado del juego como "start", que representa 
 imp_sps_intangible= pg.image.load("assets\sprites\players\intangible\idle (2).png").convert_alpha() #placeholder para el sprite intangible
 imp_sps_intalgible_hab= pg.image.load("assets\sprites\players\intangible\invisible.png").convert_alpha() #placeholder para el sprite intangible de habilidad
 imp_sps_intangible_run= pg.image.load("assets\sprites\players\intangible\correr.png").convert_alpha() #placeholder para el sprite intangible de correr
-game_surface = pg.Surface((800,450)) #superficie del juego, que es el fondo de la pantalla
+game_surface = pg.Surface((800,500)) #superficie del juego, que es el fondo de la pantalla
 #-----------------------JUGADORES------------------------------
 #instancia del jugador 1    
 spritesheet_idle_int= SpriteSheet(imp_sps_intangible) #crea una instancia de la clase SpriteSheet con el sprite del jugador
 spritesheet_habilidad_int= SpriteSheet(imp_sps_intalgible_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
 sritesheet_run_int = SpriteSheet(imp_sps_intangible_run) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
 
-Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,2,"black", "me gusta el pito") #crea una instancia del jugador 1 con el frame, posicion y skin
+Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,2,"black", "Invisibilidad") #crea una instancia del jugador 1 con el frame, posicion y skin
 
 #estados de juego :
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
@@ -147,9 +162,9 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
     Player_1.mover()
     Player_1.ejecutar_habilidad() 
-    screen.blit(game_surface,(0,150))  # Dibuja la superficie del juego en la pantalla
+    screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
 
-def pantalla_creacion_niveles () : 
+def pantalla_seleccion_jugador () : 
     screen.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
     return
 
@@ -158,7 +173,7 @@ while True:
     if estado == "juego":  # Si el estado es "juego", se muestra la pantalla de juego
         pantalla_juego()
     elif estado == "creacion_niveles":  # Si el estado es "creacion_niveles", se muestra la pantalla de creación de niveles
-        pantalla_creacion_niveles()
+        pantalla_seleccion_jugador()
     else:  # Si el estado no es reconocido, se muestra un mensaje de error
         print("Estado no reconocido")
     for event in pg.event.get():
