@@ -6,38 +6,77 @@
 
 
 import pygame as pg
+import time as t
 import random 
 import sys 
 import os 
 
 #Aqui epiezan las clases del juego
-# Clase Jugador
+#----------------------------------------------------------COMMONS DE PYGAME---------------------------------------
+
+# Clase SpriteSheet: Carga una hoja de sprites y permite obtener imágenes individuales.
+class SpriteSheet (): 
+    def __init__(self, image):
+        self.sheet = image
+    
+    def get_image(self, frame, width, height, scale, colour):
+        image = pg.Surface((width, height)).convert_alpha()
+        image.blit(self.sheet, (0, 0), ((frame * width), 0, width, height))
+        image = pg.transform.scale(image, (width * scale, height * scale))
+        image.set_colorkey(colour)
+
+        return image
+
+# -------------------------------------------------------CLASES DEL JUEGO-------------------------------------------
+# Clase Jugador: Representa al jugador en el juego.
 class Jugador : 
-    def __init__(self, frame, pos_x, pos_y , velocidad, skin): #clase padre de jugador  (atributos de frame, y psocicion de X, Y y frame)
+    def __init__(self, frame, pos_x, pos_y, velocidad, spritesheet, frame_count, width_frame, height_frame, scale, colour): 
         self.frame = frame
-        self.x= pos_x
-        self.y= pos_y
-        self.velocidad = velocidad #asigna la velocidad del jugador
-        self.skin = skin
+        self.x = pos_x
+        self.y = pos_y
+        self.velocidad = velocidad
+        self.spritesheet = spritesheet
+        self.frame_count = frame_count
+        self.width_frame = width_frame
+        self.height_frame = height_frame
+        self.scale = scale
+        self.colour = colour
+        self.last_update = t.time()
+        self.current_frame = 0
+        self.current_skin = self.spritesheet.get_image(0, width_frame, height_frame, scale, colour)
+     
+    def animacion_skin(self) : 
+        current_time = t.time()
+        if current_time - self.last_update > 0.02:  # Cambio de frame cada 0.2 segundos
+            self.last_update = current_time
+            self.current_frame = (self.current_frame + 1) % self.frame_count
+            self.current_skin = self.spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
+
     def mover(self): #metodo para mover al jugador, recibe el frame actual y la velocidad: 
         #metodo para mover al jugador, recibe el frame actual
+        self.animacion_skin()
+
         largo= self.frame.get_width() #ancho del frame
-        alto= self.frame.get_height()
+        alto= self.frame.get_height()   #alto del frame
+        h_player= self.current_skin.get_height() #alto del jugador
+        w_player= self.current_skin.get_width() #ancho del jugador
         #verifica que el jugador no se salga del frame
-        keys = pg.key.get_pressed()
+        keys = pg.key.get_pressed() #mover el pene
         if keys[pg.K_LEFT] and self.x > 0:
             self.x -= self.velocidad
-        if keys[pg.K_RIGHT] and self.x + self.skin.get_width() < largo:
+        if keys[pg.K_RIGHT] and self.x + w_player < largo:
             self.x += self.velocidad
         if keys[pg.K_UP] and self.y > 0:
             self.y -= self.velocidad
-        if keys[pg.K_DOWN] and self.y + self.skin.get_height() < alto:
+        if keys[pg.K_DOWN] and self.y + h_player < alto:
             self.y += self.velocidad
         #actualiza la posicion del jugador en el frame  
-        self.frame.blit(self.skin, (self.x, self.y))
+        self.frame.blit(self.current_skin, (self.x, self.y))
 class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
-    def __init__(self, frame, pos_x, pos_y, skin,habilidad):
-        super().__init__(frame, pos_x, pos_y,5,skin)
+    def __init__(self, frame, pos_x, pos_y, spritesheet,frame_count,scale,colour,habilidad):
+        width_frame = frame.get_width() 
+        height_frame = frame.get_height()
+        super().__init__( frame, pos_x, pos_y, 5, spritesheet, frame_count, width_frame, height_frame, scale, colour)
         self.habilidad=habilidad
     def ejecutar_habilidad(self ) :
         keys = pg.key.get_pressed()
@@ -61,30 +100,38 @@ pg.display.set_caption("El hombre que tiraba bombas") #Nombre de la ventana
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 #-----------------------GLOBALES------------------------------
-estado= "start" #se inicializa el estado del juego como "start", que representa el menu de inicio
+estado= "juego" #se inicializa el estado del juego como "start", que representa el menu de inicio
 #-----------------------SPRITES------------------------------
 
 #placeholders 
-placeholder_skin= pg.image.load("assets/sprites/perro.png").convert_alpha() #placeholder para el skin del jugador
+#placeholder_skin= pg.image.load("assets/sprites/perro.png").convert_alpha() #placeholder para el skin del jugador
+imp_sps_intangible= pg.image.load("assets\sprites\players\intangible\idle (1).png").convert_alpha() #placeholder para el sprite intangible
 game_surface = pg.Surface((800,450)) #superficie del juego, que es el fondo de la pantalla
 #-----------------------JUGADORES------------------------------
 #instancia del jugador 1    
-Player_1 = Jugador_1(game_surface, 100, 100, placeholder_skin, "me gusta el pito") #crea una instancia del jugador 1 con el frame, posicion y skin
+spritesheet_idle_int= SpriteSheet(imp_sps_intangible) #crea una instancia de la clase SpriteSheet con el sprite del jugador
+Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,9,2,"black", "me gusta el pito") #crea una instancia del jugador 1 con el frame, posicion y skin
 
 #estados de juego :
-def pantalla_inicio() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE INICIO
+def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
     screen.fill("white")
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
     Player_1.mover()
     Player_1.ejecutar_habilidad() 
     screen.blit(game_surface,(0,150))  # Dibuja la superficie del juego en la pantalla
 
+def pantalla_creacion_niveles () : 
+    screen.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
+    return
 
 while True:
-    #cambiador de estado
-    if estado == "start":    #SI EL ESTADO ES MENU, MUESTRA LA PANTALLA DE INICIO
-        pantalla_inicio()  # Llama a la función para mostrar la pantalla de inicio
-
+#cambiador de estado
+    if estado == "juego":  # Si el estado es "juego", se muestra la pantalla de juego
+        pantalla_juego()
+    elif estado == "creacion_niveles":  # Si el estado es "creacion_niveles", se muestra la pantalla de creación de niveles
+        pantalla_creacion_niveles()
+    else:  # Si el estado no es reconocido, se muestra un mensaje de error
+        print("Estado no reconocido")
     for event in pg.event.get():
         if event.type == pg.QUIT:
             pg.quit()
