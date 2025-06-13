@@ -47,7 +47,7 @@ class Jugador :
      
     def animacion_skin(self) : 
         current_time = t.time()
-        if current_time - self.last_update > 0.2 : # Cambio de frame cada 0.2 segundos
+        if current_time - self.last_update > 0.1 : # Cambio de frame cada 0.2 segundos
             self.last_update = current_time
             self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
             print (self.current_frame)
@@ -79,7 +79,10 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         keys = pg.key.get_pressed()
         if keys[pg.K_SPACE]:  # Si se presiona la tecla de espacio
             print(f"Ejecutando habilidad: {self.habilidad}")  
-
+class Preview_J(Jugador) :
+    def __init__(self, area_juego, pos_x, pos_y, spritesheet,frame_count,F_w,f_H,scale,colour):
+        super().__init__(area_juego, pos_x, pos_y, spritesheet,frame_count,F_w,f_H,scale,colour,"placeholder")
+        self.habilidad= "placeholder" #placeholder para la habilidad del jugador
 
 
 
