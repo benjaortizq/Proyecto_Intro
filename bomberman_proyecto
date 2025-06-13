@@ -75,11 +75,30 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
     def __init__(self, area_juego, pos_x, pos_y, spritesheet,frame_count,F_w,f_H,scale,colour,habilidad):
         super().__init__( area_juego, pos_x, pos_y, 5, spritesheet, frame_count,F_w,f_H, scale, colour)
         self.habilidad=habilidad
+        self.ejecutando_habilidad = False
+        self.tiempo_inicio_habilidad = 0
+        self.max_tiempo_habilidad = 5  # 5 segundos máximo
     def ejecutar_habilidad(self ) :
         keys = pg.key.get_pressed()
-        if keys[pg.K_SPACE]:  # Si se presiona la tecla de espacio
-            print(f"Ejecutando habilidad: {self.habilidad}")  
-class Preview_J(Jugador) :
+        current_time = t.time()
+        # Iniciar habilidad al presionar espacio
+        if keys[pg.K_SPACE] and not self.ejecutando_habilidad:
+            self.ejecutando_habilidad = True
+            self.tiempo_inicio_habilidad = current_time
+            print(f"Iniciando habilidad: {self.habilidad}")
+        
+        # Detener si pasa el tiempo máximo
+        if self.ejecutando_habilidad:
+            tiempo_transcurrido = current_time - self.tiempo_inicio_habilidad
+            if tiempo_transcurrido > self.max_tiempo_habilidad:
+                self.ejecutando_habilidad = False
+                print("Habilidad detenida por tiempo máximo")
+        
+        # Detener al soltar la tecla
+        if not keys[pg.K_SPACE] and self.ejecutando_habilidad:
+            self.ejecutando_habilidad = False
+            print("Habilidad detenida al soltar espacio")
+class Preview_J(Jugador_1) :
     def __init__(self, area_juego, pos_x, pos_y, spritesheet,frame_count,F_w,f_H,scale,colour):
         super().__init__(area_juego, pos_x, pos_y, spritesheet,frame_count,F_w,f_H,scale,colour,"placeholder")
         self.habilidad= "placeholder" #placeholder para la habilidad del jugador
@@ -89,7 +108,7 @@ class Preview_J(Jugador) :
         
 
 #TODO : LITERALMENTE ABSOLUTAMENTE TODO.
-
+#ocupo tipo scar tiempo. si en 0,5s no se presiona ninguna tecla entonces el sprote es el statico, si en n se presiona deacruerdo al movimiento cambia el sprite. sis e presiona el de habiliad, entones se muestra el speiret habilidad.
 
 #-----------------------pygame------------------------------
 
@@ -106,10 +125,15 @@ estado= "juego" #se inicializa el estado del juego como "start", que representa 
 #placeholders 
 #placeholder_skin= pg.image.load("assets/sprites/perro.png").convert_alpha() #placeholder para el skin del jugador
 imp_sps_intangible= pg.image.load("assets\sprites\players\intangible\idle (2).png").convert_alpha() #placeholder para el sprite intangible
+imp_sps_intalgible_hab= pg.image.load("assets\sprites\players\intangible\invisible.png").convert_alpha() #placeholder para el sprite intangible de habilidad
+imp_sps_intangible_run= pg.image.load("assets\sprites\players\intangible\correr.png").convert_alpha() #placeholder para el sprite intangible de correr
 game_surface = pg.Surface((800,450)) #superficie del juego, que es el fondo de la pantalla
 #-----------------------JUGADORES------------------------------
 #instancia del jugador 1    
 spritesheet_idle_int= SpriteSheet(imp_sps_intangible) #crea una instancia de la clase SpriteSheet con el sprite del jugador
+spritesheet_habilidad_int= SpriteSheet(imp_sps_intalgible_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
+sritesheet_run_int = SpriteSheet(imp_sps_intangible_run) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
+
 Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,9,32,32,2,"black", "me gusta el pito") #crea una instancia del jugador 1 con el frame, posicion y skin
 
 #estados de juego :
@@ -136,5 +160,6 @@ while True:
         if event.type == pg.QUIT:
             pg.quit()
             sys.exit()  
+
     pg.display.flip()
     reloj.tick(45)
