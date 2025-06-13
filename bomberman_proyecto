@@ -30,16 +30,16 @@ class SpriteSheet ():
 # -------------------------------------------------------CLASES DEL JUEGO-------------------------------------------
 # Clase Jugador: Representa al jugador en el juego.
 class Jugador : 
-    def __init__(self, frame, pos_x, pos_y, velocidad, spritesheet, frame_count, width_frame, height_frame, scale, colour): 
-        self.frame = frame
+    def __init__(self, area_juego, pos_x, pos_y, velocidad, spritesheet, frame_count, frame_w,frame_h, scale, colour): 
+        self.area_juego = area_juego #superficie del juego donde se dibuja el jugador
         self.x = pos_x
         self.y = pos_y
-        self.velocidad = velocidad
-        self.spritesheet = spritesheet
-        self.frame_count = frame_count
-        self.width_frame = width_frame
-        self.height_frame = height_frame
-        self.scale = scale
+        self.velocidad = velocidad              #velocidad del jugador
+        self.spritesheet = spritesheet          #LA SPRITESHEET DEL JUGADOR
+        self.frame_count = frame_count          #CAANTIDAD DE FRAMES DE LA SKIN DEL JUGAODR
+        self.width_frame = frame_w
+        self.height_frame = frame_h   #esto siempre es estatico. como las spritesheets son horizontales entonces esto que qeuda asi . 
+        self.scale = scale                              #multiplicador de escala para el sprite
         self.colour = colour
         self.last_update = t.time()
         self.current_frame = 0
@@ -49,33 +49,31 @@ class Jugador :
         current_time = t.time()
         if current_time - self.last_update > 0.2 : # Cambio de frame cada 0.2 segundos
             self.last_update = current_time
-            self.current_frame = ((self.current_frame + 1) % self.frame_count)
+            self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
             print (self.current_frame)
-        self.current_skin = self.spritesheet.get_image( self.current_frame, 30,  30, self.scale, self.colour)
+        self.current_skin = self.spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
 
     def mover(self): #metodo para mover al jugador, recibe el frame actual y la velocidad: 
         #metodo para mover al jugador, recibe el frame actual
         self.animacion_skin()
 
-        largo= self.frame.get_width() #ancho del frame
-        alto= self.frame.get_height()   #alto del frame
-        h_player= self.current_skin.get_height() #alto del jugador
-        w_player= self.current_skin.get_width() #ancho del jugador
+        largo= self.area_juego.get_width() #ancho del frame
+        alto= self.area_juego.get_height()   #alto del frame
         #verifica que el jugador no se salga del frame
         keys = pg.key.get_pressed() #mover el pene
         if keys[pg.K_LEFT] and self.x > 0:
             self.x -= self.velocidad
-        if keys[pg.K_RIGHT] and self.x + w_player < largo:
+        if keys[pg.K_RIGHT] and self.x + self.width_frame < largo:
             self.x += self.velocidad
         if keys[pg.K_UP] and self.y > 0:
             self.y -= self.velocidad
-        if keys[pg.K_DOWN] and self.y + h_player < alto:
+        if keys[pg.K_DOWN] and self.y +  self.height_frame < alto:
             self.y += self.velocidad
         #actualiza la posicion del jugador en el frame  
-        self.frame.blit(self.current_skin, (self.x, self.y))
+        self.area_juego.blit(self.current_skin, (self.x, self.y))
 class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
-    def __init__(self, frame, pos_x, pos_y, spritesheet,frame_count,scale,colour,habilidad):
-        super().__init__( frame, pos_x, pos_y, 5, spritesheet, frame_count, 29, 29, scale, colour)
+    def __init__(self, area_juego, pos_x, pos_y, spritesheet,frame_count,F_w,f_H,scale,colour,habilidad):
+        super().__init__( area_juego, pos_x, pos_y, 5, spritesheet, frame_count,F_w,f_H, scale, colour)
         self.habilidad=habilidad
     def ejecutar_habilidad(self ) :
         keys = pg.key.get_pressed()
@@ -109,7 +107,7 @@ game_surface = pg.Surface((800,450)) #superficie del juego, que es el fondo de l
 #-----------------------JUGADORES------------------------------
 #instancia del jugador 1    
 spritesheet_idle_int= SpriteSheet(imp_sps_intangible) #crea una instancia de la clase SpriteSheet con el sprite del jugador
-Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,9,2,"black", "me gusta el pito") #crea una instancia del jugador 1 con el frame, posicion y skin
+Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,9,32,32,2,"black", "me gusta el pito") #crea una instancia del jugador 1 con el frame, posicion y skin
 
 #estados de juego :
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
