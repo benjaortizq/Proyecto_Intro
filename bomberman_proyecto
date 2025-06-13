@@ -43,14 +43,15 @@ class Jugador :
         self.colour = colour
         self.last_update = t.time()
         self.current_frame = 0
-        self.current_skin = self.spritesheet.get_image(0, 29, 29, scale, colour)
+        self.current_skin = self.spritesheet.get_image(0, 30, 30, scale, colour)
      
     def animacion_skin(self) : 
         current_time = t.time()
-        if current_time - self.last_update > 0.000001:  # Cambio de frame cada 0.2 segundos
+        if current_time - self.last_update > 0.2 : # Cambio de frame cada 0.2 segundos
             self.last_update = current_time
-            self.current_frame = (self.current_frame + 1) % self.frame_count
-            self.current_skin = self.spritesheet.get_image( self.current_frame, 29,  29, self.scale, self.colour)
+            self.current_frame = ((self.current_frame + 1) % self.frame_count)
+            print (self.current_frame)
+        self.current_skin = self.spritesheet.get_image( self.current_frame, 30,  30, self.scale, self.colour)
 
     def mover(self): #metodo para mover al jugador, recibe el frame actual y la velocidad: 
         #metodo para mover al jugador, recibe el frame actual
@@ -74,9 +75,7 @@ class Jugador :
         self.frame.blit(self.current_skin, (self.x, self.y))
 class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
     def __init__(self, frame, pos_x, pos_y, spritesheet,frame_count,scale,colour,habilidad):
-        width_frame = frame.get_width() 
-        height_frame = frame.get_height()
-        super().__init__( frame, pos_x, pos_y, 5, spritesheet, frame_count, width_frame, height_frame, scale, colour)
+        super().__init__( frame, pos_x, pos_y, 5, spritesheet, frame_count, 29, 29, scale, colour)
         self.habilidad=habilidad
     def ejecutar_habilidad(self ) :
         keys = pg.key.get_pressed()
@@ -105,7 +104,7 @@ estado= "juego" #se inicializa el estado del juego como "start", que representa 
 
 #placeholders 
 #placeholder_skin= pg.image.load("assets/sprites/perro.png").convert_alpha() #placeholder para el skin del jugador
-imp_sps_intangible= pg.image.load("assets\sprites\players\intangible\idle (1).png").convert_alpha() #placeholder para el sprite intangible
+imp_sps_intangible= pg.image.load("assets\sprites\players\intangible\idle (2).png").convert_alpha() #placeholder para el sprite intangible
 game_surface = pg.Surface((800,450)) #superficie del juego, que es el fondo de la pantalla
 #-----------------------JUGADORES------------------------------
 #instancia del jugador 1    
