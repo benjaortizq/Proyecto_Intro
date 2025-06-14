@@ -57,9 +57,9 @@ class Boton :
     def draw(self, surface):
         mouse_pos = pg.mouse.get_pos()  # Obtiene la posición del mouse
         if self.rect.collidepoint(mouse_pos):  # Verifica si el mouse está sobre el botón
-            pg.draw.rect(surface, self.hover_color, self.rect,int(self.size*0.5),int(self.size*0.1))  # Dibuja el botón con el color de hover
+            pg.draw.rect(surface, self.hover_color, self.rect,int(self.size*0.55),int(self.size*0.2))  # Dibuja el botón con el color de hover
         else:
-            pg.draw.rect(surface, self.color, self.rect,int(self.size*0.5),int(self.size*0.1))  # Dibuja el botón con el color normal
+            pg.draw.rect(surface, self.color, self.rect,int(self.size*0.55),int(self.size*0.2))  # Dibuja el botón con el color normal
           # Establece el tamaño de la fuente
         text_surface = self.font.render(self.text, True, (255, 255, 255))  # Renderiza el texto del botón
         text_rect = text_surface.get_rect(center=self.rect.center)  # Centra el texto en el botón
@@ -159,7 +159,7 @@ pg.display.set_caption("El hombre que tiraba bombas") #Nombre de la ventana
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 #-----------------------GLOBALES------------------------------
-estado= "juego" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+estado= "seleccion_personaje" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 #-----------------------SPRITES------------------------------
 
 #-------------area de juego-----------
@@ -183,6 +183,7 @@ sritesheet_run_int = SpriteSheet(imp_sps_intangible_run) #crea una instancia de 
 
 Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,2,"black", "Invisibilidad") #placeholder de player1
 #VARIABLES GLOBALES 
+font = pg.font.Font("fonts/Pixeltype.ttf", 20) #fuente para mostrar info de cada skin del player
 font0= pg.font.Font("fonts/Pixeltype.ttf", 30) #fuente para mostrar info de cada skin del player
 font1= pg.font.Font("fonts/Pixeltype.ttf", 50) #fuente para mostrar titulo de cada skin de player   
 skin_seleccionada = 0                   #variable global para controlar la skin que selecciona en la aprte de seleccion de jugador (skin)
@@ -191,8 +192,8 @@ skin_viendo=0
 
 
 ##BOTONES GLOBALES 
-boton_siguiente_opcion= Boton(300, 470, 150, 30, "Siguiente", "fonts/Pixeltype.ttf", 30, (44, 62, 80), (52, 73, 94 ), skin_viendo,"int") #"crea un boton de siguiente opcion (tiene que estar afuera por tipo int)
-boton_seleccionar = Boton(300, 520, 150, 30, "Seleccionar", "fonts/Pixeltype.ttf", 30, (44, 62, 80), (52, 73, 94 ), skin_seleccionada,"int") #crea un boton de seleccionar
+boton_siguiente_opcion= Boton(300, 500, 150, 30, "Siguiente", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 ), skin_viendo,"int") #"crea un boton de siguiente opcion (tiene que estar afuera por tipo int)
+boton_seleccionar = Boton(300, 540, 150, 30, "Seleccionar", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 ), skin_seleccionada,"int") #crea un boton de seleccionar
 #estados de juego :
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
     screen.fill("white")
@@ -215,26 +216,43 @@ def pantalla_seleccion_jugador () :
     if skin_viendo > 2: 
         skin_viendo %=3
     if skin_viendo == 0:
-        Titulo_skin= font1.render ("Intangible", True, (198, 28, 232)) #texto que muestra el nombre de la skin")
+        Titulo_skin= font1.render ("  Intangible", True, (198, 28, 232)) #texto que muestra el nombre de la skin")
          #dibuja el texto en la pantalla
         desc_skin = font0.render("'Es famoso porque nadie lo ve'", True, (255, 255, 255)) #texto que muestra la descripcion de la skin
-        desc_skin2 = font0.render("    Habilidad especial: In-Veincible ", True, (255, 255, 255)) #texto que muestra la descripcion de la skin
+        desc_skin2 = font0.render("     Habilidad especial: In-Tangible ", True, (69, 229, 222)) #texto que muestra la descripcion de la skin
+        desc_skin3= font0.render("      Este mago conoce las artes oscuras.", True, (129, 133, 137))
+        desc_skin4= font0.render("Su habilidad especial es que puede atravesar ", True, (129, 133, 137))
+        desc_skin5= font0.render("           Paredes y enemigos con facilidad ", True, (129, 133, 137))
         preview= pg.transform.scale(preview_intangible, (200, 200)) #escala el preview del jugador intangible
     elif skin_viendo == 1:
-        Titulo_skin= font1.render (" Kamikaze", True, (248, 147, 18)) #texto que muestra el nombre de la skin")
-        desc_skin = font0.render("    ' Un alma por una bomba '", True, (255, 255, 255)) #texto que muestra la descripcion de la skin
-        desc_skin2 = font0.render("      Habilidad especial: Sacrifice ", True, (255, 255, 255)) #texto que muestra la descripcion de la skin
+        Titulo_skin= font1.render ("   Kamikaze", True, (248, 147, 18)) #texto que muestra el nombre de la skin")
+        desc_skin = font0.render("      ' Un alma por una bomba '", True, (255, 255, 255)) #texto que muestra la descripcion de la skin
+        desc_skin2 = font0.render("       Habilidad especial: Sacrifice ", True, (202, 28, 28)) #texto que muestra la descripcion de la skin
+        desc_skin3= font0.render("Este comerciante conoce sus negocios.", True, (129, 133, 137))
+        desc_skin4= font0.render("      Intercambia con los espiritus almas por ", True, (129, 133, 137))
+        desc_skin5= font0.render("                       bombas y viceversa.", True, (129, 133, 137))
         preview = pg.transform.scale(preview_kamikaze, (200, 200)) #escala el preview del jugador kamikaze
     elif skin_viendo == 2:
-        Titulo_skin= font1.render ("  Tactico", True, (127,169,7)) #texto que muestra el nombre de la skin")
+        Titulo_skin= font1.render ("    Tactico", True, (127,169,7)) #texto que muestra el nombre de la skin")
         desc_skin = font0.render("    '   El hombre que calcula  '", True, (255, 255, 255)) #texto que muestra la descripcion de la skin
-        desc_skin2 = font0.render("Habilidad especial: TACTICAL NUKE ", True, (255, 255, 255)) #texto que muestra la descripcion de la skin
+        desc_skin2 = font0.render("Habilidad especial: TACTICAL NUKE ", True, (32, 104, 0)) #texto que muestra la descripcion de la skin
+        desc_skin3= font0.render("          El famosisimo Beremiz Samir, que ", True, (129, 133, 137))
+        desc_skin4= font0.render("tocado por la guerra fue. Su habilidad le permite", True, (129, 133, 137))
+        desc_skin5= font0.render("calcular un misil en donde sus enemigos estan ", True, (129, 133, 137))
         preview = pg.transform.scale(preview_tactico, (200, 200))
+
+    if skin_seleccionada == 0 : 
+        Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,2,"black", "Invisibilidad")
+    elif skin_seleccionada == 1 :
+        None
  
     screen.blit(Titulo_skin, (300, 50))
     screen.blit(desc_skin, (257, 100))  # Dibuja la descripción de la skin en la pantalla
-    screen.blit(desc_skin2, (235, 130))  # Dibuja la descripción de la skin en la pantalla
-    screen.blit(preview, (300, 200))  # Dibuja el preview del jugador en la pantalla
+    screen.blit(desc_skin2, (235, 360))  # Dibuja la descripción de la skin en la pantalla
+    screen.blit(desc_skin3, (200, 400))  # Dibuja la descripción de la skin en la pantalla
+    screen.blit(desc_skin4, (175, 420))  # Dibuja la descripción de la skin en la pantalla
+    screen.blit(desc_skin5, (190, 440))  # Dibuja la descripción de la skin en la pantalla
+    screen.blit(preview, (290, 135))  # Dibuja el preview del jugador en la pantalla
 
 
 
