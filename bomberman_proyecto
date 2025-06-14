@@ -159,7 +159,7 @@ pg.display.set_caption("El hombre que tiraba bombas") #Nombre de la ventana
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 #-----------------------GLOBALES------------------------------
-estado= "seleccion_personaje" #se inicializa el estado del juego como "start", que representa el menu de inicio
+estado= "seleccion_personaje" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 #-----------------------SPRITES------------------------------
 
 #-------------area de juego-----------
