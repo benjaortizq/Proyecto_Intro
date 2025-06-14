@@ -40,9 +40,9 @@ class Boton :
     def draw(self, surface):
         mouse_pos = pg.mouse.get_pos()  # Obtiene la posición del mouse
         if self.rect.collidepoint(mouse_pos):  # Verifica si el mouse está sobre el botón
-            pg.draw.rect(surface, self.hover_color, self.rect)  # Dibuja el botón con el color de hover
+            pg.draw.rect(surface, self.hover_color, self.rect,int(self.size*0.5),int(self.size*0.1))  # Dibuja el botón con el color de hover
         else:
-            pg.draw.rect(surface, self.color, self.rect)  # Dibuja el botón con el color normal
+            pg.draw.rect(surface, self.color, self.rect,int(self.size*0.5),int(self.size*0.1))  # Dibuja el botón con el color normal
           # Establece el tamaño de la fuente
         text_surface = self.font.render(self.text, True, (255, 255, 255))  # Renderiza el texto del botón
         text_rect = text_surface.get_rect(center=self.rect.center)  # Centra el texto en el botón
@@ -128,7 +128,8 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
             self.cambiar_spritesheet(self.spritesheet_idle)
             print("Habilidad detenida al soltar espacio")
 
-class Preview_jugador () : #clase aparte de jugador (no es hija ni tiene jerarquia con jugador original). literalmente muestra el preview del jugador apra el coso de seleccion de personaje
+class Preview_jugador () :
+    None #clase aparte de jugador (no es hija ni tiene jerarquia con jugador original). literalmente muestra el preview del jugador apra el coso de seleccion de personaje
 
 #ocupo tipo scar tiempo. si en 0,5s no se presiona ninguna tecla entonces el sprote es el statico, si en n se presiona deacruerdo al movimiento cambia el sprite. sis e presiona el de habiliad, entones se muestra el speiret habilidad.
 
@@ -173,7 +174,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
 
 def pantalla_seleccion_jugador () : 
     screen.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
-    boton_siguiente_opcion= Boton(300, 400, 200, 50, "Siguiente", "fonts/Pixeltype.ttf", 30, "blue", "lightblue", "seleccion_personaje",) #crea un boton de siguiente opcion
+    boton_siguiente_opcion= Boton(300, 400, 150, 30, "Siguiente", "fonts/Pixeltype.ttf", 30, (44, 62, 80), (52, 73, 94 ), "seleccion_personaje",) #crea un boton de siguiente opcion
     boton_siguiente_opcion.draw(screen)  # Dibuja el botón en la pantalla
     return
 
