@@ -159,7 +159,7 @@ pg.display.set_caption("El hombre que tiraba bombas") #Nombre de la ventana
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 #-----------------------GLOBALES------------------------------
-estado= "seleccion_personaje" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+estado= "juego" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 #-----------------------SPRITES------------------------------
 
 #-------------area de juego-----------
@@ -167,7 +167,7 @@ game_surface = pg.Surface((800,500)) #superficie del juego, que es el fondo de l
 #------------------------SPRITES DE JUGADORES------------------------------
 
 #--- Intangible ----
-imp_sps_intangible= pg.image.load("assets\sprites\players\Intangible\idle (2).png").convert_alpha() #placeholder para el sprite intangible
+imp_sps_intangible= pg.image.load("assets\sprites\players\Intangible\idle.png").convert_alpha() #placeholder para el sprite intangible
 imp_sps_intalgible_hab= pg.image.load("assets\sprites\players\Intangible\invisible.png").convert_alpha() #placeholder para el sprite intangible de habilidad
 imp_sps_intangible_run= pg.image.load("assets\sprites\players\Intangible\correr.png").convert_alpha() #placeholder para el sprite intangible de correr
 
@@ -181,7 +181,7 @@ spritesheet_idle_int= SpriteSheet(imp_sps_intangible) #crea una instancia de la 
 spritesheet_habilidad_int= SpriteSheet(imp_sps_intalgible_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
 sritesheet_run_int = SpriteSheet(imp_sps_intangible_run) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
 
-Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,2,"black", "Invisibilidad") #crea una instancia del jugador 1 con el frame, posicion y skin
+Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,2,"black", "Invisibilidad") #placeholder de player1
 #VARIABLES GLOBALES 
 font0= pg.font.Font("fonts/Pixeltype.ttf", 30) #fuente para mostrar info de cada skin del player
 font1= pg.font.Font("fonts/Pixeltype.ttf", 50) #fuente para mostrar titulo de cada skin de player   
