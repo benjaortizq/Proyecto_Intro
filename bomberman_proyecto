@@ -167,11 +167,13 @@ game_surface = pg.Surface((800,500)) #superficie del juego, que es el fondo de l
 #------------------------SPRITES DE JUGADORES------------------------------
 
 #--- Intangible ----
-imp_sps_intangible= pg.image.load("assets\sprites\players\intangible\idle (2).png").convert_alpha() #placeholder para el sprite intangible
-imp_sps_intalgible_hab= pg.image.load("assets\sprites\players\intangible\invisible.png").convert_alpha() #placeholder para el sprite intangible de habilidad
-imp_sps_intangible_run= pg.image.load("assets\sprites\players\intangible\correr.png").convert_alpha() #placeholder para el sprite intangible de correr
+imp_sps_intangible= pg.image.load("assets\sprites\players\Intangible\idle (2).png").convert_alpha() #placeholder para el sprite intangible
+imp_sps_intalgible_hab= pg.image.load("assets\sprites\players\Intangible\invisible.png").convert_alpha() #placeholder para el sprite intangible de habilidad
+imp_sps_intangible_run= pg.image.load("assets\sprites\players\Intangible\correr.png").convert_alpha() #placeholder para el sprite intangible de correr
 
-preview_intangible = pg.image.load("assets\sprites\players\intangible\preview.png").convert_alpha() #placeholder para el sprite intangible de preview
+preview_intangible = pg.image.load("assets\sprites\players\Intangible\preview.png").convert_alpha() 
+preview_tactico = pg.image.load("assets\sprites\players\Tactico\preview.png").convert_alpha() 
+preview_kamikaze = pg.image.load("assets\sprites\players\Kamikaze\preview.png").convert_alpha() 
 #-----------------------SPRITESHEET DE JUGADORES ------------------------------
 
 #instancia del jugador 1    
@@ -208,17 +210,31 @@ def pantalla_seleccion_jugador () :
     nuevo_seleccion = boton_seleccionar.check_click()
     if nuevo_seleccion is not None:
         skin_seleccionada = nuevo_seleccion
+
+
+    if skin_viendo > 2: 
+        skin_viendo %=3
     if skin_viendo == 0:
-        Titulo_skin= font1.render ("Intangible", True, (255, 255, 255)) #texto que muestra el nombre de la skin")
-        screen.blit(Titulo_skin, (300, 50)) #dibuja el texto en la pantalla
+        Titulo_skin= font1.render ("Intangible", True, (198, 28, 232)) #texto que muestra el nombre de la skin")
+         #dibuja el texto en la pantalla
+        desc_skin = font0.render("'Es famoso porque nadie lo ve'", True, (255, 255, 255)) #texto que muestra la descripcion de la skin
+        desc_skin2 = font0.render("    Habilidad especial: In-Veincible ", True, (255, 255, 255)) #texto que muestra la descripcion de la skin
+        preview= pg.transform.scale(preview_intangible, (200, 200)) #escala el preview del jugador intangible
     elif skin_viendo == 1:
-        Titulo_skin= font1.render ("Kamikaze", True, (255, 255, 255)) #texto que muestra el nombre de la skin")
-        screen.blit(Titulo_skin, (300, 50)) #dibuja el texto en la pantalla
+        Titulo_skin= font1.render (" Kamikaze", True, (248, 147, 18)) #texto que muestra el nombre de la skin")
+        desc_skin = font0.render("    ' Un alma por una bomba '", True, (255, 255, 255)) #texto que muestra la descripcion de la skin
+        desc_skin2 = font0.render("      Habilidad especial: Sacrifice ", True, (255, 255, 255)) #texto que muestra la descripcion de la skin
+        preview = pg.transform.scale(preview_kamikaze, (200, 200)) #escala el preview del jugador kamikaze
     elif skin_viendo == 2:
-        Titulo_skin= font1.render ("Tactico", True, (255, 255, 255)) #texto que muestra el nombre de la skin")
-        screen.blit(Titulo_skin, (300, 50)) #dibuja el texto en la pantalla
-    else : 
-        skin_viendo%=3
+        Titulo_skin= font1.render ("  Tactico", True, (127,169,7)) #texto que muestra el nombre de la skin")
+        desc_skin = font0.render("    '   El hombre que calcula  '", True, (255, 255, 255)) #texto que muestra la descripcion de la skin
+        desc_skin2 = font0.render("Habilidad especial: TACTICAL NUKE ", True, (255, 255, 255)) #texto que muestra la descripcion de la skin
+        preview = pg.transform.scale(preview_tactico, (200, 200))
+ 
+    screen.blit(Titulo_skin, (300, 50))
+    screen.blit(desc_skin, (257, 100))  # Dibuja la descripción de la skin en la pantalla
+    screen.blit(desc_skin2, (235, 130))  # Dibuja la descripción de la skin en la pantalla
+    screen.blit(preview, (300, 200))  # Dibuja el preview del jugador en la pantalla
 
 
 
