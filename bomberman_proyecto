@@ -154,16 +154,16 @@ class Preview_jugador () :
 
 #commons de pygame (literalmente el inicio de pygame)
 pg.init()
-screen= pg.display.set_mode((800, 600)) #tamano de pantalla
+screen= pg.display.set_mode((816, 624)) #tamano de pantalla
 pg.display.set_caption("El hombre que tiraba bombas") #Nombre de la ventana
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 #-----------------------GLOBALES------------------------------
-estado= "juego" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+estado = "juego" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 #-----------------------SPRITES------------------------------
 
 #-------------area de juego-----------
-game_surface = pg.Surface((800,600)) #superficie del juego, que es el fondo de la pantalla
+game_surface = pg.Surface((816,624)) #superficie del juego, que es el fondo de la pantalla
 #------------------------SPRITES DE JUGADORES------------------------------
 
 #--- Intangible ----

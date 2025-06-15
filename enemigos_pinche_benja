@@ -63,22 +63,35 @@ class Boton :
 
 #commons de pygame (literalmente el inicio de pygame)
 pg.init()
-screen= pg.display.set_mode((800, 600)) #tamano de pantalla
+screen = pg.display.set_mode((816, 624)) #tamano de pantalla
 pg.display.set_caption("El hombre que tiraba bombas") #Nombre de la ventana
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 #-----------------------GLOBALES------------------------------
-estado= "juego" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+estado = "juego" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 #-----------------------SPRITES------------------------------
 
-#-------------area de juego-----------
-game_surface = pg.Surface((800,600)) #superficie del juego, que es el fondo de la pantalla
 
+#___________________Enemigos y Aparicion de obstaculos________________________
+CELL_SIZE = 48 #tamaño por celda para la aparicion de todo XDXDXDXDX
+W_GRID = 17 #debido a que no es un cuadrado se debe definir un tamaño por ancho y alto
+H_GRID = 13
+
+
+#-------------area de juego-----------
+game_surface = pg.Surface((816,624)) #superficie del juego, que es el fondo de la pantalla
+
+def draw_grid(surface):
+        for row in range(W_GRID):
+            for col in range(H_GRID):
+                rect = pg.Rect(row*CELL_SIZE, col*CELL_SIZE+100, CELL_SIZE, CELL_SIZE)
+                pg.draw.rect(surface, "gray", rect, 1)
 #estados de juego :
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
     screen.fill("white")
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
+    draw_grid(screen)
 
 while True:
 #cambiador de estado
@@ -93,3 +106,5 @@ while True:
 
     pg.display.flip()
     reloj.tick(45)
+
+    
