@@ -146,7 +146,7 @@ class Jugador :
         #actualiza la posicion del jugador en el frame  
         self.area_juego.blit(self.current_skin, (self.x, self.y))
 class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
-    def __init__(self, area_juego, pos_x, pos_y, spritesheet_idle,spritesheet_hab,frame_count,F_w,f_H,scale,colour,habilidad, cant_vidas,color_habilidad ):
+    def __init__(self, area_juego, pos_x, pos_y, spritesheet_idle,spritesheet_hab,frame_count,F_w,f_H,scale,colour,habilidad, cant_vidas,color_habilidad, color_bajada ):
         super().__init__( area_juego, pos_x, pos_y, 5, spritesheet_idle,spritesheet_hab, frame_count,F_w,f_H, scale, colour)
         self.habilidad=habilidad
         self.vida=97 #vida del jugador
@@ -155,12 +155,14 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         self.max_tiempo_habilidad = 5  # 5 segundos máximo
         self.cant_vidas = cant_vidas  # Cantidad de vidas del jugador
         self.color_habilidad = color_habilidad  # Color de la habilidad
+        self.color_subiendo =color_habilidad
         self.barra_habilidad = 0  # Tiempo de recarga de la habilidad
+        self.color_bajada=color_bajada
     def ejecutar_habilidad(self ) :
         keys = pg.key.get_pressed()
         current_time = t.time()
         # Iniciar habilidad al presionar espacio
-        if keys[pg.K_SPACE] and not self.ejecutando_habilidad:
+        if keys[pg.K_SPACE] and not self.ejecutando_habilidad and self.barra_habilidad >50:
             self.ejecutando_habilidad = True
             self.tiempo_inicio_habilidad = current_time
             self.cambiar_spritesheet(self.spritesheet_habilidad)
@@ -169,21 +171,23 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         # Detener si pasa el tiempo máximo
         if self.ejecutando_habilidad:
             tiempo_transcurrido = current_time - self.tiempo_inicio_habilidad
-            self.barra_habilidad -=1 if self.barra_habilidad > 1 else self.barra_habilidad ==0
-            if tiempo_transcurrido > self.max_tiempo_habilidad:
+            self.barra_habilidad -=1 if self.barra_habilidad >= 1 else self.barra_habilidad==1
+            self.color_habilidad = self.color_bajada
+            
+            if tiempo_transcurrido > self.max_tiempo_habilidad or int(self.barra_habilidad)==0:
                 self.ejecutando_habilidad = False
                 self.cambiar_spritesheet(self.spritesheet_idle)
                 print("Habilidad detenida por tiempo máximo")
         
         # Detener al soltar la tecla
-        if not keys[pg.K_SPACE] and self.ejecutando_habilidad:
+        '''if not keys[pg.K_SPACE] and self.ejecutando_habilidad:
             self.ejecutando_habilidad = False
             self.cambiar_spritesheet(self.spritesheet_idle)
-            print("Habilidad detenida al soltar espacio")
+            print("Habilidad detenida al soltar espacio")'''
 
         if not self.ejecutando_habilidad:
-            self.barra_habilidad +=1 if self.barra_habilidad < 100 else self.barra_habilidad ==100
-        print (self.barra_habilidad)
+            self.color_habilidad=self.color_subiendo
+            self.barra_habilidad = min(self.barra_habilidad + 0.1, 100)   #ni idea porque co 99 sirve pero con ese numero me deja la barra en 100 maximo xd  
 
 
 #ocupo tipo scar tiempo. si en 0,5s no se presiona ninguna tecla entonces el sprote es el statico, si en n se presiona deacruerdo al movimiento cambia el sprite. sis e presiona el de habiliad, entones se muestra el speiret habilidad.
@@ -222,7 +226,7 @@ spritesheet_idle_int= SpriteSheet(imp_sps_intangible) #crea una instancia de la 
 spritesheet_habilidad_int= SpriteSheet(imp_sps_intalgible_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
 sritesheet_run_int = SpriteSheet(imp_sps_intangible_run) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
 
-Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,1.5,"black", "Invisibilidad",3,(69, 229, 222) ) #placeholder de player1
+Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,1.5,"black", "Invisibilidad",3,(69, 229, 222), "yellow" ) #placeholder de player1
 #VARIABLES GLOBALES 
 font = pg.font.Font("fonts/Pixeltype.ttf", 20) #fuente para mostrar info de cada skin del player
 font0= pg.font.Font("fonts/Pixeltype.ttf", 30) #fuente para mostrar info de cada skin del player
