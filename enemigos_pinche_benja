@@ -92,7 +92,7 @@ H_GRID = 13
 
 
 #-------------area de juego-----------
-game_surface = pg.Surface((816,624)) #superficie del juego, que es el fondo de la pantalla
+game_surface = pg.Surface((816,524)) #superficie del juego, que es el fondo de la pantalla
 
 #Solo para visualizar la cantidad de espacio que poseemos para jugar, o casillas. Son 187 casillas.
 def draw_grid(surface):
