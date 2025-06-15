@@ -59,6 +59,16 @@ class Boton :
         text_rect = text_surface.get_rect(center=self.rect.center)  # Centra el texto en el botón
         surface.blit(text_surface, text_rect)  # Dibuja el texto en la superficie
 
+#Clase Obstaculo 
+class Obstaculo:
+    def __init__(self, screen, x, y):
+        self.screen = screen
+        self.x = x
+        self.y = y
+        self.rect = pg.Rect(x*CELL_SIZE, y*CELL_SIZE+100, CELL_SIZE, CELL_SIZE)
+        
+    def draw(self):
+        pg.draw.rect(self.screen, "green", self.rect)
 #-----------------------pygame------------------------------
 
 #commons de pygame (literalmente el inicio de pygame)
@@ -69,6 +79,9 @@ reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 #-----------------------GLOBALES------------------------------
 estado = "juego" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+obstacles = [] #lista de posicion de los obstacles
+nivel = 1
+matriz = []
 #-----------------------SPRITES------------------------------
 
 
@@ -81,17 +94,46 @@ H_GRID = 13
 #-------------area de juego-----------
 game_surface = pg.Surface((816,624)) #superficie del juego, que es el fondo de la pantalla
 
+#Solo para visualizar la cantidad de espacio que poseemos para jugar, o casillas. Son 187 casillas.
 def draw_grid(surface):
         for row in range(W_GRID):
             for col in range(H_GRID):
                 rect = pg.Rect(row*CELL_SIZE, col*CELL_SIZE+100, CELL_SIZE, CELL_SIZE)
                 pg.draw.rect(surface, "gray", rect, 1)
+
+#funcion temporal, solo genera obstacles, aunque se leeran de un txt obvio
+def generate_obstacles(screen):
+        global obstacles
+        while len(obstacles) < 15:
+            x = random.randint(0, W_GRID-1)
+            y = random.randint(0, H_GRID-1)
+            if (x,y) != (0,0) and (x, y) not in [(o.x, o.y) for o in obstacles]:
+                obstacles.append(Obstaculo(screen, x, y))
+        return obstacles
+
+def leer_archivo(path):
+        archivo = open(path, 'r')
+        contenido = archivo.read()
+        archivo.close()
+        return contenido
+def init (nivel):
+        global matriz
+        texto_nivel = f"Nivel_{nivel}.txt"
+        matriz = eval(leer_archivo(texto_nivel))
+init(nivel)
+
+#los dibuja
+def draw_obstacles():
+        for obstacle in obstacles:
+            obstacle.draw()
 #estados de juego :
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
     screen.fill("white")
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
     draw_grid(screen)
+    generate_obstacles(screen)
+    draw_obstacles()
 
 while True:
 #cambiador de estado
@@ -106,5 +148,6 @@ while True:
 
     pg.display.flip()
     reloj.tick(45)
+
 
     
