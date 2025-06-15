@@ -64,6 +64,7 @@ class Jugador :
         self.x = pos_x
         self.y = pos_y
         self.velocidad = velocidad              #velocidad del jugador
+        self.vida=100 #vida del jugador
         self.spritesheet_idle = spritesheet_idle
         self.spritesheet_habilidad = spritesheet_habilidad
         self.current_spritesheet = spritesheet_idle  # Por defecto usamos idle        #LA SPRITESHEET DEL JUGADOR
@@ -149,8 +150,6 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
             self.cambiar_spritesheet(self.spritesheet_idle)
             print("Habilidad detenida al soltar espacio")
 
-class Preview_jugador () : #*! eliminar esta clase, no es necesaria.
-    None #clase aparte de jugador (no es hija ni tiene jerarquia con jugador original). literalmente muestra el preview del jugador apra el coso de seleccion de personaje
 
 #ocupo tipo scar tiempo. si en 0,5s no se presiona ninguna tecla entonces el sprote es el statico, si en n se presiona deacruerdo al movimiento cambia el sprite. sis e presiona el de habiliad, entones se muestra el speiret habilidad.
 
