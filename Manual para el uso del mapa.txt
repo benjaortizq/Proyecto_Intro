@@ -1,0 +1,16 @@
+Manual para el uso del mapa:
+Obstaculos:
+Existen dos obstaculos, rompibles e irrompibles. Se usara # para los irrompibles y * para los rompibles.
+Existen 3 tipos de enemigos más el boss, se usara 1 (enemigos nivel 1 y más fáciles), 2 para los siguientes, 3 para los siguientes y 4 para el boss.
+El jugador sera representado por 0 en la matriz, solo se usaran los sprites que se sacaron anteriormente.
+La llave y salida, se usaran ! (para la llave) y $ para la salida.
+
+Las trampas y obstáculos extra por nivel recomiendo usar:
+@ para los de hielo
+& para los de veneno
+¡ para las bombas trampa
+% para las de fuego
+para más solo use símbolos no vistos.
+Los objetos salen de manera aleatoria, y dependiendo de todo se usaran otros símbolos. Tendra que hablarse con usted pero cualquier otro símbolo funciona.
+Para los de Powerups se piensa "B" para bomba y "V" para vida. 
+Items pues se agregan cualquiera
