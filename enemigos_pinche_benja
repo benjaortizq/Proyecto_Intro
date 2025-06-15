@@ -22,31 +22,23 @@ class SpriteSheet ():
     
 #CLASE BOTON: Representa un botón en la interfaz del juego.
 class Boton : 
-    def __init__(self, x, y, width, height, text, font,size, color, hover_color, accion ,accion_type ):    # '"ALERTA  : EN FONT TIENE QUE RECIBIR LA STRING DE LA DIRECCION DE LA FUENTE, POR EJEMPLO "fonts/arial.ttf"'
+    def __init__(self, x, y, width, height, text, font,size, color, hover_color ):    # '"ALERTA  : EN FONT TIENE QUE RECIBIR LA STRING DE LA DIRECCION DE LA FUENTE, POR EJEMPLO "fonts/arial.ttf"'
         self.rect = pg.Rect(x, y, width, height)  # Crea un rectángulo para el botón
         self.text = text  # Texto del botón
         self.font = pg.font.Font(font,size)  # Fuente del texto
         self.color = color 
         self.size = size # Color normal del botón
         self.hover_color = hover_color  # Color al pasar el mouse sobre el botón
-        self.accion = accion  # Acción a realizar al hacer clic en el botón
-        self.accion_type = accion_type
         self.last_mouse_state  = None   # Tipo de acción (por ejemplo, cambiar de estado)
     def check_click(self):
         mouse_pos = pg.mouse.get_pos()
         mouse_pressed = pg.mouse.get_pressed()[0]
-        action_result = None
-        
-        # Detectar solo el momento exacto cuando se presiona el botón
+        # Detectar solo el momento exacto cuando se presiona el botón  
         if self.rect.collidepoint(mouse_pos):
             if mouse_pressed and not self.last_mouse_state:  # Solo en el frame del clic inicial
-                if self.accion_type == "int":
-                    self.accion += 1 
-                action_result = self.accion
-        
-        # Actualizar el estado del mouse para el próximo frame
-        self.last_mouse_state = mouse_pressed
-        return action_result
+                return True  # Retorna True si el botón fue presionado
+            return False
+        return False
 
     def draw(self, surface):
         mouse_pos = pg.mouse.get_pos()  # Obtiene la posición del mouse
@@ -58,7 +50,7 @@ class Boton :
         text_surface = self.font.render(self.text, True, (255, 255, 255))  # Renderiza el texto del botón
         text_rect = text_surface.get_rect(center=self.rect.center)  # Centra el texto en el botón
         surface.blit(text_surface, text_rect)  # Dibuja el texto en la superficie
-
+# -------------------------------------------------------CLASES DEL JUEGO-----------
 #Clase Obstaculo 
 class Obstaculo:
     def __init__(self, screen, x, y):
