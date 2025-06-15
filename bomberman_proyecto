@@ -208,7 +208,7 @@ estado = "juego" #se inicializa el estado del juego como "start", que representa
 game_surface = pg.Surface((816,524)) #*! ya cambie el tamano del frame enves de 624 a 524, estaba pintando el frame 100 pix hacia abajo y hacia que pete todo
 
 #------------------------TEXTURAS------------------------------
-heart_texture = pg.image.load("assets/textures/corazon_vida.png").convert_alpha() #carga la textura del corazon
+heart_texture = pg.image.load("assets/textures/heart.png").convert_alpha() #carga la textura del corazon
 #------------------------SPRITES DE JUGADORES------------------------------
 
 #--- Intangible ----
