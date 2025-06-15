@@ -59,24 +59,29 @@ class Boton :
 # -------------------------------------------------------CLASES DEL JUEGO-------------------------------------------
 # Clase Jugador: Representa al jugador en el juego.
 class HealthBar:
-    def init(self, x, y, width, height, max_hp):
+    def __init__(self, x, y, width, height, hp, heart_texture, cant_vidas,font):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
-        self.hp = max_hp  # Salud actual del jugador
-        self.max_hp = max_hp
+        self.hp = hp  # Salud actual del jugador
+        self.heart_texture = heart_texture  # Textura del corazón para la barra de salud
+        self.cant_vidas = cant_vidas  # Cantidad de vidas del jugador
+        self.font = font  # Fuente para mostrar la cantidad de vidas
     def draw(self, surface):
-        ratio= self.hp / self.max_hp  # Calcula la proporción de salud actual respecto a la máxima
-        pg.draw.rect(surface, (255, 0, 0), (self.x, self.y, self.width, self.height))  # Dibuja el fondo de la barra de salud   
-        pg.draw.rect(surface, (0, 255, 0), (self.x, self.y, self.width * ratio, self.height))
+        ratio= self.hp / 100 # Calcula la proporción de salud actual respecto a la máxima
+        pg.draw.rect(surface, "red", (self.x, self.y, self.width, self.height),10,3)  # Dibuja el fondo de la barra de salud   
+        pg.draw.rect(surface, "green", (self.x, self.y, self.width * ratio, self.height),10,3)
+        surface.blit(self.heart_texture, (self.x - heart_texture.get_width()-3, self.y-5))  # Dibuja el corazón en la barra de salud
+        vidas=self.font.render (f"x {self.cant_vidas}", True, (255, 255, 255)) # Renderiza la cantidad de vidas del jugador
+        surface.blit(vidas, (self.x - heart_texture.get_width()-32, self.y+5))  # Dibuja la cantidad de vidas en la barra de salud
+
 class Jugador : 
     def __init__(self, area_juego, pos_x, pos_y, velocidad, spritesheet_idle,spritesheet_habilidad, frame_count, frame_w,frame_h, scale, colour): 
         self.area_juego = area_juego #superficie del juego donde se dibuja el jugador
         self.x = pos_x
         self.y = pos_y
         self.velocidad = velocidad              #velocidad del jugador
-        self.vida=100 #vida del jugador
         self.spritesheet_idle = spritesheet_idle
         self.spritesheet_habilidad = spritesheet_habilidad
         self.current_spritesheet = spritesheet_idle  # Por defecto usamos idle        #LA SPRITESHEET DEL JUGADOR
@@ -131,13 +136,14 @@ class Jugador :
         #actualiza la posicion del jugador en el frame  
         self.area_juego.blit(self.current_skin, (self.x, self.y))
 class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
-    def __init__(self, area_juego, pos_x, pos_y, spritesheet_idle,spritesheet_hab,frame_count,F_w,f_H,scale,colour,habilidad):
+    def __init__(self, area_juego, pos_x, pos_y, spritesheet_idle,spritesheet_hab,frame_count,F_w,f_H,scale,colour,habilidad, cant_vidas):
         super().__init__( area_juego, pos_x, pos_y, 5, spritesheet_idle,spritesheet_hab, frame_count,F_w,f_H, scale, colour)
         self.habilidad=habilidad
-        self.vida=100 #vida del jugador
+        self.vida=97 #vida del jugador
         self.ejecutando_habilidad = False
         self.tiempo_inicio_habilidad = 0
         self.max_tiempo_habilidad = 5  # 5 segundos máximo
+        self.cant_vidas = cant_vidas  # Cantidad de vidas del jugador
     def ejecutar_habilidad(self ) :
         keys = pg.key.get_pressed()
         current_time = t.time()
@@ -174,11 +180,14 @@ pg.display.set_caption("El hombre que tiraba bombas") #Nombre de la ventana
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 #-----------------------GLOBALES------------------------------
-estado = "seleccion_personaje" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+estado = "juego" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 #-----------------------SPRITES------------------------------
 
 #-------------area de juego-----------
 game_surface = pg.Surface((816,524)) #*! ya cambie el tamano del frame enves de 624 a 524, estaba pintando el frame 100 pix hacia abajo y hacia que pete todo
+
+#------------------------TEXTURAS------------------------------
+heart_texture = pg.image.load("assets/textures/corazon_vida.png").convert_alpha() #carga la textura del corazon
 #------------------------SPRITES DE JUGADORES------------------------------
 
 #--- Intangible ----
@@ -196,7 +205,7 @@ spritesheet_idle_int= SpriteSheet(imp_sps_intangible) #crea una instancia de la 
 spritesheet_habilidad_int= SpriteSheet(imp_sps_intalgible_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
 sritesheet_run_int = SpriteSheet(imp_sps_intangible_run) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
 
-Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,1.5,"black", "Invisibilidad") #placeholder de player1
+Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,1.5,"black", "Invisibilidad",3) #placeholder de player1
 #VARIABLES GLOBALES 
 font = pg.font.Font("fonts/Pixeltype.ttf", 20) #fuente para mostrar info de cada skin del player
 font0= pg.font.Font("fonts/Pixeltype.ttf", 30) #fuente para mostrar info de cada skin del player
@@ -215,10 +224,12 @@ prev_seleccion = False  #variable para controlar si se ha hecho clic en el botó
 
 #estados de juego :
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
-    screen.fill("white")
+    screen.fill((24,24,24))
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
     Player_1.mover()
     Player_1.ejecutar_habilidad() 
+    vida_jugador=HealthBar(70, 15, 120, 20, Player_1.vida, heart_texture,Player_1.cant_vidas,font0)  # Dibuja la barra de salud del jugador
+    vida_jugador.draw(screen)  # Dibuja la barra de salud en la superficie del juego
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
 
 
