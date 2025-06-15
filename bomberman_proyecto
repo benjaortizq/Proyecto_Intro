@@ -14,6 +14,30 @@ import os
 
 #Aqui epiezan las clases del juego  
 #----------------------------------------------------------CLASES UTILES DE PYGAME---------------------------------------
+class Reloj(th.Thread):
+    def __init__(self, tiempo_inicial):
+        super().__init__()
+        self.tiempo = tiempo_inicial
+        self.en_marcha = True
+        self.daemon = True  # Para que el hilo se cierre con el programa principal
+        self.pausado = False
+        self.lock = th.Lock()  # Para sincronización
+        
+    def run(self):
+        while self.en_marcha and self.tiempo > 0:
+            with self.lock:
+                if not self.pausado:
+                    t.sleep(0.85)  # soy un ijueputa
+                    self.tiempo -= 1
+                    
+    def detener(self):
+        self.en_marcha = False
+        
+    def pausar(self):
+        self.pausado = True
+        
+    def reanudar(self):
+        self.pausado = False
 
 # Clase SpriteSheet: Carga una hoja de sprites y permite obtener imágenes individuales.
 class SpriteSheet (): 
@@ -147,8 +171,8 @@ class Jugador :
         #actualiza la posicion del jugador en el frame  
         self.area_juego.blit(self.current_skin, (self.x, self.y))
 class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
-    def __init__(self, area_juego, pos_x, pos_y, spritesheet_idle,spritesheet_hab,frame_count,F_w,f_H,scale,colour,habilidad, cant_vidas,color_habilidad, color_bajada ):
-        super().__init__( area_juego, pos_x, pos_y, 5, spritesheet_idle,spritesheet_hab, frame_count,F_w,f_H, scale, colour)
+    def __init__(self, area_juego, pos_x, pos_y, velocidad,spritesheet_idle,spritesheet_hab,frame_count,F_w,f_H,scale,colour,habilidad, cant_vidas,color_habilidad, color_bajada ):
+        super().__init__( area_juego, pos_x, pos_y, velocidad, spritesheet_idle,spritesheet_hab, frame_count,F_w,f_H, scale, colour)
         self.habilidad=habilidad
         self.vida=97 #vida del jugador
         self.ejecutando_habilidad = False
@@ -160,6 +184,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         self.barra_habilidad = 0  # Tiempo de recarga de la habilidad
         self.color_bajada=color_bajada
         self.items = {"bombas":0, "velocidad" : 0 ,"escudo":0 }
+        self.tiene_llave=False
     def ejecutar_habilidad(self ) :
         keys = pg.key.get_pressed()
         current_time = t.time()
@@ -200,6 +225,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
 pg.init()
 screen= pg.display.set_mode((816, 624)) #tamano de pantalla
 pg.display.set_caption("El hombre que tiraba bombas") #Nombre de la ventana
+tiempo_juego= Reloj(300)
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 #-----------------------GLOBALES------------------------------
@@ -213,7 +239,7 @@ game_surface = pg.Surface((816,524)) #*! ya cambie el tamano del frame enves de 
 heart_texture = pg.image.load("assets/textures/heart.png").convert_alpha() #carga la textura del corazon
 #------------------------SPRITES DE JUGADORES------------------------------
 sps_habilidades= pg.image.load ("assets\Textures\habilities.png").convert_alpha()
-
+sps_powerups = pg.image.load("assets\Textures\powerups.png").convert_alpha()
 #--- Intangible ----
 imp_sps_intangible= pg.image.load("assets\sprites\players\Intangible\idle.png").convert_alpha() #placeholder para el sprite intangible
 imp_sps_intalgible_hab= pg.image.load("assets\sprites\players\Intangible\invisible.png").convert_alpha() #placeholder para el sprite intangible de habilidad
@@ -224,14 +250,15 @@ preview_tactico = pg.image.load("assets\sprites\players\Tactico\preview.png").co
 preview_kamikaze = pg.image.load("assets\sprites\players\Kamikaze\preview.png").convert_alpha() 
 #-----------------------SPRITESHEET DE JUGADORES ------------------------------
 spritesheet_habilidades_prev= SpriteSheet (sps_habilidades)
-#instancia del jugador 1    
+spritesheet_powerups= SpriteSheet (sps_powerups)
+#instancia del jugador 
 spritesheet_idle_int= SpriteSheet(imp_sps_intangible) #crea una instancia de la clase SpriteSheet con el sprite del jugador
 spritesheet_habilidad_int= SpriteSheet(imp_sps_intalgible_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
 sritesheet_run_int = SpriteSheet(imp_sps_intangible_run) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
 
-Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,1.5,"black", "Invisibilidad",3,(69, 229, 222), "yellow" ) #placeholder de player1
+Player_1 = Jugador_1(game_surface, 100, 100,3,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,1.5,"black", "Invisibilidad",3,(69, 229, 222), "yellow" ) #placeholder de player1
 #VARIABLES GLOBALES 
-font = pg.font.Font("fonts/Pixeltype.ttf", 20) #fuente para mostrar info de cada skin del player
+font = pg.font.Font("fonts/Pixeltype.ttf", 35) #fuente para mostrar info de cada skin del player
 font0= pg.font.Font("fonts/Pixeltype.ttf", 30) #fuente para mostrar info de cada skin del player
 font1= pg.font.Font("fonts/Pixeltype.ttf", 50) #fuente para mostrar titulo de cada skin de player   
 skin_seleccionada = 0                   #variable global para controlar la skin que selecciona en la aprte de seleccion de jugador (skin)
@@ -248,8 +275,10 @@ prev_seleccion = False  #variable para controlar si se ha hecho clic en el botó
 
 #estados de juego :
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO          
+    global tiempo_juego
     screen.fill((24,24,24))
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
+    texto_tiempo=font.render(f"Tiempo : {tiempo_juego.tiempo}", False , "white")
     Player_1.mover()
     Player_1.ejecutar_habilidad() 
     vida_jugador=Healthbar_Player (73, 15, 110, 20, Player_1.vida, heart_texture,Player_1.cant_vidas,font0)  # Dibuja la barra de salud del jugador
@@ -259,7 +288,17 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     habilidad_jugador= HealthBar(73, 55, 110, 20, Player_1.barra_habilidad, (129, 133, 137), Player_1.color_habilidad)  # Dibuja la barra de habilidad del jugador
     habilidad_jugador.draw(screen)  # Dibuja la barra de habilidad en la superficie del juego
     icono_habilidad= spritesheet_habilidades_prev.get_image(skin_seleccionada, 128,128,0.5,"black")
+
+    bombas_img=spritesheet_powerups.get_image(0,64,64,1.5,"black")
+    velocidad_img=spritesheet_powerups.get_image(1,64,64,1.5,"black")
+    escudo_img=spritesheet_powerups.get_image(2,64,64,1.5,"black")
+
+    cant_powerups
     screen.blit(icono_habilidad, (7,30))
+    screen.blit(bombas_img,(570,0))
+    screen.blit(velocidad_img,(644,0))
+    screen.blit(escudo_img,(718,0))
+    screen.blit(texto_tiempo,(330,5))
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
 
 
@@ -325,9 +364,11 @@ def pantalla_seleccion_jugador () :
     boton_siguiente_opcion.draw(screen)  # Dibuja el botón en la pantalla
     boton_seleccionar.draw(screen)  # Dibuja el botón en la pantalla
 
+tiempo_juego.start()
 while True:
 #cambiador de estado
     if estado == "juego":  # Si el estado es "juego", se muestra la pantalla de juego
+        tiempo_juego.reanudar()
         pantalla_juego()
     elif estado == "seleccion_personaje":  # Si el estado es "creacion_niveles", se muestra la pantalla de creación de niveles
         pantalla_seleccion_jugador()
@@ -335,11 +376,12 @@ while True:
         print("Estado no reconocido")
     for event in pg.event.get():
         if event.type == pg.QUIT:
+            tiempo_juego.detener()
             pg.quit()
             sys.exit()  
 
     pg.display.flip()
-    reloj.tick(45)
+    reloj.tick(60)
 
 
 #TODO : 
