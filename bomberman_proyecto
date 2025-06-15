@@ -7,6 +7,7 @@
 
 import pygame as pg
 import time as t
+import threading as th
 import random 
 import sys 
 import os 
@@ -210,6 +211,7 @@ game_surface = pg.Surface((816,524)) #*! ya cambie el tamano del frame enves de 
 #------------------------TEXTURAS------------------------------
 heart_texture = pg.image.load("assets/textures/heart.png").convert_alpha() #carga la textura del corazon
 #------------------------SPRITES DE JUGADORES------------------------------
+sps_habilidades= pg.image.load ("assets\Textures\habilities.png").convert_alpha()
 
 #--- Intangible ----
 imp_sps_intangible= pg.image.load("assets\sprites\players\Intangible\idle.png").convert_alpha() #placeholder para el sprite intangible
@@ -220,7 +222,7 @@ preview_intangible = pg.image.load("assets\sprites\players\Intangible\preview.pn
 preview_tactico = pg.image.load("assets\sprites\players\Tactico\preview.png").convert_alpha() 
 preview_kamikaze = pg.image.load("assets\sprites\players\Kamikaze\preview.png").convert_alpha() 
 #-----------------------SPRITESHEET DE JUGADORES ------------------------------
-
+spritesheet_habilidades_prev= SpriteSheet (sps_habilidades)
 #instancia del jugador 1    
 spritesheet_idle_int= SpriteSheet(imp_sps_intangible) #crea una instancia de la clase SpriteSheet con el sprite del jugador
 spritesheet_habilidad_int= SpriteSheet(imp_sps_intalgible_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
@@ -253,8 +255,10 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
     vida_jugador.draw(screen)  # Dibuja la barra de salud en la superficie del juego
     vida_jugador.draw_atributes(screen)  # Dibuja los atributos de la barra de salud en la superficie del juego
 
-    habilidad_jugador= HealthBar(73, 45, 110, 20, Player_1.barra_habilidad, (129, 133, 137), Player_1.color_habilidad)  # Dibuja la barra de habilidad del jugador
+    habilidad_jugador= HealthBar(73, 55, 110, 20, Player_1.barra_habilidad, (129, 133, 137), Player_1.color_habilidad)  # Dibuja la barra de habilidad del jugador
     habilidad_jugador.draw(screen)  # Dibuja la barra de habilidad en la superficie del juego
+    icono_habilidad= spritesheet_habilidades_prev.get_image(skin_seleccionada, 128,128,0.5,"black")
+    screen.blit(icono_habilidad, (10,30))
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
 
 
