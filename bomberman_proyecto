@@ -28,15 +28,13 @@ class SpriteSheet ():
         return image
 #CLASE BOTON: Representa un botón en la interfaz del juego.
 class Boton : 
-    def __init__(self, x, y, width, height, text, font,size, color, hover_color, accion ,accion_type ):    # '"ALERTA  : EN FONT TIENE QUE RECIBIR LA STRING DE LA DIRECCION DE LA FUENTE, POR EJEMPLO "fonts/arial.ttf"'
+    def __init__(self, x, y, width, height, text, font,size, color, hover_color ):    # '"ALERTA  : EN FONT TIENE QUE RECIBIR LA STRING DE LA DIRECCION DE LA FUENTE, POR EJEMPLO "fonts/arial.ttf"'
         self.rect = pg.Rect(x, y, width, height)  # Crea un rectángulo para el botón
         self.text = text  # Texto del botón
         self.font = pg.font.Font(font,size)  # Fuente del texto
         self.color = color 
         self.size = size # Color normal del botón
         self.hover_color = hover_color  # Color al pasar el mouse sobre el botón
-        self.accion = accion  # Acción a realizar al hacer clic en el botón
-        self.accion_type = accion_type
         self.last_mouse_state  = None   # Tipo de acción (por ejemplo, cambiar de estado)
     def check_click(self):
         mouse_pos = pg.mouse.get_pos()
@@ -46,13 +44,9 @@ class Boton :
         # Detectar solo el momento exacto cuando se presiona el botón  
         if self.rect.collidepoint(mouse_pos):
             if mouse_pressed and not self.last_mouse_state:  # Solo en el frame del clic inicial
-                if self.accion_type == "int":
-                    self.accion += 1 
-                action_result = self.accion
-        
-        # Actualizar el estado del mouse para el próximo frame
-        self.last_mouse_state = mouse_pressed
-        return action_result
+                return True  # Retorna True si el botón fue presionado
+            return False
+        return False
 
     def draw(self, surface):
         mouse_pos = pg.mouse.get_pos()  # Obtiene la posición del mouse
@@ -157,7 +151,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
             self.cambiar_spritesheet(self.spritesheet_idle)
             print("Habilidad detenida al soltar espacio")
 
-class Preview_jugador () :
+class Preview_jugador () : #*! eliminar esta clase, no es necesaria.
     None #clase aparte de jugador (no es hija ni tiene jerarquia con jugador original). literalmente muestra el preview del jugador apra el coso de seleccion de personaje
 
 #ocupo tipo scar tiempo. si en 0,5s no se presiona ninguna tecla entonces el sprote es el statico, si en n se presiona deacruerdo al movimiento cambia el sprite. sis e presiona el de habiliad, entones se muestra el speiret habilidad.
