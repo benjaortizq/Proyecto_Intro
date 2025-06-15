@@ -163,7 +163,7 @@ pg.display.set_caption("El hombre que tiraba bombas") #Nombre de la ventana
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 #-----------------------GLOBALES------------------------------
-estado = "juego" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+estado = "seleccion_personaje" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 #-----------------------SPRITES------------------------------
 
 #-------------area de juego-----------
@@ -196,8 +196,12 @@ skin_viendo=0
 
 
 ##BOTONES GLOBALES 
-boton_siguiente_opcion= Boton(300, 500, 150, 30, "Siguiente", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 ), skin_viendo,"int") #"crea un boton de siguiente opcion (tiene que estar afuera por tipo int)
-boton_seleccionar = Boton(300, 540, 150, 30, "Seleccionar", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 ), skin_seleccionada,"int") #crea un boton de seleccionar
+boton_siguiente_opcion= Boton(300, 500, 150, 30, "Siguiente", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #"crea un boton de siguiente opcion (tiene que estar afuera por tipo int)
+boton_seleccionar = Boton(300, 540, 150, 30, "Seleccionar", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 ) ) #crea un boton de seleccionar
+
+prev_siguiente = False #variable para controlar si se ha hecho clic en el botón de siguiente opción
+prev_seleccion = False  #variable para controlar si se ha hecho clic en el botón de seleccionar
+
 #estados de juego :
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
     screen.fill("white")
@@ -206,15 +210,20 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
     Player_1.ejecutar_habilidad() 
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
 
+
+
 def pantalla_seleccion_jugador () : 
-    global skin_seleccionada, skin_viendo, Player_1
-    screen.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
-    nuevo_viendo=boton_siguiente_opcion.check_click()  # Verifica si se ha hecho clic en el botón de siguiente opción
-    if nuevo_viendo is not None:
-        skin_viendo = nuevo_viendo
-    nuevo_seleccion = boton_seleccionar.check_click()
-    if nuevo_seleccion is not None:
-        skin_seleccionada = nuevo_seleccion
+    global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion
+    screen.fill("black")
+    # Obtener el estado ACTUAL de los botones
+    nuevo_viendo_actual = boton_siguiente_opcion.check_click()
+    nuevo_seleccion_actual = boton_seleccionar.check_click()
+    if nuevo_viendo_actual and not prev_siguiente:  # Solo en el flanco de subida
+        skin_viendo += 1
+    prev_siguiente = nuevo_viendo_actual  # Actualizar estado previo
+    if nuevo_seleccion_actual and not prev_seleccion:  # Solo en el flanco de subida
+        skin_seleccionada += 1
+    prev_seleccion = nuevo_seleccion_actual  # Actualizar estado previo
 
 
     if skin_viendo > 2: 
