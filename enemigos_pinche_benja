@@ -1,0 +1,61 @@
+import pygame as pg
+import time as t
+import random 
+import sys 
+import os 
+
+#Aqui epiezan las clases del juego  
+#----------------------------------------------------------CLASES UTILES DE PYGAME---------------------------------------
+
+# Clase SpriteSheet: Carga una hoja de sprites y permite obtener imágenes individuales.
+class SpriteSheet (): 
+    def __init__(self, image): 
+        self.sheet = image  # Carga la imagen de la hoja de sprites
+    
+    def get_image(self, frame, width, height, scale, colour):
+        image = pg.Surface((width, height)).convert_alpha()     # Crea una superficie para el frame
+        image.blit(self.sheet, (0, 0), ((frame * width), 0, width, height))  # Copia el frame correspondiente de la hoja de sprites
+        image = pg.transform.scale(image, (width * scale, height * scale))  # Escala la imagen al tamaño deseado
+        image.set_colorkey(colour)      # Establece el color clave para hacer transparente el fondo
+
+        return image
+    
+#CLASE BOTON: Representa un botón en la interfaz del juego.
+class Boton : 
+    def __init__(self, x, y, width, height, text, font,size, color, hover_color, accion ,accion_type ):    # '"ALERTA  : EN FONT TIENE QUE RECIBIR LA STRING DE LA DIRECCION DE LA FUENTE, POR EJEMPLO "fonts/arial.ttf"'
+        self.rect = pg.Rect(x, y, width, height)  # Crea un rectángulo para el botón
+        self.text = text  # Texto del botón
+        self.font = pg.font.Font(font,size)  # Fuente del texto
+        self.color = color 
+        self.size = size # Color normal del botón
+        self.hover_color = hover_color  # Color al pasar el mouse sobre el botón
+        self.accion = accion  # Acción a realizar al hacer clic en el botón
+        self.accion_type = accion_type
+        self.last_mouse_state  = None   # Tipo de acción (por ejemplo, cambiar de estado)
+    def check_click(self):
+        mouse_pos = pg.mouse.get_pos()
+        mouse_pressed = pg.mouse.get_pressed()[0]
+        action_result = None
+        
+        # Detectar solo el momento exacto cuando se presiona el botón
+        if self.rect.collidepoint(mouse_pos):
+            if mouse_pressed and not self.last_mouse_state:  # Solo en el frame del clic inicial
+                if self.accion_type == "int":
+                    self.accion += 1 
+                action_result = self.accion
+        
+        # Actualizar el estado del mouse para el próximo frame
+        self.last_mouse_state = mouse_pressed
+        return action_result
+
+    def draw(self, surface):
+        mouse_pos = pg.mouse.get_pos()  # Obtiene la posición del mouse
+        if self.rect.collidepoint(mouse_pos):  # Verifica si el mouse está sobre el botón
+            pg.draw.rect(surface, self.hover_color, self.rect,int(self.size*0.55),int(self.size*0.2))  # Dibuja el botón con el color de hover
+        else:
+            pg.draw.rect(surface, self.color, self.rect,int(self.size*0.55),int(self.size*0.2))  # Dibuja el botón con el color normal
+          # Establece el tamaño de la fuente
+        text_surface = self.font.render(self.text, True, (255, 255, 255))  # Renderiza el texto del botón
+        text_rect = text_surface.get_rect(center=self.rect.center)  # Centra el texto en el botón
+        surface.blit(text_surface, text_rect)  # Dibuja el texto en la superficie
+
