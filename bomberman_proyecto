@@ -56,8 +56,7 @@ class Boton :
         text_surface = self.font.render(self.text, True, (255, 255, 255))  # Renderiza el texto del botón
         text_rect = text_surface.get_rect(center=self.rect.center)  # Centra el texto en el botón
         surface.blit(text_surface, text_rect)  # Dibuja el texto en la superficie
-# -------------------------------------------------------CLASES DEL JUEGO-------------------------------------------
-# Clase Jugador: Representa al jugador en el juego.
+
 class HealthBar:
     def __init__(self, x, y, width, height, hp, heart_texture, cant_vidas,font):
         self.x = x
@@ -75,6 +74,9 @@ class HealthBar:
         surface.blit(self.heart_texture, (self.x - heart_texture.get_width()-3, self.y-5))  # Dibuja el corazón en la barra de salud
         vidas=self.font.render (f"x {self.cant_vidas}", True, (255, 255, 255)) # Renderiza la cantidad de vidas del jugador
         surface.blit(vidas, (self.x - heart_texture.get_width()-32, self.y+5))  # Dibuja la cantidad de vidas en la barra de salud
+
+# -------------------------------------------------------CLASES DEL JUEGO-------------------------------------------
+# Clase Jugador: Representa al jugador en el juego.
 
 class Jugador : 
     def __init__(self, area_juego, pos_x, pos_y, velocidad, spritesheet_idle,spritesheet_habilidad, frame_count, frame_w,frame_h, scale, colour): 
