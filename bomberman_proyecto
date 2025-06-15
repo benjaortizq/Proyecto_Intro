@@ -39,8 +39,6 @@ class Boton :
     def check_click(self):
         mouse_pos = pg.mouse.get_pos()
         mouse_pressed = pg.mouse.get_pressed()[0]
-        action_result = None
-        
         # Detectar solo el momento exacto cuando se presiona el botón  
         if self.rect.collidepoint(mouse_pos):
             if mouse_pressed and not self.last_mouse_state:  # Solo en el frame del clic inicial
