@@ -43,7 +43,7 @@ class Boton :
         mouse_pressed = pg.mouse.get_pressed()[0]
         action_result = None
         
-        # Detectar solo el momento exacto cuando se presiona el botón
+        # Detectar solo el momento exacto cuando se presiona el botón  
         if self.rect.collidepoint(mouse_pos):
             if mouse_pressed and not self.last_mouse_state:  # Solo en el frame del clic inicial
                 if self.accion_type == "int":
@@ -108,16 +108,20 @@ class Jugador :
     def mover(self): #metodo para mover al jugador, recibe el frame actual y la velocidad: 
         #metodo para mover al jugador, recibe el frame actual
         self.animacion_skin()
-        largo = self.area_juego.get_width() #ancho del frame
-        alto = self.area_juego.get_height()   #alto del frame
+        largo = self.area_juego.get_width() #ancho del aarea de juego
+        alto = self.area_juego.get_height()   #alto del area de juego
+
+        ancho_frame = int(self.width_frame * self.scale)    #ancho real del frame del jugador
+        alto_frame = int(self.height_frame * self.scale)    #alto real del frame del jugador
+
         keys = pg.key.get_pressed() #mover el pene
         if keys[pg.K_LEFT] and self.x > 0:  #verifica que el jugador no se salga del frame
             self.x -= self.velocidad #mueve al jugador a la izquierda
-        if keys[pg.K_RIGHT] and self.x + self.width_frame < largo:
+        if keys[pg.K_RIGHT] and self.x + ancho_frame < largo:
             self.x += self.velocidad    #mueve al jugador a la derecha
         if keys[pg.K_UP] and self.y > 0:
             self.y -= self.velocidad  #mueve al jugador hacia arriba
-        if keys[pg.K_DOWN] and self.y +  self.height_frame < alto:
+        if keys[pg.K_DOWN] and self.y +  alto_frame < alto:
             self.y += self.velocidad  #mueve al jugador hacia abajo
         #actualiza la posicion del jugador en el frame  
         self.area_juego.blit(self.current_skin, (self.x, self.y))
@@ -171,7 +175,7 @@ estado = "juego" #se inicializa el estado del juego como "start", que representa
 #-----------------------SPRITES------------------------------
 
 #-------------area de juego-----------
-game_surface = pg.Surface((816,624)) #! CAMBIE EL "y" DEL FRAME. ESTA PINTANDO NO SE CUANTOS PIXELES HACIA ABAJO, Y ESTA HACIENDO CASILLAS FALSAS(QUE NO SE VEN EN LA PANTALLA)
+game_surface = pg.Surface((816,524)) #*! ya cambie el tamano del frame enves de 624 a 524, estaba pintando el frame 100 pix hacia abajo y hacia que pete todo
 #------------------------SPRITES DE JUGADORES------------------------------
 
 #--- Intangible ----
