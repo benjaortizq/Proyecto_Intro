@@ -58,20 +58,22 @@ class Boton :
         surface.blit(text_surface, text_rect)  # Dibuja el texto en la superficie
 
 class HealthBar:
-    def __init__(self, x, y, width, height, hp,):
+    def __init__(self, x, y, width, height, hp,color_f,color_h):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
         self.hp = hp  # Salud actual del jugador
+        self.color_f = color_f
+        self.color_h = color_h  # Color de la barra de salud    
     def draw(self, surface):
         ratio= self.hp / 100 # Calcula la proporción de salud actual respecto a la máxima
-        pg.draw.rect(surface, "red", (self.x, self.y, self.width, self.height),10,3)  # Dibuja el fondo de la barra de salud   
-        pg.draw.rect(surface, "green", (self.x, self.y, self.width * ratio, self.height),10,3)
+        pg.draw.rect(surface, self.color_f, (self.x, self.y, self.width, self.height),10,3)  # Dibuja el fondo de la barra de salud   
+        pg.draw.rect(surface, self.color_h, (self.x, self.y, self.width * ratio, self.height),10,3)
 
 class Healthbar_Player (HealthBar) :
     def __init__(self, x, y, width, height, hp, heart_texture, cant_vidas, font):
-        super().__init__(x, y, width, height, hp)
+        super().__init__(x, y, width, height, hp, (255, 0, 0), (0, 255, 0))  # Llama al constructor de HealthBar con colores por defecto
         self.heart_texture = heart_texture  # Textura del corazón para la barra de salud
         self.cant_vidas = cant_vidas  # Cantidad de vidas del jugador
         self.font = font  # Fuente para mostrar la cantidad de vidas
@@ -236,7 +238,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
     Player_1.mover()
     Player_1.ejecutar_habilidad() 
-    vida_jugador=Healthbar_Player (70, 15, 120, 20, Player_1.vida, heart_texture,Player_1.cant_vidas,font0)  # Dibuja la barra de salud del jugador
+    vida_jugador=Healthbar_Player (73, 15, 110, 20, Player_1.vida, heart_texture,Player_1.cant_vidas,font0)  # Dibuja la barra de salud del jugador
     vida_jugador.draw(screen)  # Dibuja la barra de salud en la superficie del juego
     vida_jugador.draw_atributes(screen)  # Dibuja los atributos de la barra de salud en la superficie del juego
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
