@@ -59,3 +59,37 @@ class Boton :
         text_rect = text_surface.get_rect(center=self.rect.center)  # Centra el texto en el botón
         surface.blit(text_surface, text_rect)  # Dibuja el texto en la superficie
 
+#-----------------------pygame------------------------------
+
+#commons de pygame (literalmente el inicio de pygame)
+pg.init()
+screen= pg.display.set_mode((800, 600)) #tamano de pantalla
+pg.display.set_caption("El hombre que tiraba bombas") #Nombre de la ventana
+reloj = pg.time.Clock() #reloj comun para controlar FPS
+
+#-----------------------GLOBALES------------------------------
+estado= "juego" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+#-----------------------SPRITES------------------------------
+
+#-------------area de juego-----------
+game_surface = pg.Surface((800,600)) #superficie del juego, que es el fondo de la pantalla
+
+#estados de juego :
+def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
+    screen.fill("white")
+    game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
+    screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
+
+while True:
+#cambiador de estado
+    if estado == "juego":  # Si el estado es "juego", se muestra la pantalla de juego
+        pantalla_juego()
+    else:  # Si el estado no es reconocido, se muestra un mensaje de error
+        print("Estado no reconocido")
+    for event in pg.event.get():
+        if event.type == pg.QUIT:
+            pg.quit()
+            sys.exit()  
+
+    pg.display.flip()
+    reloj.tick(45)
