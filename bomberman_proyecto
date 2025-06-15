@@ -83,6 +83,7 @@ class Jugador :
         self.last_update = t.time()     #tiempo de la ultima actualizacion del frame
         self.current_frame = 0        #numero de frame que esta actualmente dibujandose.
         self.current_skin = self.current_spritesheet.get_image(0, 30, 30, scale, colour)
+        self.mask= pg.mask.from_surface(self.current_skin)  # Crea una máscara del sprite actual para colisiones
     
     def cambiar_spritesheet(self, nuevo_spritesheet): #esto es para cambiar la spritesheet del jugador, por ejemplo cuando se ejecuta una habilidad
         self.current_spritesheet = nuevo_spritesheet #cambia el spritesheet actual al nuevo
@@ -95,11 +96,18 @@ class Jugador :
             self.last_update = current_time
             self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
         self.current_skin = self.current_spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
+        self.mask = pg.mask.from_surface(self.current_skin)
+        
 
+    def colisiona_con(self, otro_objeto):
+        # Calcular diferencia de posiciones (offset)
+        offset_x = int(otro_objeto.x) - int(self.x)
+        offset_y = int(otro_objeto.y) - int(self.y)
+        return self.mask.overlap(otro_objeto.mask, (offset_x, offset_y)) is not None
+    
     def mover(self): #metodo para mover al jugador, recibe el frame actual y la velocidad: 
         #metodo para mover al jugador, recibe el frame actual
         self.animacion_skin()
-
         largo = self.area_juego.get_width() #ancho del frame
         alto = self.area_juego.get_height()   #alto del frame
         keys = pg.key.get_pressed() #mover el pene
@@ -163,7 +171,7 @@ estado = "juego" #se inicializa el estado del juego como "start", que representa
 #-----------------------SPRITES------------------------------
 
 #-------------area de juego-----------
-game_surface = pg.Surface((816,624)) #superficie del juego, que es el fondo de la pantalla
+game_surface = pg.Surface((816,624)) #! CAMBIE EL "y" DEL FRAME. ESTA PINTANDO NO SE CUANTOS PIXELES HACIA ABAJO, Y ESTA HACIENDO CASILLAS FALSAS(QUE NO SE VEN EN LA PANTALLA)
 #------------------------SPRITES DE JUGADORES------------------------------
 
 #--- Intangible ----
