@@ -68,8 +68,8 @@ class HealthBar:
         self.color_h = color_h  # Color de la barra de salud    
     def draw(self, surface):
         ratio= self.hp / 100 # Calcula la proporción de salud actual respecto a la máxima
-        pg.draw.rect(surface, self.color_f, (self.x, self.y, self.width, self.height),10,3)  # Dibuja el fondo de la barra de salud   
-        pg.draw.rect(surface, self.color_h, (self.x, self.y, self.width * ratio, self.height),10,3)
+        pg.draw.rect(surface, self.color_f, (self.x, self.y, self.width, self.height))  # Dibuja el fondo de la barra de salud   
+        pg.draw.rect(surface, self.color_h, (self.x, self.y, self.width * ratio, self.height))
 
 class Healthbar_Player (HealthBar) :
     def __init__(self, x, y, width, height, hp, heart_texture, cant_vidas, font):
@@ -146,7 +146,7 @@ class Jugador :
         #actualiza la posicion del jugador en el frame  
         self.area_juego.blit(self.current_skin, (self.x, self.y))
 class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
-    def __init__(self, area_juego, pos_x, pos_y, spritesheet_idle,spritesheet_hab,frame_count,F_w,f_H,scale,colour,habilidad, cant_vidas):
+    def __init__(self, area_juego, pos_x, pos_y, spritesheet_idle,spritesheet_hab,frame_count,F_w,f_H,scale,colour,habilidad, cant_vidas,color_habilidad ):
         super().__init__( area_juego, pos_x, pos_y, 5, spritesheet_idle,spritesheet_hab, frame_count,F_w,f_H, scale, colour)
         self.habilidad=habilidad
         self.vida=97 #vida del jugador
@@ -154,6 +154,8 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         self.tiempo_inicio_habilidad = 0
         self.max_tiempo_habilidad = 5  # 5 segundos máximo
         self.cant_vidas = cant_vidas  # Cantidad de vidas del jugador
+        self.color_habilidad = color_habilidad  # Color de la habilidad
+        self.barra_habilidad = 0  # Tiempo de recarga de la habilidad
     def ejecutar_habilidad(self ) :
         keys = pg.key.get_pressed()
         current_time = t.time()
@@ -167,6 +169,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         # Detener si pasa el tiempo máximo
         if self.ejecutando_habilidad:
             tiempo_transcurrido = current_time - self.tiempo_inicio_habilidad
+            self.barra_habilidad -=1 if self.barra_habilidad > 1 else self.barra_habilidad ==0
             if tiempo_transcurrido > self.max_tiempo_habilidad:
                 self.ejecutando_habilidad = False
                 self.cambiar_spritesheet(self.spritesheet_idle)
@@ -177,6 +180,10 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
             self.ejecutando_habilidad = False
             self.cambiar_spritesheet(self.spritesheet_idle)
             print("Habilidad detenida al soltar espacio")
+
+        if not self.ejecutando_habilidad:
+            self.barra_habilidad +=1 if self.barra_habilidad < 100 else self.barra_habilidad ==100
+        print (self.barra_habilidad)
 
 
 #ocupo tipo scar tiempo. si en 0,5s no se presiona ninguna tecla entonces el sprote es el statico, si en n se presiona deacruerdo al movimiento cambia el sprite. sis e presiona el de habiliad, entones se muestra el speiret habilidad.
@@ -215,7 +222,7 @@ spritesheet_idle_int= SpriteSheet(imp_sps_intangible) #crea una instancia de la 
 spritesheet_habilidad_int= SpriteSheet(imp_sps_intalgible_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
 sritesheet_run_int = SpriteSheet(imp_sps_intangible_run) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
 
-Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,1.5,"black", "Invisibilidad",3) #placeholder de player1
+Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,1.5,"black", "Invisibilidad",3,(69, 229, 222) ) #placeholder de player1
 #VARIABLES GLOBALES 
 font = pg.font.Font("fonts/Pixeltype.ttf", 20) #fuente para mostrar info de cada skin del player
 font0= pg.font.Font("fonts/Pixeltype.ttf", 30) #fuente para mostrar info de cada skin del player
@@ -241,6 +248,9 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
     vida_jugador=Healthbar_Player (73, 15, 110, 20, Player_1.vida, heart_texture,Player_1.cant_vidas,font0)  # Dibuja la barra de salud del jugador
     vida_jugador.draw(screen)  # Dibuja la barra de salud en la superficie del juego
     vida_jugador.draw_atributes(screen)  # Dibuja los atributos de la barra de salud en la superficie del juego
+
+    habilidad_jugador= HealthBar(73, 45, 110, 20, Player_1.barra_habilidad, (129, 133, 137), Player_1.color_habilidad)  # Dibuja la barra de habilidad del jugador
+    habilidad_jugador.draw(screen)  # Dibuja la barra de habilidad en la superficie del juego
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
 
 
