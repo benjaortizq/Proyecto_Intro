@@ -58,6 +58,18 @@ class Boton :
         surface.blit(text_surface, text_rect)  # Dibuja el texto en la superficie
 # -------------------------------------------------------CLASES DEL JUEGO-------------------------------------------
 # Clase Jugador: Representa al jugador en el juego.
+class HealthBar:
+    def init(self, x, y, width, height, max_hp):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.hp = max_hp  # Salud actual del jugador
+        self.max_hp = max_hp
+    def draw(self, surface):
+        ratio= self.hp / self.max_hp  # Calcula la proporción de salud actual respecto a la máxima
+        pg.draw.rect(surface, (255, 0, 0), (self.x, self.y, self.width, self.height))  # Dibuja el fondo de la barra de salud   
+        pg.draw.rect(surface, (0, 255, 0), (self.x, self.y, self.width * ratio, self.height))
 class Jugador : 
     def __init__(self, area_juego, pos_x, pos_y, velocidad, spritesheet_idle,spritesheet_habilidad, frame_count, frame_w,frame_h, scale, colour): 
         self.area_juego = area_juego #superficie del juego donde se dibuja el jugador
