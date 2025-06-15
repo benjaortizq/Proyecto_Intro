@@ -159,6 +159,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         self.color_subiendo =color_habilidad
         self.barra_habilidad = 0  # Tiempo de recarga de la habilidad
         self.color_bajada=color_bajada
+        self.items = {"bombas":0, "velocidad" : 0 ,"escudo":0 }
     def ejecutar_habilidad(self ) :
         keys = pg.key.get_pressed()
         current_time = t.time()
@@ -188,7 +189,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
 
         if not self.ejecutando_habilidad:
             self.color_habilidad=self.color_subiendo
-            self.barra_habilidad = min(self.barra_habilidad + 0.1, 100)   #ni idea porque co 99 sirve pero con ese numero me deja la barra en 100 maximo xd  
+            self.barra_habilidad = min(self.barra_habilidad + 0.05, 100)   #ni idea porque co 99 sirve pero con ese numero me deja la barra en 100 maximo xd  
 
 
 #ocupo tipo scar tiempo. si en 0,5s no se presiona ninguna tecla entonces el sprote es el statico, si en n se presiona deacruerdo al movimiento cambia el sprite. sis e presiona el de habiliad, entones se muestra el speiret habilidad.
@@ -246,7 +247,7 @@ prev_siguiente = False #variable para controlar si se ha hecho clic en el botón
 prev_seleccion = False  #variable para controlar si se ha hecho clic en el botón de seleccionar
 
 #estados de juego :
-def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
+def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO          
     screen.fill((24,24,24))
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
     Player_1.mover()
@@ -258,7 +259,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
     habilidad_jugador= HealthBar(73, 55, 110, 20, Player_1.barra_habilidad, (129, 133, 137), Player_1.color_habilidad)  # Dibuja la barra de habilidad del jugador
     habilidad_jugador.draw(screen)  # Dibuja la barra de habilidad en la superficie del juego
     icono_habilidad= spritesheet_habilidades_prev.get_image(skin_seleccionada, 128,128,0.5,"black")
-    screen.blit(icono_habilidad, (10,30))
+    screen.blit(icono_habilidad, (7,30))
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
 
 
