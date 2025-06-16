@@ -183,7 +183,8 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         self.color_subiendo =color_habilidad
         self.barra_habilidad = 0  # Tiempo de recarga de la habilidad
         self.color_bajada=color_bajada
-        self.items = {"bombas":0, "velocidad" : 0 ,"escudo":0 }
+        self.powerups= {"dano" : 0 , "vida":0}
+        self.items = {"bombas":5, "velocidad" : 8 ,"escudo":2 }
 
         self.tiene_llave=False
     def ejecutar_habilidad(self ) :
@@ -240,7 +241,7 @@ game_surface = pg.Surface((816,528)) #*! ya cambie el tamano del frame enves de 
 heart_texture = pg.image.load("assets/textures/heart.png").convert_alpha() #carga la textura del corazon
 #------------------------SPRITES DE JUGADORES------------------------------
 sps_habilidades= pg.image.load ("assets\Textures\habilities.png").convert_alpha()
-sps_powerups = pg.image.load("assets\Textures\powerups.png").convert_alpha()
+sps_items = pg.image.load("assets\Textures\items.png").convert_alpha()
 #--- Intangible ----
 imp_sps_intangible= pg.image.load("assets\sprites\players\Intangible\idle.png").convert_alpha() #placeholder para el sprite intangible
 imp_sps_intalgible_hab= pg.image.load("assets\sprites\players\Intangible\invisible.png").convert_alpha() #placeholder para el sprite intangible de habilidad
@@ -251,7 +252,7 @@ preview_tactico = pg.image.load("assets\sprites\players\Tactico\preview.png").co
 preview_kamikaze = pg.image.load("assets\sprites\players\Kamikaze\preview.png").convert_alpha() 
 #-----------------------SPRITESHEET DE JUGADORES ------------------------------
 spritesheet_habilidades_prev= SpriteSheet (sps_habilidades)
-spritesheet_powerups= SpriteSheet (sps_powerups)
+spritecheet_items= SpriteSheet (sps_items)
 #instancia del jugador 
 spritesheet_idle_int= SpriteSheet(imp_sps_intangible) #crea una instancia de la clase SpriteSheet con el sprite del jugador
 spritesheet_habilidad_int= SpriteSheet(imp_sps_intalgible_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
@@ -290,9 +291,9 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     habilidad_jugador.draw(screen)  # Dibuja la barra de habilidad en la superficie del juego
     icono_habilidad= spritesheet_habilidades_prev.get_image(skin_seleccionada, 128,128,0.5,"black")
 
-    bombas_img=spritesheet_powerups.get_image(0,64,64,1.5,"black")
-    velocidad_img=spritesheet_powerups.get_image(1,64,64,1.5,"black")
-    escudo_img=spritesheet_powerups.get_image(2,64,64,1.5,"black")
+    bombas_img=spritecheet_items.get_image(0,64,64,1.5,"black")
+    velocidad_img=spritecheet_items.get_image(1,64,64,1.5,"black")
+    escudo_img=spritecheet_items.get_image(2,64,64,1.5,"black")
     cant_bombas =Player_1.items.get("bombas")
     cant_velos=Player_1.items.get("velocidad")
     cant_escus=Player_1.items.get("escudo")
