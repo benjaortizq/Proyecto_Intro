@@ -184,6 +184,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         self.barra_habilidad = 0  # Tiempo de recarga de la habilidad
         self.color_bajada=color_bajada
         self.items = {"bombas":0, "velocidad" : 0 ,"escudo":0 }
+
         self.tiene_llave=False
     def ejecutar_habilidad(self ) :
         keys = pg.key.get_pressed()
@@ -233,7 +234,7 @@ estado = "juego" #se inicializa el estado del juego como "start", que representa
 #-----------------------SPRITES------------------------------
 
 #-------------area de juego-----------
-game_surface = pg.Surface((816,524)) #*! ya cambie el tamano del frame enves de 624 a 524, estaba pintando el frame 100 pix hacia abajo y hacia que pete todo
+game_surface = pg.Surface((816,528)) #*! ya cambie el tamano del frame enves de 624 a 524, estaba pintando el frame 100 pix hacia abajo y hacia que pete todo
 
 #------------------------TEXTURAS------------------------------
 heart_texture = pg.image.load("assets/textures/heart.png").convert_alpha() #carga la textura del corazon
@@ -292,12 +293,22 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     bombas_img=spritesheet_powerups.get_image(0,64,64,1.5,"black")
     velocidad_img=spritesheet_powerups.get_image(1,64,64,1.5,"black")
     escudo_img=spritesheet_powerups.get_image(2,64,64,1.5,"black")
-
-    cant_powerups
+    cant_bombas =Player_1.items.get("bombas")
+    cant_velos=Player_1.items.get("velocidad")
+    cant_escus=Player_1.items.get("escudo")
+    bombas_tex = font0.render(f" x {cant_bombas}", False, "white")
+    velo_text = font0.render(f" x {cant_velos}", False, "white")
+    escu_text = font0.render(f" x {cant_escus}", False, "white")
     screen.blit(icono_habilidad, (7,30))
     screen.blit(bombas_img,(570,0))
+    screen.blit (bombas_tex,(598,80))
+
     screen.blit(velocidad_img,(644,0))
+    screen.blit (velo_text,(672,80))
+
     screen.blit(escudo_img,(718,0))
+    screen.blit (escu_text,(746,80))
+
     screen.blit(texto_tiempo,(330,5))
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
 
