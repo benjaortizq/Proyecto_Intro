@@ -1,8 +1,10 @@
 Manual para el uso del mapa:
+Piso:
+Son 0
 Obstaculos:
 Existen dos obstaculos, rompibles e irrompibles. Se usara # para los irrompibles y * para los rompibles.
 Existen 3 tipos de enemigos más el boss, se usara 1 (enemigos nivel 1 y más fáciles), 2 para los siguientes, 3 para los siguientes y 4 para el boss.
-El jugador sera representado por 0 en la matriz, solo se usaran los sprites que se sacaron anteriormente.
+El jugador sera representado por 'J' en la matriz, solo se usaran los sprites que se sacaron anteriormente.
 La llave y salida, se usaran ! (para la llave) y $ para la salida.
 
 Las trampas y obstáculos extra por nivel recomiendo usar:
