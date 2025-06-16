@@ -1,5 +1,6 @@
 import pygame as pg
 import time as t
+import threading
 import random 
 import sys 
 import os 
@@ -53,19 +54,58 @@ class Boton :
 # -------------------------------------------------------CLASES DEL JUEGO-----------
 #Clase Obstaculo 
 class Obstaculo:
-    def __init__(self, screen, x, y):
+    def __init__(self, screen, x, y, texture):
         self.screen = screen
         self.x = x
         self.y = y
-        self.rect = pg.Rect(x*CELL_SIZE, y*CELL_SIZE+100, CELL_SIZE, CELL_SIZE)
+        self.texture = texture
+        
         
     def draw(self):
-        pg.draw.rect(self.screen, "green", self.rect)
+        self.screen.blit(self.texture, (self.x, self.y+100))
+
+#Class Enemigos
+#Screen = area_juego
+class Enemigos:
+     def __init__(self, screen, x, y, velocidad):
+          self.screen = screen
+          self.x = x
+          self.y = y
+          self.velocidad = velocidad
+          self.ocupado = False
+          self._running = True
+          self.thread = threading.Thread(target=self.auto_move)
+          self.thread.daemon = True
+          self.thread.start()
+
+
+
+
+     def cambiar_spritesheet(self, nuevo_spritesheet): #esto es para cambiar la spritesheet del jugador, por ejemplo cuando se ejecuta una habilidad
+        self.current_spritesheet = nuevo_spritesheet #cambia el spritesheet actual al nuevo
+        self.current_frame = 0  #reinicia el frame actual a 0
+        self.last_update = t.time()     #reinicia el tiempo de la ultima actualizacion para que no se salte frames al cambiar de spritesheet
+    
+     def animacion_skin(self) : 
+        current_time = t.time()
+        if current_time - self.last_update > 0.1 : # Cambio de frame cada 0.2 segundos
+            self.last_update = current_time
+            self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
+        self.current_skin = self.current_spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
+        self.mask = pg.mask.from_surface(self.current_skin)
+    
+     def colisiona_con(self, otro_objeto):
+        # Calcular diferencia de posiciones (offset)
+        offset_x = int(otro_objeto.x) - int(self.x)
+        offset_y = int(otro_objeto.y) - int(self.y)
+        return self.mask.overlap(otro_objeto.mask, (offset_x, offset_y)) is not None
+     
+
 #-----------------------pygame------------------------------
 
 #commons de pygame (literalmente el inicio de pygame)
 pg.init()
-screen = pg.display.set_mode((816, 624)) #tamano de pantalla
+screen = pg.display.set_mode((816, 628)) #tamano de pantalla
 pg.display.set_caption("El hombre que tiraba bombas") #Nombre de la ventana
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
@@ -75,6 +115,26 @@ obstacles = [] #lista de posicion de los obstacles
 nivel = 1
 matriz = []
 #-----------------------SPRITES------------------------------
+#Obstaculos
+sps_obstacles = pg.image.load("assets\Textures\Bricks.png")
+spritesheet_Obstaculos = SpriteSheet(sps_obstacles)
+Obstaculo_I = spritesheet_Obstaculos.get_image(1,64,64,0.75,'white')
+Obstaculo_R = spritesheet_Obstaculos.get_image(4,64,64,0.75,'white')
+
+#Floor
+sps_floor = pg.image.load("assets\Textures\Floor.png")
+spritesheet_Floor = SpriteSheet(sps_floor)
+Floor_corner0 = spritesheet_Floor.get_image(0,64,64,0.75,'white')
+Floor_corner1 = pg.transform.rotate(Floor_corner0,90)
+Floor_corner2 = pg.transform.rotate(Floor_corner0,180)
+Floor_corner3 = pg.transform.rotate(Floor_corner1,180)
+Floor_up = spritesheet_Floor.get_image(1,64,64,0.75,'white')
+Floor_down = pg.transform.rotate(Floor_up,180)
+Floor_lside = spritesheet_Floor.get_image(3,64,64,0.75,'white')
+Floor_rside = pg.transform.rotate(Floor_lside,180)
+Floor_nothing = spritesheet_Floor.get_image(4,64,64,0.75,'white')
+
+#Enemigos
 
 
 #___________________Enemigos y Aparicion de obstaculos________________________
@@ -84,7 +144,7 @@ H_GRID = 13
 
 
 #-------------area de juego-----------
-game_surface = pg.Surface((816,524)) #superficie del juego, que es el fondo de la pantalla
+game_surface = pg.Surface((816,528)) #superficie del juego, que es el fondo de la pantalla
 
 #Solo para visualizar la cantidad de espacio que poseemos para jugar, o casillas. Son 187 casillas.
 def draw_grid(surface):
@@ -94,15 +154,65 @@ def draw_grid(surface):
                 pg.draw.rect(surface, "gray", rect, 1)
 
 #funcion temporal, solo genera obstacles, aunque se leeran de un txt obvio
-def generate_obstacles(screen):
-        global obstacles
-        while len(obstacles) < 15:
-            x = random.randint(0, W_GRID-1)
-            y = random.randint(0, H_GRID-1)
-            if (x,y) != (0,0) and (x, y) not in [(o.x, o.y) for o in obstacles]:
-                obstacles.append(Obstaculo(screen, x, y))
-        return obstacles
+def generate(screen):
+        global obstacles, matriz
+        for fil in range(len(matriz)):
+             for col in range(len(matriz[fil])):
+                  if matriz[fil][col] == '#': 
+                       texture = Obstaculo_I
+                       obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                       obs.draw()
+                  if matriz[fil][col] == '*':
+                       texture = Obstaculo_R
+                       obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                       obs.draw()
+                  if matriz[fil][col] == 0:
+                       if fil == 0 and col == 0:
+                            texture = Floor_corner0
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
+                       elif fil == 0 and col == 16:
+                            texture = Floor_corner3
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
+                       
+                       elif fil == 10 and col == 16:
+                            texture = Floor_corner2
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
+                        
+                       elif fil == 10 and col == 0:
+                            texture = Floor_corner1
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
 
+                       elif fil == 0:
+                            texture = Floor_up
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
+
+                       elif col == 0:
+                            texture = Floor_lside
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
+                        
+                       elif col == 16: 
+                            texture = Floor_rside
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
+
+                       elif fil == 10:
+                            texture = Floor_down
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
+                        
+                       else:
+                            texture = Floor_nothing
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
+
+
+#revisar mask, en pygame. Para enemigos, robarle mask a Benja
 def leer_archivo(path):
         archivo = open(path, 'r')
         contenido = archivo.read()
@@ -114,18 +224,16 @@ def init (nivel):
         matriz = eval(leer_archivo(texto_nivel))
 init(nivel)
 
-#los dibuja
-def draw_obstacles():
-        for obstacle in obstacles:
-            obstacle.draw()
+
+
 #estados de juego :
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
     screen.fill("white")
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
     draw_grid(screen)
-    generate_obstacles(screen)
-    draw_obstacles()
+    generate(screen)
+    
 
 while True:
 #cambiador de estado
