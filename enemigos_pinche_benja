@@ -73,12 +73,8 @@ class Enemigos:
           self.y = y
           self.velocidad = velocidad
           self.ocupado = False
-          self._running = True
           self.dir = 3
           self.textura = Floor_corner0
-         # self.thread = threading.Thread(target=self.auto_move)
-        #self.thread.daemon = False
-         # self.thread.start()
 
     #line_of_sight
      def move(self):
@@ -100,8 +96,6 @@ class Enemigos:
         self.screen.blit(self.textura, (self.x, self.y+100))
 
      def auto_move(self):
-                #while self._running:
-                    
                     self.move()
                     
                     
