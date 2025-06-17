@@ -67,19 +67,45 @@ class Obstaculo:
 #Class Enemigos
 #Screen = area_juego
 class Enemigos:
-     def __init__(self, screen, x, y, velocidad):
+     def __init__(self, screen, x, y, velocidad, dir = random.randint(0,3)):
           self.screen = screen
           self.x = x
           self.y = y
           self.velocidad = velocidad
           self.ocupado = False
           self._running = True
-          self.thread = threading.Thread(target=self.auto_move)
-          self.thread.daemon = True
-          self.thread.start()
+          self.dir = 3
+          self.textura = Floor_corner0
+         # self.thread = threading.Thread(target=self.auto_move)
+        #self.thread.daemon = False
+         # self.thread.start()
 
+    #line_of_sight
+     def move(self):
+        # HORIZONTAL: dir 0 ← , dir 1 →
+        if self.dir in (0, 1):
+            dx = -self.velocidad if self.dir == 0 else self.velocidad
+            new_x = self.x + dx
+            # límites de pantalla
+            if 0 < new_x < 816:
+                self.x = new_x
+        # VERTICAL: dir 2 ↑ , dir 3 ↓
+        elif self.dir in (2, 3):
+            dy = -self.velocidad if self.dir == 2 else self.velocidad
+            new_y = self.y + dy
+            if 0 < new_y < 480:
+                self.y = new_y
 
+        # Dibujo
+        self.screen.blit(self.textura, (self.x, self.y+100))
 
+     def auto_move(self):
+                #while self._running:
+                    
+                    self.move()
+                    
+                    
+                    
 
      def cambiar_spritesheet(self, nuevo_spritesheet): #esto es para cambiar la spritesheet del jugador, por ejemplo cuando se ejecuta una habilidad
         self.current_spritesheet = nuevo_spritesheet #cambia el spritesheet actual al nuevo
@@ -213,6 +239,21 @@ def generate(screen):
 
 
 #revisar mask, en pygame. Para enemigos, robarle mask a Benja
+#Funciones para los enemigos
+
+Lista_Enemigos_1 = []
+
+def generate_enemies (screen):
+    global obstacles, matriz, Lista_Enemigos_1
+    for fil in range(len(matriz)):
+             for col in range(len(matriz[fil])):
+                  if matriz[fil][col] == 1:
+                       Enemigo_perro = Enemigos(screen, (col*48), (fil*48), 1)
+                       Lista_Enemigos_1 += [Enemigo_perro]
+
+                       
+                       
+#Funcion para leer la matriz de nivel
 def leer_archivo(path):
         archivo = open(path, 'r')
         contenido = archivo.read()
@@ -224,7 +265,7 @@ def init (nivel):
         matriz = eval(leer_archivo(texto_nivel))
 init(nivel)
 
-
+primera_vez = True
 
 #estados de juego :
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
@@ -233,12 +274,17 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
     draw_grid(screen)
     generate(screen)
-    
+    if primera_vez:
+        generate_enemies(screen)
+
+    for ene_1 in Lista_Enemigos_1:
+        ene_1.auto_move()
 
 while True:
 #cambiador de estado
     if estado == "juego":  # Si el estado es "juego", se muestra la pantalla de juego
         pantalla_juego()
+        primera_vez = False
     else:  # Si el estado no es reconocido, se muestra un mensaje de error
         print("Estado no reconocido")
     for event in pg.event.get():
