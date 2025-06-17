@@ -262,7 +262,7 @@ font1= pg.font.Font("fonts/Pixeltype.ttf", 50) #fuente para mostrar titulo de ca
 skin_seleccionada = 0                   #variable global para controlar la skin que selecciona en la aprte de seleccion de jugador (skin)
 skin_viendo=0
 
-
+321
 
 ##BOTONES GLOBALES 
 boton_siguiente_opcion= Boton(300, 500, 150, 30, "Siguiente", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #"crea un boton de siguiente opcion (tiene que estar afuera por tipo int)
