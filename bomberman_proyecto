@@ -185,6 +185,8 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         self.color_bajada=color_bajada
         self.powerups= {"dano" : 0 , "vida":0}
         self.items = {"bombas":5, "velocidad" : 8 ,"escudo":2 }
+        self.powerup_en_uso={"dano": False, "vida": False}
+        self.item_en_uso={"bombas":False, "velocidad" : False ,"escudo":False }
         self.tiene_llave=False
     def ejecutar_habilidad(self ) :
         keys = pg.key.get_pressed()
@@ -223,11 +225,12 @@ pg.display.set_caption("El hombre que tiraba bombas") #Nombre de la ventana
 tiempo_juego= Reloj(300)
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
-puntaje_final=0
+
 #-----------------------GLOBALES------------------------------
 estado = "juego" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
-#-----------------------SPRITES------------------------------
-
+#-----------------------GLOBALES Y CARACTERISTICAS DEL JUEGO------------------------------
+puntaje_nivel=0
+puntaje_final=0
 #-------------area de juego-----------
 game_surface = pg.Surface((816,528)) #*! ya cambie el tamano del frame enves de 624 a 524, estaba pintando el frame 100 pix hacia abajo y hacia que pete todo
 
@@ -245,6 +248,8 @@ imp_sps_intangible_run= pg.image.load("assets\sprites\players\Intangible\correr.
 preview_intangible = pg.image.load("assets\sprites\players\Intangible\preview.png").convert_alpha() 
 preview_tactico = pg.image.load("assets\sprites\players\Tactico\preview.png").convert_alpha() 
 preview_kamikaze = pg.image.load("assets\sprites\players\Kamikaze\preview.png").convert_alpha() 
+
+
 #-----------------------SPRITESHEET DE JUGADORES ------------------------------
 spritesheet_habilidades_prev= SpriteSheet (sps_habilidades)
 spritecheet_items= SpriteSheet (sps_items)
@@ -262,7 +267,6 @@ font1= pg.font.Font("fonts/Pixeltype.ttf", 50) #fuente para mostrar titulo de ca
 skin_seleccionada = 0                   #variable global para controlar la skin que selecciona en la aprte de seleccion de jugador (skin)
 skin_viendo=0
 
-321
 
 ##BOTONES GLOBALES 
 boton_siguiente_opcion= Boton(300, 500, 150, 30, "Siguiente", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #"crea un boton de siguiente opcion (tiene que estar afuera por tipo int)
@@ -270,23 +274,41 @@ boton_seleccionar = Boton(300, 540, 150, 30, "Seleccionar", "fonts/Pixeltype.ttf
 
 prev_siguiente = False #variable para controlar si se ha hecho clic en el botón de siguiente opción
 prev_seleccion = False  #variable para controlar si se ha hecho clic en el botón de seleccionar
-
-#estados de juego :
-def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO          
-    global tiempo_juego
+def dibujar_gui() :
+    global tiempo_juego, puntaje_nivel
     screen.fill((24,24,24))
-    game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantallag
-    texto_tiempo=font.render(f"Tiempo : {tiempo_juego.tiempo}", False , "white")
-    Player_1.mover()
-    Player_1.ejecutar_habilidad() 
+    lista_pw_uso = ["vida","dano"]
+    texto_tiempo=font0.render(f"Tiempo : {tiempo_juego.tiempo}", False , "white")
+    texto_puntaje_nivel = font0.render(f"Puntaje : {puntaje_nivel}",False,"white")
+
+    
+    default_pw = spritesheet_powerups.get_image(2, 64, 64, 1, "black")
+    default_pw_p = spritesheet_powerups.get_image(2, 64, 64, 0.5, "black")
+
+    powerup_sprites = {"vida": [spritesheet_powerups.get_image(0, 64, 64, 1, "black"),spritesheet_powerups.get_image(0, 64, 64, 0.5, "black")],"dano": [spritesheet_powerups.get_image(1, 64, 64, 1, "black"),spritesheet_powerups.get_image(1, 64, 64, 0.5, "black")]}
+    pw_uso_1 = default_pw
+    pw_uso_2 = default_pw_p
+    if len(lista_pw_uso) >= 1:
+        nombre1 = lista_pw_uso[0]
+        sprites  = powerup_sprites.get(nombre1)
+        if sprites:
+            pw_uso_1 = sprites[0]
+        # Si hay un segundo power‑up, úsalo en la ranura 2
+        if len(lista_pw_uso) == 2:
+            nombre2 = lista_pw_uso[1]
+            sprites2  = powerup_sprites.get(nombre2)
+            if sprites2:
+                pw_uso_2 = sprites2[1]
+
+    # Ahora dibuja pw_uso_1 y pw_uso_2 donde corresponda en tu GUI
+    
+
     vida_jugador=Healthbar_Player (73, 15, 110, 20, Player_1.vida, heart_texture,Player_1.cant_vidas,font0)  # Dibuja la barra de salud del jugador
     vida_jugador.draw(screen)  # Dibuja la barra de salud en la superficie del juego
     vida_jugador.draw_atributes(screen)  # Dibuja los atributos de la barra de salud en la superficie del juego
-
     habilidad_jugador= HealthBar(73, 55, 110, 20, Player_1.barra_habilidad, (129, 133, 137), Player_1.color_habilidad)  # Dibuja la barra de habilidad del jugador
     habilidad_jugador.draw(screen)  # Dibuja la barra de habilidad en la superficie del juego
     icono_habilidad= spritesheet_habilidades_prev.get_image(skin_seleccionada, 128,128,0.5,"black")
-
     bombas_img=spritecheet_items.get_image(0,64,64,1.5,"black")
     velocidad_img=spritecheet_items.get_image(1,64,64,1.5,"black")
     escudo_img=spritecheet_items.get_image(2,64,64,1.5,"black")
@@ -296,7 +318,13 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     bombas_tex = font0.render(f" x {cant_bombas}", False, "white")
     velo_text = font0.render(f" x {cant_velos}", False, "white")
     escu_text = font0.render(f" x {cant_escus}", False, "white")
+    
     screen.blit(icono_habilidad, (7,30))
+
+
+    screen.blit(pw_uso_2,(550,0))
+    screen.blit(pw_uso_1,(510,20))
+    
     screen.blit(bombas_img,(570,0))
     screen.blit (bombas_tex,(598,80))
 
@@ -306,10 +334,16 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     screen.blit(escudo_img,(718,0))
     screen.blit (escu_text,(746,80))
 
-    screen.blit(texto_tiempo,(330,5))
+    screen.blit(texto_tiempo,(327,5))
+    screen.blit(texto_puntaje_nivel,(332,25))
+    #screen.blit(texto_puntaje_nivel, (425,5))
+#estados de juego :
+def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO          
+    dibujar_gui()
+    game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantallag
+    Player_1.mover()
+    Player_1.ejecutar_habilidad() 
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
-
-
 
 def pantalla_seleccion_jugador () : 
     global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion
@@ -392,22 +426,7 @@ while True:
     reloj.tick(60)
 
 
-#TODO : 
-# - Agregar mas jugadores
-# - Agregar mas habilidades
-# - Agregar mas estados de juego
-# - Agregar mas pantallas de juego
-# - Agregar mas botones
-# - Agregar mas sprites 
-# - Agregar mas sonidos
-# - Agregar mas musica
-# - Agregar mas niveles
-# - Agregar mas enemigos
-# - Agregar mas power ups
-# - Agregar mas bombas
-# - Agregar mas explosiones
-# - Agregar mas efectos
-# - Agregar mas animaciones
-# - Agregar mas menus
-# - Agregar mas opciones
-# - Agregar mas configuraciones
+#TODO : benja
+#cambiar powerups para aferctar varas del player
+#agregar healthbar de boss
+#agregar puntaje 
