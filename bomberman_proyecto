@@ -19,7 +19,7 @@ class Reloj(th.Thread):
         super().__init__()
         self.tiempo = tiempo_inicial
         self.en_marcha = True
-        self.daemon = True  # Para que el hilo se cierre con el programa principal
+        self.isDaemon = False  # Para que el hilo se cierre con el programa principal
         self.pausado = False
         self.lock = th.Lock()  # Para sincronización
         
