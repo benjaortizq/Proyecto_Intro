@@ -59,47 +59,74 @@ class Obstaculo:
         self.x = x
         self.y = y
         self.texture = texture
-        
+        self.mask    = pg.mask.from_surface(self.texture)
         
     def draw(self):
         self.screen.blit(self.texture, (self.x, self.y+100))
 
+
+
 #Class Enemigos
 #Screen = area_juego
 class Enemigos:
-     def __init__(self, screen, x, y, velocidad, dir = random.randint(0,3)):
+     def __init__(self, screen, x, y, velocidad, spritesheet_walk, frame_count, frame_w,frame_h, scale, colour, dir):
           self.screen = screen
           self.x = x
           self.y = y
           self.velocidad = velocidad
-          self.ocupado = False
-          self.dir = 3
-          self.textura = Floor_corner0
+          self.current_spritesheet = spritesheet_walk
+          self.frame_count = frame_count          #CAANTIDAD DE FRAMES DE LA SKIN DEL JUGAODR
+          self.width_frame = frame_w
+          self.height_frame = frame_h   #esto siempre es estatico. como las spritesheets son horizontales entonces esto que qeuda asi . 
+          self.scale = scale                              #multiplicador de escala para el sprite
+          self.colour = colour                  #color de fondo del sprite que se va a eliminar
+          self.last_update = t.time()     #tiempo de la ultima actualizacion del frame
+          self.current_frame = 0        #numero de frame que esta actualmente dibujandose.
+          self.current_skin = self.current_spritesheet.get_image(0, 48, 48, self.scale, self.colour)
+          self.mask= pg.mask.from_surface(self.current_skin)
+          self.dir = dir
+          
 
     #line_of_sight
      def move(self):
+        self.animacion_skin()
         # HORIZONTAL: dir 0 ← , dir 1 →
         if self.dir in (0, 1):
+            
             dx = -self.velocidad if self.dir == 0 else self.velocidad
             new_x = self.x + dx
+            if dx < 0:
+                 self.current_skin = pg.transform.flip(self.current_skin, True, False)
+                 self.current_skin.set_colorkey('black')
+
+            if new_x <= 0:
+                 self.dir = 1
+            if new_x >= 770:
+                 self.dir = 0
             # límites de pantalla
-            if 0 < new_x < 816:
+            if 0 < new_x < 770:
                 self.x = new_x
         # VERTICAL: dir 2 ↑ , dir 3 ↓
         elif self.dir in (2, 3):
             dy = -self.velocidad if self.dir == 2 else self.velocidad
             new_y = self.y + dy
+            if new_y <= 0:
+                 self.dir = 3
+            if new_y >= 480:
+                 self.dir = 2
             if 0 < new_y < 480:
                 self.y = new_y
 
         # Dibujo
-        self.screen.blit(self.textura, (self.x, self.y+100))
+        self.screen.blit(self.current_skin, (self.x, self.y+100))
 
      def auto_move(self):
                     self.move()
                     
                     
-                    
+     def rebote(self):
+          #solo rebota su hay una pared
+          self.dir ^= 1          
 
      def cambiar_spritesheet(self, nuevo_spritesheet): #esto es para cambiar la spritesheet del jugador, por ejemplo cuando se ejecuta una habilidad
         self.current_spritesheet = nuevo_spritesheet #cambia el spritesheet actual al nuevo
@@ -131,9 +158,12 @@ reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 #-----------------------GLOBALES------------------------------
 estado = "juego" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
-obstacles = [] #lista de posicion de los obstacles
-nivel = 1
-matriz = []
+obstacles = [] #lista de colisiones con obstaculos
+obstacles_R = [] #lista de los rompibles
+nivel = 1 #nivel inicial
+matriz = [] #la matriz extraida del nivel inicial
+Lista_Enemigos_1 = [] #la lista de los enemigos, esta solo posee los enemigos del nivel 1 o los mas sencillos
+primera_vez = True #debido a que ciertas cosas SOLO se deben generar una vez por nivel, como ver sus posiciones, se hace este booleano
 #-----------------------SPRITES------------------------------
 #Obstaculos
 sps_obstacles = pg.image.load("assets\Textures\Bricks.png")
@@ -155,6 +185,9 @@ Floor_rside = pg.transform.rotate(Floor_lside,180)
 Floor_nothing = spritesheet_Floor.get_image(4,64,64,0.75,'white')
 
 #Enemigos
+sps_perro_cañon = pg.image.load("assets\sprites\enemies\perro_canon\Walk.png")
+spritesheet_perro_cañon = SpriteSheet(sps_perro_cañon)
+
 
 
 #___________________Enemigos y Aparicion de obstaculos________________________
@@ -166,14 +199,29 @@ H_GRID = 13
 #-------------area de juego-----------
 game_surface = pg.Surface((816,528)) #superficie del juego, que es el fondo de la pantalla
 
-#Solo para visualizar la cantidad de espacio que poseemos para jugar, o casillas. Son 187 casillas.
-def draw_grid(surface):
-        for row in range(W_GRID):
-            for col in range(H_GRID):
-                rect = pg.Rect(row*CELL_SIZE, col*CELL_SIZE+100, CELL_SIZE, CELL_SIZE)
-                pg.draw.rect(surface, "gray", rect, 1)
 
-#funcion temporal, solo genera obstacles, aunque se leeran de un txt obvio
+
+#Funcion que ha partir de la matriz lee las posiciones iniciales 
+def save_positions(screen):
+        global obstacles, matriz, Lista_Enemigos_1, obstacles_R
+        for fil in range(len(matriz)):
+             for col in range(len(matriz[fil])):
+                  if matriz[fil][col] == '#': 
+                       texture = Obstaculo_I
+                       obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                       obstacles += [obs]
+                       
+                  if matriz[fil][col] == '*':
+                       texture = Obstaculo_R
+                       obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                       obstacles += [obs]
+                       obstacles_R += [obs]
+
+                  if matriz[fil][col] == 1:
+                       Enemigo_perro = Enemigos(screen, (col*48), (fil*48), 1.3, spritesheet_perro_cañon, 3, 48, 48, 1, 'black', random.randint(0,3))
+                       Lista_Enemigos_1 += [Enemigo_perro]
+
+#Este genera las texturas inamovibles, los enemigos se dibujan y se tratan dentro de su propia clase
 def generate(screen):
         global obstacles, matriz
         for fil in range(len(matriz)):
@@ -181,12 +229,14 @@ def generate(screen):
                   if matriz[fil][col] == '#': 
                        texture = Obstaculo_I
                        obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                       
                        obs.draw()
                   if matriz[fil][col] == '*':
                        texture = Obstaculo_R
                        obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                       
                        obs.draw()
-                  if matriz[fil][col] == 0:
+                  if matriz[fil][col] in (0,1):
                        if fil == 0 and col == 0:
                             texture = Floor_corner0
                             obs = Obstaculo(screen, (col*48),(fil*48) , texture)
@@ -231,21 +281,6 @@ def generate(screen):
                             obs = Obstaculo(screen, (col*48),(fil*48) , texture)
                             obs.draw()
 
-
-#revisar mask, en pygame. Para enemigos, robarle mask a Benja
-#Funciones para los enemigos
-
-Lista_Enemigos_1 = []
-
-def generate_enemies (screen):
-    global obstacles, matriz, Lista_Enemigos_1
-    for fil in range(len(matriz)):
-             for col in range(len(matriz[fil])):
-                  if matriz[fil][col] == 1:
-                       Enemigo_perro = Enemigos(screen, (col*48), (fil*48), 1)
-                       Lista_Enemigos_1 += [Enemigo_perro]
-
-                       
                        
 #Funcion para leer la matriz de nivel
 def leer_archivo(path):
@@ -259,26 +294,36 @@ def init (nivel):
         matriz = eval(leer_archivo(texto_nivel))
 init(nivel)
 
-primera_vez = True
+
 
 #estados de juego :
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA PANTALLA DE juego
     screen.fill("white")
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
-    draw_grid(screen)
-    generate(screen)
+    
+    
     if primera_vez:
-        generate_enemies(screen)
+        save_positions(screen)
 
+    generate(screen)
     for ene_1 in Lista_Enemigos_1:
         ene_1.auto_move()
+        #obstaculos funciona con la mascara de los obstaculos, asi pues para hacer colisiones solo ve si hay choque entre mascaras
+        for obst in obstacles:
+             if Enemigos.colisiona_con(ene_1, obst):
+                # aquí ya chocaron
+                ene_1.rebote()
 
+        
+
+#ciclo principal
 while True:
 #cambiador de estado
     if estado == "juego":  # Si el estado es "juego", se muestra la pantalla de juego
         pantalla_juego()
         primera_vez = False
+        
     else:  # Si el estado no es reconocido, se muestra un mensaje de error
         print("Estado no reconocido")
     for event in pg.event.get():
