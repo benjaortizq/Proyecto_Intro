@@ -206,7 +206,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
                 self.ejecutando_habilidad = False
                 self.cambiar_spritesheet(self.spritesheet_idle)
                 print("Habilidad detenida por tiempo máximo")
-                
+
         if not self.ejecutando_habilidad:
             self.color_habilidad=self.color_subiendo
             self.barra_habilidad = min(self.barra_habilidad + 0.05, 100)   #ni idea porque co 99 sirve pero con ese numero me deja la barra en 100 maximo xd  
@@ -275,7 +275,7 @@ prev_seleccion = False  #variable para controlar si se ha hecho clic en el botó
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO          
     global tiempo_juego
     screen.fill((24,24,24))
-    game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
+    game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantallag
     texto_tiempo=font.render(f"Tiempo : {tiempo_juego.tiempo}", False , "white")
     Player_1.mover()
     Player_1.ejecutar_habilidad() 
