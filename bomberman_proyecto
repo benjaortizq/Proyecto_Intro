@@ -185,7 +185,6 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         self.color_bajada=color_bajada
         self.powerups= {"dano" : 0 , "vida":0}
         self.items = {"bombas":5, "velocidad" : 8 ,"escudo":2 }
-
         self.tiene_llave=False
     def ejecutar_habilidad(self ) :
         keys = pg.key.get_pressed()
@@ -207,12 +206,6 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
                 self.ejecutando_habilidad = False
                 self.cambiar_spritesheet(self.spritesheet_idle)
                 print("Habilidad detenida por tiempo máximo")
-        
-        # Detener al soltar la tecla
-        '''if not keys[pg.K_SPACE] and self.ejecutando_habilidad:
-            self.ejecutando_habilidad = False
-            self.cambiar_spritesheet(self.spritesheet_idle)
-            print("Habilidad detenida al soltar espacio")'''
 
         if not self.ejecutando_habilidad:
             self.color_habilidad=self.color_subiendo
@@ -230,6 +223,7 @@ pg.display.set_caption("El hombre que tiraba bombas") #Nombre de la ventana
 tiempo_juego= Reloj(300)
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
+puntaje_final=0
 #-----------------------GLOBALES------------------------------
 estado = "juego" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 #-----------------------SPRITES------------------------------
@@ -242,6 +236,7 @@ heart_texture = pg.image.load("assets/textures/heart.png").convert_alpha() #carg
 #------------------------SPRITES DE JUGADORES------------------------------
 sps_habilidades= pg.image.load ("assets\Textures\habilities.png").convert_alpha()
 sps_items = pg.image.load("assets\Textures\items.png").convert_alpha()
+sps_powerups=pg.image.load("assets\Textures\powerups.png").convert_alpha()
 #--- Intangible ----
 imp_sps_intangible= pg.image.load("assets\sprites\players\Intangible\idle.png").convert_alpha() #placeholder para el sprite intangible
 imp_sps_intalgible_hab= pg.image.load("assets\sprites\players\Intangible\invisible.png").convert_alpha() #placeholder para el sprite intangible de habilidad
@@ -253,6 +248,7 @@ preview_kamikaze = pg.image.load("assets\sprites\players\Kamikaze\preview.png").
 #-----------------------SPRITESHEET DE JUGADORES ------------------------------
 spritesheet_habilidades_prev= SpriteSheet (sps_habilidades)
 spritecheet_items= SpriteSheet (sps_items)
+spritesheet_powerups=SpriteSheet(sps_powerups)
 #instancia del jugador 
 spritesheet_idle_int= SpriteSheet(imp_sps_intangible) #crea una instancia de la clase SpriteSheet con el sprite del jugador
 spritesheet_habilidad_int= SpriteSheet(imp_sps_intalgible_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
@@ -279,7 +275,7 @@ prev_seleccion = False  #variable para controlar si se ha hecho clic en el botó
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO          
     global tiempo_juego
     screen.fill((24,24,24))
-    game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantalla
+    game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantallag
     texto_tiempo=font.render(f"Tiempo : {tiempo_juego.tiempo}", False , "white")
     Player_1.mover()
     Player_1.ejecutar_habilidad() 
