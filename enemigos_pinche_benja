@@ -424,7 +424,7 @@ spritesheet_exp_l = SpriteSheet(sps_exp_lado)
 CELL_SIZE = 48 #tamaño por celda para la aparicion de todo XDXDXDXDX
 W_GRID = 17 #debido a que no es un cuadrado se debe definir un tamaño por ancho y alto
 H_GRID = 13
-
+#asw
 
 #-------------area de juego-----------
 game_surface = pg.Surface((816,528)) #superficie del juego, que es el fondo de la pantalla
