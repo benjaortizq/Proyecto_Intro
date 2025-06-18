@@ -211,7 +211,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
 
         if not self.ejecutando_habilidad:
             self.color_habilidad=self.color_subiendo
-            self.barra_habilidad = min(self.barra_habilidad + 0.05, 100)   #ni idea porque co 99 sirve pero con ese numero me deja la barra en 100 maximo xd  
+            self.barra_habilidad = min(self.barra_habilidad + 1, 100)   #ni idea porque co 99 sirve pero con ese numero me deja la barra en 100 maximo xd  
 
 
 #ocupo tipo scar tiempo. si en 0,5s no se presiona ninguna tecla entonces el sprote es el statico, si en n se presiona deacruerdo al movimiento cambia el sprite. sis e presiona el de habiliad, entones se muestra el speiret habilidad.
@@ -245,11 +245,11 @@ sps_powerups=pg.image.load("assets\Textures\powerups.png").convert_alpha()
 preview_intangible = pg.image.load("assets\sprites\players\Intangible\preview.png").convert_alpha() 
 imp_sps_intangible= pg.image.load("assets\sprites\players\Intangible\idle.png").convert_alpha() #placeholder para el sprite intangible
 imp_sps_intalgible_hab= pg.image.load("assets\sprites\players\Intangible\especial.png").convert_alpha() #placeholder para el sprite intangible de habilidad
-imp_sps_intangible_run= pg.image.load("assets\sprites\players\Intangible\correr.png").convert_alpha() #placeholder para el sprite intangible de correr
+imp_sps_intangible_run= pg.image.load("assets\sprites\players\Intangible\walk.png").convert_alpha() #placeholder para el sprite intangible de correr
 #----tactico----
 preview_tactico = pg.image.load("assets\sprites\players\Tactico\preview.png").convert_alpha() 
 imp_sps_tactico = pg.image.load("assets\sprites\players\Tactico\idle.png").convert_alpha() #placeholder para el sprite intangible de correr
-imp_sps_tactico_hab =pg.image.load("assets\sprites\players\Tactico\special.png").convert_alpha() #placeholder para el sprite intangible de correr
+imp_sps_tactico_hab =pg.image.load("assets\sprites\players\Tactico\especial.png").convert_alpha() #placeholder para el sprite intangible de correr
 
 #---kamikaze---
 preview_kamikaze = pg.image.load("assets\sprites\players\Kamikaze\preview.png").convert_alpha() 
@@ -375,8 +375,7 @@ def pantalla_seleccion_jugador () :
         skin_viendo += 1
     prev_siguiente = nuevo_viendo_actual  # Actualizar estado previo
 
-
-
+    #PREVIEW DE JUGADOR 
     if skin_viendo > 2: 
         skin_viendo %=3
     if skin_viendo == 0:
@@ -404,21 +403,19 @@ def pantalla_seleccion_jugador () :
         desc_skin4= font0.render("tocado por la guerra fue. Su habilidad le permite", True, (129, 133, 137))
         desc_skin5= font0.render("calcular un misil en donde sus enemigos estan ", True, (129, 133, 137))
         preview = pg.transform.scale(preview_tactico, (200, 200))
-
-
-    
+    #SELECCION DE JUGADOR 
     if nuevo_seleccion_actual and not prev_seleccion:  # Solo en el flanco de subida
         skin_seleccionada = prev_seleccion
         skin_seleccionada = skin_viendo
         if skin_seleccionada == 0 : 
-            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,1.5,"black","me gust el pene",6,(3, 240, 252),"yellow")
+            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,1.5,"black","Invencible",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
         elif skin_seleccionada == 1 : 
-            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_habilidad_kam,8,31,54,1,"black","me gust el pene",6,(3, 240, 252),"yellow")
+            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_habilidad_kam,8,31,54,1,"black","Kamikaze",6,(3, 240, 252),"yellow")    #GENERAR PLAYER KAMIKAZE
         elif skin_seleccionada == 2 :
-            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_tac,spritesheet_habilidad_tac,3,96,96,0.7,"black","me gust el pene",6,(3, 240, 252),"yellow")
+            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_tac,spritesheet_habilidad_tac,3,96,96,0.7,"black","Tactico",6,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
         
-        estado ="juego"
-    prev_seleccion = nuevo_seleccion_actual  # Actualizar estado previo
+        estado ="juego" #SIEMPRE BAMCIAR EL ESTADO AML SIGUIENTE ANTES DE JUEGO O NO SE 
+    prev_seleccion = nuevo_seleccion_actual  # Actualizar estado previo 
  
     screen.blit(Titulo_skin, (300, 50))
     screen.blit(desc_skin, (257, 100))  # Dibuja la descripción de la skin en la pantalla
