@@ -1223,7 +1223,8 @@ while True:
                     if matriz[(mouse_pos[1]-100)//48][(mouse_pos[0]//48)] not in ('#','*'):
                          matriz[(mouse_pos[1]-100)//48][(mouse_pos[0]//48)] = 8
                     bomba_in_bounds = True  
-
+        
+                    
     pg.display.flip()
     reloj.tick(60)
 
