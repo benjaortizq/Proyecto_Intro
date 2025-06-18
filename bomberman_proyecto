@@ -237,6 +237,15 @@ game_surface = pg.Surface((816,528)) #*! ya cambie el tamano del frame enves de 
 #------------------------TEXTURAS------------------------------
 heart_texture = pg.image.load("assets/textures/heart.png").convert_alpha() #carga la textura del corazon
 #--------------------FONDOS-----------------------------------
+fondo_p_men=[ 
+        "assets/backgrounds/menu/layer6.png",
+        "assets/backgrounds/menu/layer5.png",
+        "assets/backgrounds/menu/layer4.png",
+        "assets/backgrounds/menu/layer3.png",
+        "assets/backgrounds/menu/layer2.png",
+        "assets/backgrounds/menu/layer1.png",
+        "assets/backgrounds/menu/layer0.png"
+    ]
 fondos_p_op = [pg.image.load("assets/backgrounds/menu/layer3.png"),pg.image.load("assets/backgrounds/menu/layer2.png"),pg.image.load("assets/backgrounds/menu/layer1.png"),pg.image.load("assets/backgrounds/menu/layer0.png")]
 #------------------------SPRITES DE JUGADORES------------------------------
 sps_habilidades= pg.image.load ("assets\Textures\habilities.png").convert_alpha()
@@ -296,6 +305,21 @@ boton_seleccionar = Boton(300, 540, 150, 30, "Seleccionar", "fonts/Pixeltype.ttf
 
 prev_siguiente = False #variable para controlar si se ha hecho clic en el botón de siguiente opción
 prev_seleccion = False  #variable para controlar si se ha hecho clic en el botón de seleccionar
+def bg_men_parallax(): 
+    global parallax_positions
+    
+    # Dibujar capas desde la más lejana (0) a la más cercana (6)
+    for i, img in enumerate(parallax_images):
+        # Calcular nueva posición (movimiento infinito)
+        parallax_positions[i] -= parallax_speeds[i]
+        
+        # Reiniciar posición cuando la imagen sale completamente de la pantalla
+        if parallax_positions[i] <= -img.get_width():
+            parallax_positions[i] = 0
+        
+        # Dibujar dos copias para el efecto de scroll infinito
+        screen.blit(img, (parallax_positions[i], 0))
+        screen.blit(img, (parallax_positions[i] + img.get_width(), 0))
 def bg_opc_parallax():
     global fondos_p_op
     factores = [0.1, 0.3, 0.5, 0.7]
