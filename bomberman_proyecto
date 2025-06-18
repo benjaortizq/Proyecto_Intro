@@ -284,7 +284,10 @@ sritesheet_run_kam = SpriteSheet(imp_sps_intangible_run) #crea una instancia de 
 
 
 Player_1 = None
-#VARIABLES GLOBALES 
+#ds
+font_tit= pg.font.Font("fonts\upheavtt.ttf",50)
+
+#fonts pixeltype
 font = pg.font.Font("fonts/Pixeltype.ttf", 35) #fuente para mostrar info de cada skin del player
 font0= pg.font.Font("fonts/Pixeltype.ttf", 30) #fuente para mostrar info de cada skin del player
 font1= pg.font.Font("fonts/Pixeltype.ttf", 50) #fuente para mostrar titulo de cada skin de player   
@@ -339,6 +342,13 @@ def bg_opc_parallax():
         pos_y = (624 - fondo.get_height()) // 2 + offset_y
         
         screen.blit(fondo, (pos_x, pos_y))
+
+def pantalla_titulo () : 
+    bg_men_parallax()
+    titulo= font_tit.render("EL HOMBRE", False, "White")
+    screen.blit (titulo,(270,100))
+
+
 
 def dibujar_gui() :
     global tiempo_juego, puntaje_nivel
@@ -486,7 +496,7 @@ while True:
     elif estado == "seleccion_personaje":  # Si el estado es "creacion_niveles", se muestra la pantalla de creación de niveles
         pantalla_seleccion_jugador()
     elif estado=="menu" : 
-        bg_men_parallax()
+        pantalla_titulo()
     for event in pg.event.get():
         if event.type == pg.QUIT:
             tiempo_juego.detener()
