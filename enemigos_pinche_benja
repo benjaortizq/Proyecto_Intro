@@ -526,13 +526,14 @@ def bombastic_pos (screen): #guarda posicion de manejo de bombas
                        EXP_RL = Explosion_Matriz_Lados(screen, (col*48), (fil*48), spritesheet_exp_b, 5, 64, 64, 0.75, 'black',True,matriz[fil][col])
                        lista_EL += [EXP_RL]
 
-                      
-                                  
-
-                       
                        
      if lista_B == []:
           bomba_in_bounds = False
+
+def limpiar():
+     global matriz
+     for fil in range(len(matriz)):
+             for col in range(len(matriz[fil])):
                        
                        
 
