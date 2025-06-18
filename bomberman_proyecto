@@ -227,7 +227,7 @@ reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 
 #-----------------------GLOBALES------------------------------
-estado = "juego" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+estado = "seleccion_personaje" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 #-----------------------GLOBALES Y CARACTERISTICAS DEL JUEGO------------------------------
 puntaje_nivel=0
 puntaje_final=0
@@ -240,26 +240,46 @@ heart_texture = pg.image.load("assets/textures/heart.png").convert_alpha() #carg
 sps_habilidades= pg.image.load ("assets\Textures\habilities.png").convert_alpha()
 sps_items = pg.image.load("assets\Textures\items.png").convert_alpha()
 sps_powerups=pg.image.load("assets\Textures\powerups.png").convert_alpha()
-#--- Intangible ----
-imp_sps_intangible= pg.image.load("assets\sprites\players\Intangible\idle.png").convert_alpha() #placeholder para el sprite intangible
-imp_sps_intalgible_hab= pg.image.load("assets\sprites\players\Intangible\invisible.png").convert_alpha() #placeholder para el sprite intangible de habilidad
-imp_sps_intangible_run= pg.image.load("assets\sprites\players\Intangible\correr.png").convert_alpha() #placeholder para el sprite intangible de correr
 
+#--- Intangible ----
 preview_intangible = pg.image.load("assets\sprites\players\Intangible\preview.png").convert_alpha() 
+imp_sps_intangible= pg.image.load("assets\sprites\players\Intangible\idle.png").convert_alpha() #placeholder para el sprite intangible
+imp_sps_intalgible_hab= pg.image.load("assets\sprites\players\Intangible\especial.png").convert_alpha() #placeholder para el sprite intangible de habilidad
+imp_sps_intangible_run= pg.image.load("assets\sprites\players\Intangible\correr.png").convert_alpha() #placeholder para el sprite intangible de correr
+#----tactico----
 preview_tactico = pg.image.load("assets\sprites\players\Tactico\preview.png").convert_alpha() 
+imp_sps_tactico = pg.image.load("assets\sprites\players\Tactico\idle.png").convert_alpha() #placeholder para el sprite intangible de correr
+imp_sps_tactico_hab =pg.image.load("assets\sprites\players\Tactico\special.png").convert_alpha() #placeholder para el sprite intangible de correr
+
+#---kamikaze---
 preview_kamikaze = pg.image.load("assets\sprites\players\Kamikaze\preview.png").convert_alpha() 
+imp_sps_kamikaze = pg.image.load("assets\sprites\players\Kamikaze\idle.png").convert_alpha() #placeholder para el sprite intangible de correr
+imp_sps_kamikaze_hab =pg.image.load("assets\sprites\players\kamikaze\especial.png").convert_alpha() #placeholder para el sprite intangible de correr
+
 
 
 #-----------------------SPRITESHEET DE JUGADORES ------------------------------
 spritesheet_habilidades_prev= SpriteSheet (sps_habilidades)
 spritecheet_items= SpriteSheet (sps_items)
 spritesheet_powerups=SpriteSheet(sps_powerups)
-#instancia del jugador 
-spritesheet_idle_int= SpriteSheet(imp_sps_intangible) #crea una instancia de la clase SpriteSheet con el sprite del jugador
-spritesheet_habilidad_int= SpriteSheet(imp_sps_intalgible_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
+
+#Invencible 
+spritesheet_idle_int = SpriteSheet(imp_sps_intangible) #crea una instancia de la clase SpriteSheet con el sprite del jugador
+spritesheet_habilidad_int = SpriteSheet(imp_sps_intalgible_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
 sritesheet_run_int = SpriteSheet(imp_sps_intangible_run) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
 
-Player_1 = Jugador_1(game_surface, 100, 100,3,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,1.5,"black", "Invisibilidad",3,(69, 229, 222), "yellow" ) #placeholder de player1
+#tactico
+spritesheet_idle_tac= SpriteSheet(imp_sps_tactico) #crea una instancia de la clase SpriteSheet con el sprite del jugador
+spritesheet_habilidad_tac = SpriteSheet(imp_sps_tactico_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
+sritesheet_run_tac = SpriteSheet(imp_sps_tactico_hab) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
+
+#kamikaze
+spritesheet_idle_kam = SpriteSheet(imp_sps_kamikaze) #crea una instancia de la clase SpriteSheet con el sprite del jugador
+spritesheet_habilidad_kam = SpriteSheet(imp_sps_kamikaze_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
+sritesheet_run_kam = SpriteSheet(imp_sps_intangible_run) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
+
+
+Player_1 = None
 #VARIABLES GLOBALES 
 font = pg.font.Font("fonts/Pixeltype.ttf", 35) #fuente para mostrar info de cada skin del player
 font0= pg.font.Font("fonts/Pixeltype.ttf", 30) #fuente para mostrar info de cada skin del player
@@ -322,8 +342,8 @@ def dibujar_gui() :
     screen.blit(icono_habilidad, (7,30))
 
 
-    screen.blit(pw_uso_2,(550,0))
     screen.blit(pw_uso_1,(510,20))
+    screen.blit(pw_uso_2,(550,0))
     
     screen.blit(bombas_img,(570,0))
     screen.blit (bombas_tex,(598,80))
@@ -346,7 +366,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
 
 def pantalla_seleccion_jugador () : 
-    global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion
+    global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion, estado, Player_1
     screen.fill("black")
     # Obtener el estado ACTUAL de los botones
     nuevo_viendo_actual = boton_siguiente_opcion.check_click()
@@ -354,9 +374,7 @@ def pantalla_seleccion_jugador () :
     if nuevo_viendo_actual and not prev_siguiente:  # Solo en el flanco de subida
         skin_viendo += 1
     prev_siguiente = nuevo_viendo_actual  # Actualizar estado previo
-    if nuevo_seleccion_actual and not prev_seleccion:  # Solo en el flanco de subida
-        skin_seleccionada += 1
-    prev_seleccion = nuevo_seleccion_actual  # Actualizar estado previo
+
 
 
     if skin_viendo > 2: 
@@ -387,10 +405,20 @@ def pantalla_seleccion_jugador () :
         desc_skin5= font0.render("calcular un misil en donde sus enemigos estan ", True, (129, 133, 137))
         preview = pg.transform.scale(preview_tactico, (200, 200))
 
-    if skin_seleccionada == 0 : 
-        Player_1 = Jugador_1(game_surface, 100, 100,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,2,"black", "Invisibilidad")
-    elif skin_seleccionada == 1 :
-        None
+
+    
+    if nuevo_seleccion_actual and not prev_seleccion:  # Solo en el flanco de subida
+        skin_seleccionada = prev_seleccion
+        skin_seleccionada = skin_viendo
+        if skin_seleccionada == 0 : 
+            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,1.5,"black","me gust el pene",6,(3, 240, 252),"yellow")
+        elif skin_seleccionada == 1 : 
+            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_habilidad_kam,8,31,54,1,"black","me gust el pene",6,(3, 240, 252),"yellow")
+        elif skin_seleccionada == 2 :
+            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_tac,spritesheet_habilidad_tac,3,96,96,0.7,"black","me gust el pene",6,(3, 240, 252),"yellow")
+        
+        estado ="juego"
+    prev_seleccion = nuevo_seleccion_actual  # Actualizar estado previo
  
     screen.blit(Titulo_skin, (300, 50))
     screen.blit(desc_skin, (257, 100))  # Dibuja la descripción de la skin en la pantalla
