@@ -184,7 +184,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         self.barra_habilidad = 0  # Tiempo de recarga de la habilidad
         self.color_bajada=color_bajada
         self.powerups= {"dano" : 0 , "vida":0}
-        self.items = {"bombas":5, "velocidad" : 8 ,"escudo":2 }
+        self.items = {"bombas":6000, "velocidad" : 8 ,"escudo":2 }
         self.powerup_en_uso={"dano": False, "vida": False}
         self.item_en_uso={"bombas":False, "velocidad" : False ,"escudo":False }
         self.tiene_llave=False
@@ -212,6 +212,16 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         if not self.ejecutando_habilidad:
             self.color_habilidad=self.color_subiendo
             self.barra_habilidad = min(self.barra_habilidad + 1, 100)   #ni idea porque co 99 sirve pero con ese numero me deja la barra en 100 maximo xd  
+    def usar_bomba(self):
+             global matriz
+             if self.items.get("bombas") > 0:
+                 keys = pg.key.get_pressed()
+                 if keys[pg.K_b]:
+                     print (self.y, self.x)
+                     Bomba_R = Bomba_Matriz(self.area_juego, (self.x), (self.y), spritesheet_Bomba, 5, 64, 64, 0.75, 'black', True)
+                     lista_B.append(Bomba_R)
+                     matriz[self.y // 48][self.x // 48] = 0
+                     self.items["bombas"] -= 1
 
 
 #ocupo tipo scar tiempo. si en 0,5s no se presiona ninguna tecla entonces el sprote es el statico, si en n se presiona deacruerdo al movimiento cambia el sprite. sis e presiona el de habiliad, entones se muestra el speiret habilidad.
@@ -910,7 +920,6 @@ def generate(screen):
                             texture = Floor_nothing
                             obs = Obstaculo(screen, (col*48),(fil*48) , texture)
                             obs.draw()
-
 #funciones para la generacion y manejo de bombas
 def bombastic_pos (screen): #guarda posicion de manejo de bombas 
      global lista_B, lista_E, bomba_in_bounds, lista_EL
@@ -947,8 +956,6 @@ def limpiar():
                        if matriz[fil][col] in ('u','l','d','r','w','a','s','f','c'):
                             matriz[fil][col] = 0
                        
-
-
 def bombastic_hitbox ():
      global star_up, star_right, star_left, star_down
      for bomba in lista_B:
@@ -1075,8 +1082,7 @@ def bombastic_hitbox ():
               if Explosion_Matriz_Lados.colisiona_con(exp_l, enemies):
                    enemies.animacion_muerte()
           limpiar()
-                 
-     
+                    
 #Funcion para leer la matriz de nivel
 def leer_archivo(path):
         archivo = open(path, 'r')
@@ -1126,6 +1132,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
                    enemies.animacion_muerte()
                    
     Player_1.mover()
+    Player_1.usar_bomba()
     Player_1.ejecutar_habilidad()          
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
 
@@ -1213,7 +1220,7 @@ while True:
             pg.quit()
             sys.exit()
 
-        if event.type == pg.MOUSEBUTTONDOWN:
+        '''if event.type == pg.MOUSEBUTTONDOWN:           #
              mouse_pos = pg.mouse.get_pos()
              if 0 < mouse_pos[0] < 816 and 100 < mouse_pos[1] < 628:
                #B_1 = Bomba(game_surface, mouse_pos[0]-32, mouse_pos[1]-132, spritesheet_Bomba, 5, 64, 64, 0.75, 'black',True)
@@ -1222,7 +1229,7 @@ while True:
                if 0 <= mouse_pos[0]//48 < 17 and 0 <= mouse_pos[1]//48 < 13:
                     if matriz[(mouse_pos[1]-100)//48][(mouse_pos[0]//48)] not in ('#','*'):
                          matriz[(mouse_pos[1]-100)//48][(mouse_pos[0]//48)] = 8
-                    bomba_in_bounds = True  
+                    bomba_in_bounds = True  '''
         
                     
     pg.display.flip()
@@ -1233,3 +1240,4 @@ while True:
 #cambiar powerups para aferctar varas del player
 #agregar healthbar de boss
 #agregar puntaje 
+#c
