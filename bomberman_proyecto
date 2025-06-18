@@ -227,7 +227,7 @@ reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 
 #-----------------------GLOBALES------------------------------
-estado = "seleccion_personaje" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+estado = "menu" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 #-----------------------GLOBALES Y CARACTERISTICAS DEL JUEGO------------------------------
 puntaje_nivel=0
 puntaje_final=0
@@ -236,6 +236,8 @@ game_surface = pg.Surface((816,528)) #*! ya cambie el tamano del frame enves de 
 
 #------------------------TEXTURAS------------------------------
 heart_texture = pg.image.load("assets/textures/heart.png").convert_alpha() #carga la textura del corazon
+#--------------------FONDOS-----------------------------------
+fondos_p_op = [pg.image.load("assets/backgrounds/menu/layer3.png"),pg.image.load("assets/backgrounds/menu/layer2.png"),pg.image.load("assets/backgrounds/menu/layer1.png"),pg.image.load("assets/backgrounds/menu/layer0.png")]
 #------------------------SPRITES DE JUGADORES------------------------------
 sps_habilidades= pg.image.load ("assets\Textures\habilities.png").convert_alpha()
 sps_items = pg.image.load("assets\Textures\items.png").convert_alpha()
@@ -294,6 +296,31 @@ boton_seleccionar = Boton(300, 540, 150, 30, "Seleccionar", "fonts/Pixeltype.ttf
 
 prev_siguiente = False #variable para controlar si se ha hecho clic en el botón de siguiente opción
 prev_seleccion = False  #variable para controlar si se ha hecho clic en el botón de seleccionar
+def bg_opc_parallax():
+    global fondos_p_op
+    factores = [0.1, 0.3, 0.5, 0.7]
+
+    mouse_pos = pg.mouse.get_pos()   
+    """Dibuja el fondo con efecto parallax basado en la posición del mouse"""
+    mouse_x, mouse_y = mouse_pos
+    
+    # Calcular desplazamiento relativo al centro
+    rel_x = (mouse_x - 816 // 2) / (816 // 2)
+    rel_y = (mouse_y - 624 // 2) / (624 // 2)
+    
+    # Dibujar capas desde la más lejana (0) a la más cercana (3)
+    for i, fondo in enumerate(fondos_p_op):
+        # Calcular desplazamiento para esta capa
+        fondo=pg.transform.scale(fondo, (1400,780))
+        offset_x = rel_x * factores[i] * 100
+        offset_y = rel_y * factores[i] * 100
+        
+        # Posición de dibujo (centrada con offset)
+        pos_x = (816 - fondo.get_width()) // 2 + offset_x
+        pos_y = (624 - fondo.get_height()) // 2 + offset_y
+        
+        screen.blit(fondo, (pos_x, pos_y))
+
 def dibujar_gui() :
     global tiempo_juego, puntaje_nivel
     screen.fill((24,24,24))
@@ -357,7 +384,7 @@ def dibujar_gui() :
     screen.blit(texto_tiempo,(327,5))
     screen.blit(texto_puntaje_nivel,(332,25))
     #screen.blit(texto_puntaje_nivel, (425,5))
-#estados de juego :
+
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO          
     dibujar_gui()
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantallag
@@ -439,8 +466,8 @@ while True:
         pantalla_juego()
     elif estado == "seleccion_personaje":  # Si el estado es "creacion_niveles", se muestra la pantalla de creación de niveles
         pantalla_seleccion_jugador()
-    else:  # Si el estado no es reconocido, se muestra un mensaje de error
-        print("Estado no reconocido")
+    elif estado=="menu" : 
+        bg_opc_parallax()
     for event in pg.event.get():
         if event.type == pg.QUIT:
             tiempo_juego.detener()
