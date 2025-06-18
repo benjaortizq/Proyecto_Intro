@@ -215,6 +215,307 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
 
 
 #ocupo tipo scar tiempo. si en 0,5s no se presiona ninguna tecla entonces el sprote es el statico, si en n se presiona deacruerdo al movimiento cambia el sprite. sis e presiona el de habiliad, entones se muestra el speiret habilidad.
+#_____________________________________________________________________________________________________
+#CLASES DE LA MATRIZ O ENEMIGOS
+#Clase Obstaculo 
+class Obstaculo:
+    def __init__(self, screen, x, y, texture):
+        self.screen = screen
+        self.x = x
+        self.y = y
+        self.texture = texture
+        self.mask    = pg.mask.from_surface(self.texture)
+        
+    def draw(self):
+        self.screen.blit(self.texture, (self.x, self.y))
+
+    def colisiona_con(self, otro_objeto):
+     # Calcular diferencia de posiciones (offset)
+     offset_x = int(otro_objeto.x) - int(self.x)
+     offset_y = int(otro_objeto.y) - int(self.y)
+     return self.mask.overlap(otro_objeto.mask, (offset_x, offset_y)) is not None
+
+
+
+
+#Class Enemigos
+#Screen = area_juego
+class Enemigos:
+     def __init__(self, screen, x, y, velocidad, spritesheet_walk, spritesheet_death, frame_count, frame_w,frame_h, scale, colour, muerte,dir):
+          self.screen = screen
+          self.x = x
+          self.y = y
+          self.velocidad = velocidad
+          self.current_spritesheet = spritesheet_walk
+          self.frame_count = frame_count          #CAANTIDAD DE FRAMES DE LA SKIN DEL JUGAODR
+          self.width_frame = frame_w
+          self.height_frame = frame_h   #esto siempre es estatico. como las spritesheets son horizontales entonces esto que qeuda asi . 
+          self.scale = scale                              #multiplicador de escala para el sprite
+          self.colour = colour                  #color de fondo del sprite que se va a eliminar
+          self.last_update = t.time()     #tiempo de la ultima actualizacion del frame
+          self.current_frame = 0        #numero de frame que esta actualmente dibujandose.
+          self.current_skin = self.current_spritesheet.get_image(0, 48, 48, self.scale, self.colour)
+          self.mask= pg.mask.from_surface(self.current_skin)
+          self.dir = dir
+          self.spritesheet_death = spritesheet_death
+          self.muerte = muerte
+          
+
+     def animacion_muerte(self):
+          self.cambiar_spritesheet(self.spritesheet_death)
+          self.muerte = True
+          self.velocidad = 0
+          self.animacion_skin()
+ 
+    #line_of_sight
+     def move(self):
+        self.animacion_skin()
+        # HORIZONTAL: dir 0 ← , dir 1 →
+        if self.dir in (0, 1):
+            
+            dx = -self.velocidad if self.dir == 0 else self.velocidad
+            new_x = self.x + dx
+            if dx < 0:
+                 self.current_skin = pg.transform.flip(self.current_skin, True, False)
+                 self.current_skin.set_colorkey('black')
+
+            if new_x <= 0:
+                 self.dir = 1
+            if new_x >= 770:
+                 self.dir = 0
+            # límites de pantalla
+            if 0 < new_x < 770:
+                self.x = new_x
+        # VERTICAL: dir 2 ↑ , dir 3 ↓
+        elif self.dir in (2, 3):
+            dy = -self.velocidad if self.dir == 2 else self.velocidad
+            new_y = self.y + dy
+            if new_y <= 0:
+                 self.dir = 3
+            if new_y >= 480:
+                 self.dir = 2
+            if 0 < new_y < 480:
+                self.y = new_y
+
+        # Dibujo
+        self.screen.blit(self.current_skin, (self.x, self.y))
+
+     def auto_move(self):
+                    self.move()
+                    
+                 
+     def rebote(self):
+          #solo rebota su hay una pared
+          self.dir ^= 1          
+
+     def cambiar_spritesheet(self, nuevo_spritesheet): #esto es para cambiar la spritesheet del jugador, por ejemplo cuando se ejecuta una habilidad
+          self.current_spritesheet = nuevo_spritesheet #cambia el spritesheet actual al nuevo
+          self.current_frame = 0  #reinicia el frame actual a 0
+          self.last_update = t.time()     #reinicia el tiempo de la ultima actualizacion para que no se salte frames al cambiar de spritesheet
+    
+     def animacion_skin(self) : 
+        current_time = t.time()
+        if self.muerte:
+             if current_time - self.last_update > 0.5 : # Cambio de frame cada 0.2 segundos
+                    self.last_update = current_time
+                    self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
+             self.current_skin = self.current_spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
+             self.mask = pg.mask.from_surface(self.current_skin)
+             if self.current_frame == 2:
+                Lista_Enemigos_1.remove(self)
+                  
+        else:
+          if current_time - self.last_update > 0.1 : # Cambio de frame cada 0.2 segundos
+               self.last_update = current_time
+               self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
+          self.current_skin = self.current_spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
+          self.mask = pg.mask.from_surface(self.current_skin)
+    
+     def colisiona_con(self, otro_objeto):
+        # Calcular diferencia de posiciones (offset)
+        offset_x = int(otro_objeto.x) - int(self.x)
+        offset_y = int(otro_objeto.y) - int(self.y)
+        return self.mask.overlap(otro_objeto.mask, (offset_x, offset_y)) is not None
+     
+
+
+#Class Bomba_sprite
+class Bomba:
+    
+     def __init__(self, screen, x, y, spritesheet_bomba, frame_count, frame_w,frame_h, scale, colour, explosion):
+          self.screen = screen
+          self.x = x
+          self.y = y
+          self.current_spritesheet = spritesheet_bomba
+          self.frame_count = frame_count          #CAANTIDAD DE FRAMES DE LA SKIN DEL JUGAODR
+          self.width_frame = frame_w
+          self.height_frame = frame_h   #esto siempre es estatico. como las spritesheets son horizontales entonces esto que qeuda asi . 
+          self.scale = scale                              #multiplicador de escala para el sprite
+          self.colour = colour                  #color de fondo del sprite que se va a eliminar
+          self.last_update = t.time()     #tiempo de la ultima actualizacion del frame
+          self.current_frame = 0        #numero de frame que esta actualmente dibujandose.
+          self.current_skin = self.current_spritesheet.get_image(0, 48, 48, self.scale, self.colour)
+          self.mask= pg.mask.from_surface(self.current_skin)
+          self.bomba_animacion = explosion
+
+     def animate(self):
+       if self.bomba_animacion:
+          self.animacion_skin()
+          if self.current_frame == 4:
+               self.bomba_animacion = False
+               E_1.bomba_animacion = True
+          self.screen.blit(self.current_skin, (self.x, self.y))
+
+
+     def auto_animate(self):
+                    self.animate()
+
+     def cambiar_spritesheet(self, nuevo_spritesheet): #esto es para cambiar la spritesheet del jugador, por ejemplo cuando se ejecuta una habilidad
+        self.current_spritesheet = nuevo_spritesheet #cambia el spritesheet actual al nuevo
+        self.current_frame = 0  #reinicia el frame actual a 0
+        self.last_update = t.time()     #reinicia el tiempo de la ultima actualizacion para que no se salte frames al cambiar de spritesheet
+    
+     def animacion_skin(self) : 
+        current_time = t.time()
+        if current_time - self.last_update > 0.4 : # Cambio de frame cada 0.2 segundos
+            self.last_update = current_time
+            self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
+        self.current_skin = self.current_spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
+        self.mask = pg.mask.from_surface(self.current_skin)
+    
+     def colisiona_con(self, otro_objeto):
+        # Calcular diferencia de posiciones (offset)
+        offset_x = int(otro_objeto.x) - int(self.x)
+        offset_y = int(otro_objeto.y) - int(self.y)
+        return self.mask.overlap(otro_objeto.mask, (offset_x, offset_y)) is not None
+
+class Bomba_Matriz(Bomba):
+     def __init__(self, screen, x, y, spritesheet_bomba, frame_count, frame_w, frame_h, scale, colour, explosion):
+          super().__init__(screen, x, y, spritesheet_bomba, frame_count, frame_w, frame_h, scale, colour, explosion)
+
+     def animate_matriz(self):
+       if self.bomba_animacion:
+          self.animacion_skin()
+          if self.current_frame == 4:
+               matriz[self.y//48][self.x//48] = 9
+               lista_B.remove(self)
+          self.screen.blit(self.current_skin, (self.x, self.y))
+
+     def auto_animate(self):
+                    self.animate_matriz()
+
+class Explosion:
+     def __init__(self, screen, x, y, spritesheet_exp, frame_count, frame_w,frame_h, scale, colour, explosion):
+          self.screen = screen
+          self.x = x
+          self.y = y
+          self.current_spritesheet = spritesheet_exp
+          self.frame_count = frame_count          #CAANTIDAD DE FRAMES DE LA SKIN DEL spritesheet
+          self.width_frame = frame_w
+          self.height_frame = frame_h   #esto siempre es estatico. como las spritesheets son horizontales entonces esto que qeuda asi . 
+          self.scale = scale                              #multiplicador de escala para el sprite
+          self.colour = colour                  #color de fondo del sprite que se va a eliminar
+          self.last_update = t.time()     #tiempo de la ultima actualizacion del frame
+          self.current_frame = 0        #numero de frame que esta actualmente dibujandose.
+          self.current_skin = self.current_spritesheet.get_image(0, 48, 48, self.scale, self.colour)
+          self.mask= pg.mask.from_surface(self.current_skin)
+          self.bomba_animacion = explosion
+
+     def animate(self):
+       if self.bomba_animacion:
+          self.animacion_skin()
+          if self.current_frame == 3:
+               E_1.bomba_animacion = False
+          self.screen.blit(self.current_skin, (self.x, self.y))
+
+
+     def auto_animate(self):
+                    self.animate()
+
+     def cambiar_spritesheet(self, nuevo_spritesheet): #esto es para cambiar la spritesheet del jugador, por ejemplo cuando se ejecuta una habilidad
+        self.current_spritesheet = nuevo_spritesheet #cambia el spritesheet actual al nuevo
+        self.current_frame = 0  #reinicia el frame actual a 0
+        self.last_update = t.time()     #reinicia el tiempo de la ultima actualizacion para que no se salte frames al cambiar de spritesheet
+    
+     def animacion_skin(self) : 
+        current_time = t.time()
+        if current_time - self.last_update > 0.1 : # Cambio de frame cada 0.2 segundos
+            self.last_update = current_time
+            self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
+        self.current_skin = self.current_spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
+        self.mask = pg.mask.from_surface(self.current_skin)
+    
+     def colisiona_con(self, otro_objeto):
+        # Calcular diferencia de posiciones (offset)
+        offset_x = int(otro_objeto.x) - int(self.x)
+        offset_y = int(otro_objeto.y) - int(self.y)
+        return self.mask.overlap(otro_objeto.mask, (offset_x, offset_y)) is not None
+     
+class Explosion_Matriz(Explosion):
+     def __init__(self, screen, x, y, spritesheet_exp, frame_count, frame_w, frame_h, scale, colour, explosion):
+          super().__init__(screen, x, y, spritesheet_exp, frame_count, frame_w, frame_h, scale, colour, explosion)
+          self.matriz = matriz
+          # Flags por dirección: False hasta que marque el primer '*'
+          self.star_up = False
+          self.star_down = False
+          self.star_right = False
+          self.star_left = False
+
+     def animate_matriz(self):
+       if self.bomba_animacion:
+          self.animacion_skin()
+          if self.current_frame == 3:
+               lista_E.remove(self)
+          self.screen.blit(self.current_skin, (self.x, self.y))
+     
+     def auto_animate(self):
+                    self.animate_matriz()
+
+     
+class Explosion_Matriz_Lados(Explosion_Matriz):
+     def __init__(self, screen, x, y, spritesheet_exp, frame_count, frame_w, frame_h, scale, colour, explosion, direccion):
+          super().__init__(screen, x, y, spritesheet_exp, frame_count, frame_w, frame_h, scale, colour, explosion)
+          self.dir = direccion
+
+     def animate_matriz(self):
+       if self.bomba_animacion:
+          self.animacion_skin()
+          if self.dir == 'u':
+               self.current_skin = pg.transform.rotate(self.current_skin, 90)
+               self.current_skin.set_colorkey('black')
+          if self.dir == 'd':
+               self.current_skin = pg.transform.rotate(self.current_skin, 270)
+               self.current_skin.set_colorkey('black')
+          if self.dir == 'a':
+               self.current_skin = pg.transform.flip(self.current_skin, False, False)
+               self.current_skin.set_colorkey('black')
+
+          if self.dir == 's':
+               self.current_skin = pg.transform.rotate(self.current_skin, 90)
+               self.current_skin.set_colorkey('black')
+          if self.dir == 'w':
+               self.current_skin = pg.transform.rotate(self.current_skin, 270)
+               self.current_skin.set_colorkey('black')
+
+          if self.dir == 'f':
+               self.current_skin = pg.transform.flip(self.current_skin, True, False)
+               self.current_skin.set_colorkey('black')
+
+          if self.current_frame == 3:
+              lista_EL.remove(self)
+          self.screen.blit(self.current_skin, (self.x, self.y))
+
+     def animacion_skin(self) : 
+        current_time = t.time()
+        if current_time - self.last_update > 0.1 : # Cambio de frame cada 0.2 segundos
+            self.last_update = current_time
+            self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
+        self.current_skin = self.current_spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
+        self.mask = pg.mask.from_surface(self.current_skin)
+
+     def auto_animate(self):
+                    self.animate_matriz()
+
 
 #-----------------------pygame------------------------------
 
@@ -227,7 +528,26 @@ reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 
 #-----------------------GLOBALES------------------------------
-estado = "menu" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+estado = "seleccion_personaje" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+
+#Globales Steadman
+obstacles = [] #lista de colisiones con obstaculos
+obstacles_R = [] #lista de los rompibles
+nivel = 1 #nivel inicial
+matriz = [] #la matriz extraida del nivel inicial
+Lista_Enemigos_1 = [] #la lista de los enemigos, esta solo posee los enemigos del nivel 1 o los mas sencillos
+Fuerza_exp = 4 #Esto dice la fuerza de la explosion, se va a expandir en casillas en forma de cruz, si es 1 es una casilla extra
+lista_B = [] #lista de bombas, solo para multiples animaciones a la vez
+lista_E = [] #lista de explosiones, solo para multiples 
+lista_EL = [] #lista para las explosiones extra o de lado o de borde
+bomba_in_bounds = False
+#___________________Enemigos y Aparicion de obstaculos________________________
+CELL_SIZE = 48 #tamaño por celda para la aparicion de todo XDXDXDXDX
+W_GRID = 17 #debido a que no es un cuadrado se debe definir un tamaño por ancho y alto
+H_GRID = 13
+
+primera_vez = True #debido a que ciertas cosas SOLO se deben generar una vez por nivel, como ver sus posiciones, se hace este booleano
+
 #-----------------------GLOBALES Y CARACTERISTICAS DEL JUEGO------------------------------
 puntaje_nivel=0
 puntaje_final=0
@@ -304,6 +624,50 @@ boton_seleccionar = Boton(300, 540, 150, 30, "Seleccionar", "fonts/Pixeltype.ttf
 
 prev_siguiente = False #variable para controlar si se ha hecho clic en el botón de siguiente opción
 prev_seleccion = False  #variable para controlar si se ha hecho clic en el botón de seleccionar
+
+#_______Sprites Enemigos Steadman
+#-----------------------SPRITES------------------------------
+#Obstaculos
+sps_obstacles = pg.image.load("assets\Textures\Bricks.png")
+spritesheet_Obstaculos = SpriteSheet(sps_obstacles)
+Obstaculo_I = spritesheet_Obstaculos.get_image(1,64,64,0.75,'white')
+Obstaculo_R = spritesheet_Obstaculos.get_image(4,64,64,0.75,'white')
+
+#Floor
+sps_floor = pg.image.load("assets\Textures\Floor.png")
+spritesheet_Floor = SpriteSheet(sps_floor)
+Floor_corner0 = spritesheet_Floor.get_image(0,64,64,0.75,'white')
+Floor_corner1 = pg.transform.rotate(Floor_corner0,90)
+Floor_corner2 = pg.transform.rotate(Floor_corner0,180)
+Floor_corner3 = pg.transform.rotate(Floor_corner1,180)
+Floor_up = spritesheet_Floor.get_image(1,64,64,0.75,'white')
+Floor_down = pg.transform.rotate(Floor_up,180)
+Floor_lside = spritesheet_Floor.get_image(3,64,64,0.75,'white')
+Floor_rside = pg.transform.rotate(Floor_lside,180)
+Floor_nothing = spritesheet_Floor.get_image(4,64,64,0.75,'white')
+
+#Enemigos
+sps_perro_cañon = pg.image.load("assets\sprites\enemies\perro_canon\Walk.png")
+spritesheet_perro_cañon = SpriteSheet(sps_perro_cañon)
+#Perro cañon muerte
+sps_perro_muerte = pg.image.load("assets\sprites\enemies\perro_canon\Death.png")
+spritesheet_perro_muerte = SpriteSheet(sps_perro_muerte)
+#Bomba
+sps_bomba = pg.image.load("assets\Textures\Bomba\Bomba.png")
+spritesheet_Bomba = SpriteSheet(sps_bomba)
+
+#Explosion_Centro:
+sps_exp_centro = pg.image.load("assets\Textures\Bomba\explosion_c.png")
+spritesheet_exp_c = SpriteSheet(sps_exp_centro)
+
+#Explosion Borde:
+sps_exp_borde = pg.image.load("assets\Textures\Bomba\explosion_b.png")
+spritesheet_exp_b = SpriteSheet(sps_exp_borde)
+#Explosion Lado:
+sps_exp_lado = pg.image.load("assets\Textures\Bomba\explosion_l.png")
+spritesheet_exp_l = SpriteSheet(sps_exp_lado)
+
+#FUNCIONES DE LA PANTALLA MENU
 def bg_men_parallax(): 
     global fondo_p_men, pos_par_men
     parallax_speeds = [0.1, 0.01, 0.1, 0.2, 0.3, 0.5 ]
@@ -380,7 +744,7 @@ def fade_in_from_white(duration_ms=2000):
         clock.tick(60)
 
 
-
+#FUNCION PANTALLA TITULO
 def pantalla_titulo () :
     global global_fade
     bg_men_parallax()
@@ -397,7 +761,9 @@ def pantalla_titulo () :
 
 
 
+#FUNCIONES PARA LA PANTALLA DE JUEGO 
 
+#Funcion para dibujar GUI
 def dibujar_gui() :
     global tiempo_juego, puntaje_nivel
     screen.fill((24,24,24))
@@ -425,8 +791,6 @@ def dibujar_gui() :
                 pw_uso_2 = sprites2[1]
 
     # Ahora dibuja pw_uso_1 y pw_uso_2 donde corresponda en tu GUI
-    
-
     vida_jugador=Healthbar_Player (73, 15, 110, 20, Player_1.vida, heart_texture,Player_1.cant_vidas,font0)  # Dibuja la barra de salud del jugador
     vida_jugador.draw(screen)  # Dibuja la barra de salud en la superficie del juego
     vida_jugador.draw_atributes(screen)  # Dibuja los atributos de la barra de salud en la superficie del juego
@@ -462,11 +826,302 @@ def dibujar_gui() :
     screen.blit(texto_puntaje_nivel,(332,25))
     #screen.blit(texto_puntaje_nivel, (425,5))
 
-def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO          
+#Funcion que ha partir de la matriz lee las posiciones iniciales 
+def save_positions(screen):
+        global obstacles, matriz, Lista_Enemigos_1, obstacles_R
+        for fil in range(len(matriz)):
+             for col in range(len(matriz[fil])):
+                  if matriz[fil][col] == '#': 
+                       texture = Obstaculo_I
+                       obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                       obstacles += [obs]
+                       
+                  if matriz[fil][col] == '*':
+                       texture = Obstaculo_R
+                       obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                       obstacles += [obs]
+                       obstacles_R += [obs]
+
+                  if matriz[fil][col] == 1:
+                       Enemigo_perro = Enemigos(screen, (col*48), (fil*48), 1.1, spritesheet_perro_cañon, spritesheet_perro_muerte, 3, 48, 48, 1, 'black', False, random.randint(0,3))
+                       Lista_Enemigos_1 += [Enemigo_perro]
+
+#Este genera las texturas inamovibles, los enemigos se dibujan y se tratan dentro de su propia clase
+def generate(screen):
+        global obstacles, matriz
+        for fil in range(len(matriz)):
+             for col in range(len(matriz[fil])):
+                  if matriz[fil][col] == '#': 
+                       texture = Obstaculo_I
+                       obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                       
+                       obs.draw()
+                  if matriz[fil][col] == '*':
+                       texture = Obstaculo_R
+                       obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                       obs.draw()
+     
+                  if matriz[fil][col] in (0,1,8,9,'u','d','l','r','w','a','s','f','c'):
+                       if fil == 0 and col == 0:
+                            texture = Floor_corner0
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
+                       elif fil == 0 and col == 16:
+                            texture = Floor_corner3
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
+                       
+                       elif fil == 10 and col == 16:
+                            texture = Floor_corner2
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
+                        
+                       elif fil == 10 and col == 0:
+                            texture = Floor_corner1
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
+
+                       elif fil == 0:
+                            texture = Floor_up
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
+
+                       elif col == 0:
+                            texture = Floor_lside
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
+                        
+                       elif col == 16: 
+                            texture = Floor_rside
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
+
+                       elif fil == 10:
+                            texture = Floor_down
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
+                        
+                       else:
+                            texture = Floor_nothing
+                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
+                            obs.draw()
+
+#funciones para la generacion y manejo de bombas
+def bombastic_pos (screen): #guarda posicion de manejo de bombas 
+     global lista_B, lista_E, bomba_in_bounds, lista_EL
+     for fil in range(len(matriz)):
+             for col in range(len(matriz[fil])):
+                  if matriz[fil][col] == 8:
+                       Bomba_R = Bomba_Matriz(screen, (col*48), (fil*48), spritesheet_Bomba, 5, 64, 64, 0.75, 'black',True)
+                       lista_B += [Bomba_R]
+                       matriz[fil][col] = 0
+                  if matriz[fil][col] == 9:
+                       Exp_R = Explosion_Matriz(screen, (col*48), (fil*48), spritesheet_exp_c, 5, 64, 64, 0.75, 'black',True)
+                       lista_E += [Exp_R]
+                       matriz[fil][col] = 0
+
+                  if matriz[fil][col] in ('u','l','d','r'):
+                       EXP_RL = Explosion_Matriz_Lados(screen, (col*48), (fil*48), spritesheet_exp_l, 5, 64, 64, 0.75, 'black',True,matriz[fil][col])
+                       lista_EL += [EXP_RL]
+                       
+
+                  if matriz[fil][col] in ('w','a','s','f'):
+                       EXP_RL = Explosion_Matriz_Lados(screen, (col*48), (fil*48), spritesheet_exp_b, 5, 64, 64, 0.75, 'black',True,matriz[fil][col])
+                       lista_EL += [EXP_RL]
+
+                  if matriz[fil][col] == 'c':
+                       EXP_RL = Explosion_Matriz_Lados(screen, (col*48), (fil*48), spritesheet_exp_c, 5, 64, 64, 0.75, 'black',True,matriz[fil][col])
+                       lista_EL += [EXP_RL]              
+     if lista_B == []:
+          bomba_in_bounds = False
+
+def limpiar():
+     global matriz
+     for fil in range(len(matriz)):
+             for col in range(len(matriz[fil])):
+                       if matriz[fil][col] in ('u','l','d','r','w','a','s','f','c'):
+                            matriz[fil][col] = 0
+                       
+
+
+def bombastic_hitbox ():
+     global star_up, star_right, star_left, star_down
+     for bomba in lista_B:
+          bomba.auto_animate()
+     for exp in lista_E:
+          exp.auto_animate()
+          for obsR in obstacles_R:
+               if Explosion_Matriz.colisiona_con(exp, obsR):
+                   matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
+                   obstacles_R.remove(obsR)
+                   obstacles.remove(obsR)
+          for enemies in Lista_Enemigos_1:
+              if Explosion_Matriz.colisiona_con(exp, enemies):
+                   enemies.animacion_muerte()
+          
+          
+    
+          x = exp.x // 48
+          y = exp.y // 48
+          max_filas = len(matriz)
+          max_cols  = len(matriz[0])
+
+          # ARRIBA
+          
+          for i in range(1, Fuerza_exp + 1):
+               if not exp.star_up:
+                    yi, xi = y - i, x
+                    if not (0 <= yi < max_filas):
+                         yi0 = y - (i - 1)
+                         if 0 <= yi0 < max_filas:
+                              if  yi0 != y:
+                                   matriz[yi0][xi] = 'w'
+                              else:
+                                   matriz[yi0][xi] = 'c'
+                         break
+
+                    celda = matriz[yi][xi]
+                    if celda == '*':
+                         matriz[yi][xi] = 'u'
+                         exp.star_up = True
+                         
+                         break
+                    if celda in ('#', 9, 8):
+                         break
+                    matriz[yi][xi] = 'w' if i == Fuerza_exp else 'u'
+               
+
+          # ABAJO
+          for i in range(1, Fuerza_exp + 1):
+               if not exp.star_down:
+                    yi, xi = y + i, x
+                    if not (0 <= yi < max_filas):
+                         yi0 = y + (i - 1)
+                         if 0 <= yi0 < max_filas:
+                              if yi0 != y:
+                                   matriz[yi0][xi] = 's'
+                              else:
+                                   matriz[yi0][xi] = 'c'
+                         break
+
+                    celda = matriz[yi][xi]
+                    if celda == '*':
+                         matriz[yi][xi] = 'd'
+                         exp.star_down = True
+                         break
+                    if celda in ('#', 9, 8):
+                         break
+                    matriz[yi][xi] = 's' if i == Fuerza_exp else 'd'
+
+          # DERECHA
+          for i in range(1, Fuerza_exp + 1):
+               if not exp.star_right:
+                    yi, xi = y, x + i
+                    if not (0 <= xi < max_cols):
+                         xi0 = x + (i - 1)
+                         if 0 <= xi0 < max_cols:
+                              if xi0 != x:
+                                   matriz[yi][xi0] = 'f'
+                              else:
+                                   
+                                   matriz[yi][xi0] = 'c'
+                         break
+
+                    celda = matriz[yi][xi]
+                    if celda == '*':
+                         matriz[yi][xi] = 'r'
+                         exp.star_right = True
+                         break
+                    if celda in ('#', 9, 8):
+                         break
+                    matriz[yi][xi] = 'f' if i == Fuerza_exp else 'r'
+
+          # IZQUIERDA
+          for i in range(1, Fuerza_exp + 1):
+               if not exp.star_left:
+                    yi, xi = y, x - i
+                    if not (0 <= xi < max_cols):
+                         xi0 = x - (i - 1)
+                         if 0 <= xi0 < max_cols:
+                              if xi0 != x:
+                                   matriz[yi][xi0] = 'a'
+                              else:
+                                   matriz[yi][xi0] = 'c'
+                         break
+
+                    celda = matriz[yi][xi]
+                    if celda == '*':
+                         matriz[yi][xi] = 'l'
+                         exp.star_left = True
+                         break
+                    if celda in ('#', 9, 8):
+                         break
+                    matriz[yi][xi] = 'a' if i == Fuerza_exp else 'l'
+
+     for exp_l in lista_EL:
+          exp_l.auto_animate()
+          matriz[exp_l.y//48][exp_l.x//48] = 0
+          for obsR in obstacles_R:
+               if Explosion_Matriz_Lados.colisiona_con(exp_l, obsR):
+                   matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
+                   obstacles_R.remove(obsR)
+                   obstacles.remove(obsR)
+          for enemies in Lista_Enemigos_1:
+              if Explosion_Matriz_Lados.colisiona_con(exp_l, enemies):
+                   enemies.animacion_muerte()
+          limpiar()
+                 
+     
+#Funcion para leer la matriz de nivel
+def leer_archivo(path):
+        archivo = open(path, 'r')
+        contenido = archivo.read()
+        archivo.close()
+        return contenido
+def init (nivel):
+        global matriz
+        texto_nivel = f"Nivel_{nivel}.txt"
+        matriz = eval(leer_archivo(texto_nivel))
+init(nivel)
+
+B_1 = Bomba(game_surface, 0, 0, spritesheet_Bomba, 5, 64, 64, 0.75, 'black',False) #Para la habilidad del tactico
+E_1 = Explosion(game_surface, 0, 0, spritesheet_exp_c, 5, 64, 64, 0.75, 'black',False) #Para la habilidad del tactico
+def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO  
+    global matriz
+    screen.fill("white")        
     dibujar_gui()
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantallag
+
+    if primera_vez:
+        save_positions(game_surface)
+    
+    generate(game_surface)
+    bombastic_pos(game_surface)
+    bombastic_hitbox()
+    for ene_1 in Lista_Enemigos_1:
+        ene_1.auto_move()
+        #obstaculos funciona con la mascara de los obstaculos, asi pues para hacer colisiones solo ve si hay choque entre mascaras
+        for obst in obstacles:
+             if Enemigos.colisiona_con(ene_1, obst):
+                # aquí ya chocaron
+                ene_1.rebote()
+    
+    
+    if B_1.bomba_animacion:
+         B_1.auto_animate()
+    if E_1.bomba_animacion:
+         E_1.auto_animate()
+         for obsR in obstacles_R:
+              if Explosion.colisiona_con(E_1, obsR):
+                   matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
+                   obstacles_R.remove(obsR)
+                   obstacles.remove(obsR)
+         for enemies in Lista_Enemigos_1:
+              if Explosion.colisiona_con(E_1, enemies):
+                   enemies.animacion_muerte()
+                   
     Player_1.mover()
-    Player_1.ejecutar_habilidad() 
+    Player_1.ejecutar_habilidad()          
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
 
 def pantalla_seleccion_jugador () : 
@@ -541,6 +1196,8 @@ while True:
     if estado == "juego":  # Si el estado es "juego", se muestra la pantalla de juego
         tiempo_juego.reanudar()
         pantalla_juego()
+        primera_vez = False
+
     elif estado == "seleccion_personaje":  # Si el estado es "creacion_niveles", se muestra la pantalla de creación de niveles
         pantalla_seleccion_jugador()
     elif estado=="menu" : 
@@ -549,7 +1206,18 @@ while True:
         if event.type == pg.QUIT:
             tiempo_juego.detener()
             pg.quit()
-            sys.exit()  
+            sys.exit()
+
+        if event.type == pg.MOUSEBUTTONDOWN:
+             mouse_pos = pg.mouse.get_pos()
+             if 0 < mouse_pos[0] < 816 and 100 < mouse_pos[1] < 628:
+               #B_1 = Bomba(game_surface, mouse_pos[0]-32, mouse_pos[1]-132, spritesheet_Bomba, 5, 64, 64, 0.75, 'black',True)
+               #E_1 = Explosion(game_surface, mouse_pos[0]-88, mouse_pos[1]-200, spritesheet_exp_c, 4, 64, 64, 3, 'black',False)
+               
+               if 0 <= mouse_pos[0]//48 < 17 and 0 <= mouse_pos[1]//48 < 13:
+                    if matriz[(mouse_pos[1]-100)//48][(mouse_pos[0]//48)] not in ('#','*'):
+                         matriz[(mouse_pos[1]-100)//48][(mouse_pos[0]//48)] = 8
+                    bomba_in_bounds = True  
 
     pg.display.flip()
     reloj.tick(60)
