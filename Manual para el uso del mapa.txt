@@ -17,3 +17,4 @@ Los objetos salen de manera aleatoria, y dependiendo de todo se usaran otros sí
 Para los de Powerups se piensa "B" para bomba y "V" para vida. 
 Items pues se agregan cualquiera
 
+
