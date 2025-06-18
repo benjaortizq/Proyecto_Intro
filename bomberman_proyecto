@@ -232,6 +232,8 @@ estado = "menu" #se inicializa el estado del juego como "start", que representa 
 puntaje_nivel=0
 puntaje_final=0
 global_fade=False
+bara_texto =""
+nombre_jugador=""
 
 #-------------area de juego-----------
 game_surface = pg.Surface((816,528)) #*! ya cambie el tamano del frame enves de 624 a 524, estaba pintando el frame 100 pix hacia abajo y hacia que pete todo
@@ -301,12 +303,12 @@ skin_viendo=0
 ##BOTONES GLOBALES 
 boton_siguiente_opcion= Boton(300, 500, 150, 30, "Siguiente", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #"crea un boton de siguiente opcion (tiene que estar afuera por tipo int)
 boton_seleccionar = Boton(300, 540, 150, 30, "Seleccionar", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 ) ) #crea un boton de seleccionar
-
+Boton_ingresar= Boton (320,360,150,30,"Ingresar", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
 prev_siguiente = False #variable para controlar si se ha hecho clic en el botón de siguiente opción
 prev_seleccion = False  #variable para controlar si se ha hecho clic en el botón de seleccionar
 def bg_men_parallax(): 
     global fondo_p_men, pos_par_men
-    parallax_speeds = [0.1, 0.01, 0.1, 0.2, 0.3, 0.5 ]
+    parallax_speeds = [0.05, 0.001, 0.1, 0.15, 0.2, 0.5 ]
     
     # Dibujar capas desde la más lejana (0) a la más cercana (6)
     for i in range (len (fondo_p_men)) :
@@ -345,7 +347,8 @@ def bg_opc_parallax():
         pos_y = (624 - fondo.get_height()) // 2 + offset_y
         
         screen.blit(fondo, (pos_x, pos_y))
-def fade_in_from_white(duration_ms=2000):
+    
+def fade_in_from_white(duration_ms=2500):
     # Capturar la escena actual como fondo estático
     background = screen.copy()
     
@@ -382,22 +385,26 @@ def fade_in_from_white(duration_ms=2000):
 
 
 def pantalla_titulo () :
-    global global_fade
+    global global_fade, bara_texto
     bg_men_parallax()
     titulo1= font_tit.render("EL HOMBRE", False, "white")
     titulo2= font_tit.render("Que tiraba bombas", False, "white")
+    credit=font0.render("Steadman Murillo - Benjamin Ortiz  2025", False, "white")
     screen.blit (titulo1,(250,50))
     screen.blit(titulo2,(120,90))
     if not global_fade :
         fade_in_from_white() 
         global_fade=True
+    #dibujo botones 
+    rectangulo_entrada= pg.Rect (300, 300, 200, 35)
+    texto_entrada= font.render(bara_texto, False , "black")
+    pg.draw.rect(screen, "white", rectangulo_entrada, 0, 4)  
+    pg.draw.rect(screen, "black", rectangulo_entrada, 2, 4)  
+    screen.blit(texto_entrada, (rectangulo_entrada.x + 10, rectangulo_entrada.y + 5))
+
+    Boton_ingresar.draw(screen)
+    screen.blit(credit,(5,605))
     
-    
-
-
-
-
-
 def dibujar_gui() :
     global tiempo_juego, puntaje_nivel
     screen.fill((24,24,24))
