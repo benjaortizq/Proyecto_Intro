@@ -231,6 +231,8 @@ estado = "menu" #se inicializa el estado del juego como "start", que representa 
 #-----------------------GLOBALES Y CARACTERISTICAS DEL JUEGO------------------------------
 puntaje_nivel=0
 puntaje_final=0
+global_fade=False
+
 #-------------area de juego-----------
 game_surface = pg.Surface((816,528)) #*! ya cambie el tamano del frame enves de 624 a 524, estaba pintando el frame 100 pix hacia abajo y hacia que pete todo
 
@@ -286,6 +288,7 @@ sritesheet_run_kam = SpriteSheet(imp_sps_intangible_run) #crea una instancia de 
 Player_1 = None
 #ds
 font_tit= pg.font.Font("fonts\\Upheavt.ttf",60)
+font_tit1= pg.font.Font("fonts\\Upheavt.ttf",50)
 
 #fonts pixeltype
 font = pg.font.Font("fonts/Pixeltype.ttf", 35) #fuente para mostrar info de cada skin del player
@@ -342,11 +345,56 @@ def bg_opc_parallax():
         pos_y = (624 - fondo.get_height()) // 2 + offset_y
         
         screen.blit(fondo, (pos_x, pos_y))
+def fade_in_from_white(duration_ms=2000):
+    # Capturar la escena actual como fondo estático
+    background = screen.copy()
+    
+    overlay = pg.Surface(screen.get_size(), pg.SRCALPHA)
+    overlay.fill((255, 255, 255))
+    start_time = pg.time.get_ticks()
+    clock = pg.time.Clock()
+    
+    running = True
+    while running:
+        screen.blit(background ,(0,0))
+        elapsed = pg.time.get_ticks() - start_time
+        progress = min(1, elapsed / duration_ms)
+        
+        if progress >= 1:
+            alpha = 0
+            running = False
+        else :
+            alpha = 255-int(255 * progress)
+            print (alpha)
+        
+        overlay.set_alpha(alpha)
+        screen.blit(overlay, (0, 0))
+        pg.display.flip()
+        
+        # Manejo de eventos sin bloquear
+        for evt in pg.event.get():
+            if evt.type == pg.QUIT:
+                pg.quit()
+                sys.exit()
+        
+        clock.tick(60)
 
-def pantalla_titulo () : 
-    bg_opc_parallax()
-    titulo= font_tit.render("EL HOMBRE", False, "White")
-    screen.blit (titulo,(270,100))
+
+
+def pantalla_titulo () :
+    global global_fade
+    bg_men_parallax()
+    titulo1= font_tit.render("EL HOMBRE", False, "white")
+    titulo2= font_tit.render("Que tiraba bombas", False, "white")
+    screen.blit (titulo1,(250,50))
+    screen.blit(titulo2,(120,90))
+    if not global_fade :
+        fade_in_from_white() 
+        global_fade=True
+    
+    
+
+
 
 
 
