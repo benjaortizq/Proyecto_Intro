@@ -285,7 +285,7 @@ sritesheet_run_kam = SpriteSheet(imp_sps_intangible_run) #crea una instancia de 
 
 Player_1 = None
 #ds
-font_tit= pg.font.Font("fonts\upheavtt.ttf",50)
+font_tit= pg.font.Font("fonts\\Upheavt.ttf",60)
 
 #fonts pixeltype
 font = pg.font.Font("fonts/Pixeltype.ttf", 35) #fuente para mostrar info de cada skin del player
@@ -344,7 +344,7 @@ def bg_opc_parallax():
         screen.blit(fondo, (pos_x, pos_y))
 
 def pantalla_titulo () : 
-    bg_men_parallax()
+    bg_opc_parallax()
     titulo= font_tit.render("EL HOMBRE", False, "White")
     screen.blit (titulo,(270,100))
 
