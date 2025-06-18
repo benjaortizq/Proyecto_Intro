@@ -11,7 +11,7 @@ import threading as th
 import random 
 import sys 
 import os 
-
+#pinche benja
 #Aqui epiezan las clases del juego  
 #----------------------------------------------------------CLASES UTILES DE PYGAME---------------------------------------
 class Reloj(th.Thread):
