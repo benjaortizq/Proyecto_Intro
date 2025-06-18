@@ -326,7 +326,7 @@ class Explosion_Matriz_Lados(Explosion_Matriz):
                self.current_skin = pg.transform.rotate(self.current_skin, 270)
                self.current_skin.set_colorkey('black')
           if self.dir == 'a':
-               self.current_skin = pg.transform.flip(self.current_skin, True, False)
+               self.current_skin = pg.transform.flip(self.current_skin, False, False)
                self.current_skin.set_colorkey('black')
 
           if self.dir == 's':
@@ -343,6 +343,14 @@ class Explosion_Matriz_Lados(Explosion_Matriz):
           if self.current_frame == 3:
               lista_EL.remove(self)
           self.screen.blit(self.current_skin, (self.x, self.y))
+
+     def animacion_skin(self) : 
+        current_time = t.time()
+        if current_time - self.last_update > 0.1 : # Cambio de frame cada 0.2 segundos
+            self.last_update = current_time
+            self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
+        self.current_skin = self.current_spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
+        self.mask = pg.mask.from_surface(self.current_skin)
 
      def auto_animate(self):
                     self.animate_matriz()
@@ -364,7 +372,7 @@ obstacles_R = [] #lista de los rompibles
 nivel = 1 #nivel inicial
 matriz = [] #la matriz extraida del nivel inicial
 Lista_Enemigos_1 = [] #la lista de los enemigos, esta solo posee los enemigos del nivel 1 o los mas sencillos
-Fuerza_exp = 2 #Esto dice la fuerza de la explosion, se va a expandir en casillas en forma de cruz, si es 1 es una casilla extra
+Fuerza_exp = 1 #Esto dice la fuerza de la explosion, se va a expandir en casillas en forma de cruz, si es 1 es una casilla extra
 lista_B = [] #lista de bombas, solo para multiples animaciones a la vez
 lista_E = [] #lista de explosiones, solo para multiples 
 lista_EL = [] #lista para las explosiones extra o de lado o de borde
@@ -440,7 +448,7 @@ def save_positions(screen):
                        obstacles_R += [obs]
 
                   if matriz[fil][col] == 1:
-                       Enemigo_perro = Enemigos(screen, (col*48), (fil*48), 1.3, spritesheet_perro_cañon, spritesheet_perro_muerte, 3, 48, 48, 1, 'black', False, random.randint(0,3))
+                       Enemigo_perro = Enemigos(screen, (col*48), (fil*48), 1.1, spritesheet_perro_cañon, spritesheet_perro_muerte, 3, 48, 48, 1, 'black', False, random.randint(0,3))
                        Lista_Enemigos_1 += [Enemigo_perro]
 
 #Este genera las texturas inamovibles, los enemigos se dibujan y se tratan dentro de su propia clase
@@ -458,7 +466,7 @@ def generate(screen):
                        obs = Obstaculo(screen, (col*48),(fil*48) , texture)
                        obs.draw()
      
-                  if matriz[fil][col] in (0,1,8,9,'u','d','l','r','w','a','s','f'):
+                  if matriz[fil][col] in (0,1,8,9,'u','d','l','r','w','a','s','f','c'):
                        if fil == 0 and col == 0:
                             texture = Floor_corner0
                             obs = Obstaculo(screen, (col*48),(fil*48) , texture)
@@ -526,6 +534,10 @@ def bombastic_pos (screen): #guarda posicion de manejo de bombas
                        EXP_RL = Explosion_Matriz_Lados(screen, (col*48), (fil*48), spritesheet_exp_b, 5, 64, 64, 0.75, 'black',True,matriz[fil][col])
                        lista_EL += [EXP_RL]
 
+                  if matriz[fil][col] == 'c':
+                       EXP_RL = Explosion_Matriz_Lados(screen, (col*48), (fil*48), spritesheet_exp_c, 5, 64, 64, 0.75, 'black',True,matriz[fil][col])
+                       lista_EL += [EXP_RL]
+
                        
      if lista_B == []:
           bomba_in_bounds = False
@@ -534,7 +546,8 @@ def limpiar():
      global matriz
      for fil in range(len(matriz)):
              for col in range(len(matriz[fil])):
-                       
+                       if matriz[fil][col] in ('u','l','d','r','w','a','s','f','c'):
+                            matriz[fil][col] = 0
                        
 
 
@@ -557,7 +570,6 @@ def bombastic_hitbox ():
     
           x = exp.x // 48
           y = exp.y // 48
-
           max_filas = len(matriz)
           max_cols  = len(matriz[0])
 
@@ -569,7 +581,10 @@ def bombastic_hitbox ():
                     if not (0 <= yi < max_filas):
                          yi0 = y - (i - 1)
                          if 0 <= yi0 < max_filas:
-                              matriz[yi0][xi] = 'u'
+                              if  yi0 != y:
+                                   matriz[yi0][xi] = 'w'
+                              else:
+                                   matriz[yi0][xi] = 'c'
                          break
 
                     celda = matriz[yi][xi]
@@ -590,7 +605,10 @@ def bombastic_hitbox ():
                     if not (0 <= yi < max_filas):
                          yi0 = y + (i - 1)
                          if 0 <= yi0 < max_filas:
-                              matriz[yi0][xi] = 'd'
+                              if yi0 != y:
+                                   matriz[yi0][xi] = 's'
+                              else:
+                                   matriz[yi0][xi] = 'c'
                          break
 
                     celda = matriz[yi][xi]
@@ -609,7 +627,11 @@ def bombastic_hitbox ():
                     if not (0 <= xi < max_cols):
                          xi0 = x + (i - 1)
                          if 0 <= xi0 < max_cols:
-                              matriz[yi][xi0] = 'r'
+                              if xi0 != x:
+                                   matriz[yi][xi0] = 'f'
+                              else:
+                                   
+                                   matriz[yi][xi0] = 'c'
                          break
 
                     celda = matriz[yi][xi]
@@ -628,7 +650,10 @@ def bombastic_hitbox ():
                     if not (0 <= xi < max_cols):
                          xi0 = x - (i - 1)
                          if 0 <= xi0 < max_cols:
-                              matriz[yi][xi0] = 'l'
+                              if xi0 != x:
+                                   matriz[yi][xi0] = 'a'
+                              else:
+                                   matriz[yi][xi0] = 'c'
                          break
 
                     celda = matriz[yi][xi]
@@ -643,7 +668,15 @@ def bombastic_hitbox ():
      for exp_l in lista_EL:
           exp_l.auto_animate()
           matriz[exp_l.y//48][exp_l.x//48] = 0
-          print(matriz[exp_l.y//48][exp_l.x//48])
+          for obsR in obstacles_R:
+               if Explosion_Matriz_Lados.colisiona_con(exp_l, obsR):
+                   matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
+                   obstacles_R.remove(obsR)
+                   obstacles.remove(obsR)
+          for enemies in Lista_Enemigos_1:
+              if Explosion_Matriz_Lados.colisiona_con(exp_l, enemies):
+                   enemies.animacion_muerte()
+          limpiar()
           
 
 
