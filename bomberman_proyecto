@@ -587,8 +587,8 @@ reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 
 #-----------------------GLOBALES------------------------------
-estado = "seleccion_personaje" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
-
+estado = "menu" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+estado_anterior=""
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
@@ -693,6 +693,10 @@ Boton_ingresar= Boton (320,360,150,30,"Ingresar", "fonts/Pixeltype.ttf", 28,(133
 prev_siguiente = False #variable para controlar si se ha hecho clic en el botón de siguiente opción
 prev_seleccion = False  #variable para controlar si se ha hecho clic en el botón de seleccionar
 
+#----------------------MUSICA--------------------
+musica_menu=pg.mixer.Sound("sounds\music\Main_menu.mp3")
+
+
 #_______Sprites Enemigos Steadman
 #-----------------------SPRITES------------------------------
 #Obstaculos
@@ -778,7 +782,7 @@ def bg_opc_parallax():
         
         screen.blit(fondo, (pos_x, pos_y))
     
-def fade_in_from_white(duration_ms=2500):
+def fade_in_from_white(duration_ms=1000):
     # Capturar la escena actual como fondo estático
     background = screen.copy()
     
@@ -1280,8 +1284,16 @@ def pantalla_seleccion_jugador () :
     boton_seleccionar.draw(screen)  # Dibuja el botón en la pantalla
 
 tiempo_juego.start()
+
+def boombox() :
+     global estado_anterior
+     if estado!= estado_anterior : 
+          if estado== 'menu' : 
+               musica_menu.play(-1)  
+     estado_anterior=estado
 while True:
 #cambiador de estado
+    boombox()
     if estado == "juego":  # Si el estado es "juego", se muestra la pantalla de juego
         tiempo_juego.reanudar()
         pantalla_juego()
