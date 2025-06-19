@@ -135,9 +135,11 @@ class Jugador :
         self.current_skin = self.current_spritesheet.get_image(0, 32, 32, scale, colour)
         self.mask= pg.mask.from_surface(self.current_skin)  # Crea una máscara del sprite actual para colisiones
         self.muerto=False
+        self.can_always_move=False
         
     
     def set_state(self, new_state):
+        
         if new_state == self.state:
             return
         self.state = new_state
@@ -188,13 +190,15 @@ class Jugador :
 
           # Verificar si habría colisión en la nueva posición
           colision = False
-          for obst in obstacles:
-               offset_x = int(obst.x - nueva_x)
-               offset_y = int(obst.y - nueva_y)
-               if self.mask.overlap(obst.mask, (offset_x, offset_y)):
-                    colision = True
-                    break
-
+          if not self.can_always_move :
+               for obst in obstacles:
+                    offset_x = int(obst.x - nueva_x)
+                    offset_y = int(obst.y - nueva_y)
+                    if self.mask.overlap(obst.mask, (offset_x, offset_y)):
+                         colision = True
+                         break
+          else : 
+               colision= False
           # Si no hay colisión, actualiza posición
           if not colision:
                self.x = nueva_x
@@ -236,10 +240,12 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
             tiempo_transcurrido = current_time - self.tiempo_inicio_habilidad
             self.barra_habilidad -=1 if self.barra_habilidad >= 1 else self.barra_habilidad==1
             self.color_habilidad = self.color_bajada
-            self.set_state("hab")
+            if self.habilidad=="Invencible" : 
+                 self.can_always_move=True
             
             if tiempo_transcurrido > self.max_tiempo_habilidad or int(self.barra_habilidad)==0:
                 self.ejecutando_habilidad = False
+                self.can_always_move=False
                 self.set_state("idle")
                 print("Habilidad detenida por tiempo máximo")
 
@@ -1172,6 +1178,8 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
 
     
     for ene_1 in Lista_Enemigos_1:
+        if Player_1.colisiona_con(ene_1) :
+             Player_1.vida-=0.01
         ene_1.auto_move()
         #obstaculos funciona con la mascara de los obstaculos, asi pues para hacer colisiones solo ve si hay choque entre mascaras
         for obst in obstacles:
