@@ -166,6 +166,7 @@ class Jugador :
     
     def mover(self, obstacles):
           now=t.time()
+          global obstacles_R
           keys = pg.key.get_pressed()
           dx = (keys[pg.K_RIGHT] - keys[pg.K_LEFT]) * self.velocidad
           dy = (keys[pg.K_DOWN]  - keys[pg.K_UP])   * self.velocidad
@@ -189,14 +190,17 @@ class Jugador :
 
 
           # Verificar si habría colisión en la nueva posición
+          if self.can_always_move : 
+               candidatos = [o for o in obstacles if o not in obstacles_R]
+          else: 
+               candidatos = obstacles
           colision = False
-          if not self.can_always_move :
-               for obst in obstacles:
-                    offset_x = int(obst.x - nueva_x)
-                    offset_y = int(obst.y - nueva_y)
-                    if self.mask.overlap(obst.mask, (offset_x, offset_y)):
-                         colision = True
-                         break
+          for obst in candidatos :
+               offset_x = int(obst.x - nueva_x)
+               offset_y = int(obst.y - nueva_y)
+               if self.mask.overlap(obst.mask, (offset_x, offset_y)):
+                    colision = True
+                    break
           else : 
                colision= False
           # Si no hay colisión, actualiza posición
@@ -220,7 +224,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         self.barra_habilidad = 0  # Tiempo de recarga de la habilidad
         self.color_bajada=color_bajada
         self.powerups= {"dano" : 0 , "vida":0}
-        self.items = {"bombas":5, "velocidad" : 8 ,"escudo":2 }
+        self.items = {"bombas":1000, "velocidad" : 8 ,"escudo":2 }
         self.powerup_en_uso={"dano": False, "vida": False}
         self.item_en_uso={"bombas":False, "velocidad" : False ,"escudo":False }
         self.tiene_llave=False
@@ -293,9 +297,6 @@ class Obstaculo:
      offset_x = int(otro_objeto.x) - int(self.x)
      offset_y = int(otro_objeto.y) - int(self.y)
      return self.mask.overlap(otro_objeto.mask, (offset_x, offset_y)) is not None
-
-
-
 
 #Class Enemigos
 #Screen = area_juego
@@ -396,8 +397,6 @@ class Enemigos:
         offset_y = int(otro_objeto.y) - int(self.y)
         return self.mask.overlap(otro_objeto.mask, (offset_x, offset_y)) is not None
      
-
-
 #Class Bomba_sprite
 class Bomba:
     
@@ -586,8 +585,8 @@ tiempo_juego= Reloj(300)
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 
-#-----------------------GLOBALES------------------------------
-estado = "menu" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+#*!-----------------------GLOBALES------------------------------
+estado = "seleccion_personaje" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 estado_anterior=""
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
