@@ -112,37 +112,49 @@ class Healthbar_Player (HealthBar) :
 # Clase Jugador: Representa al jugador en el juego.
 
 class Jugador : 
-    def __init__(self, area_juego, pos_x, pos_y, velocidad, spritesheet_idle,spritesheet_habilidad, frame_count, frame_w,frame_h, scale, colour): 
+    def __init__(self, area_juego, pos_x, pos_y, velocidad, sps_idle,sps_mover,sps_hab,sps_muerte, frames_idle,frames_mover,frames_hab, frames_muerte, frame_w,frame_h, scale, colour): 
         self.area_juego = area_juego #superficie del juego donde se dibuja el jugador
         self.x = pos_x
         self.y = pos_y
         self.velocidad = velocidad              #velocidad del jugador
-        self.spritesheet_idle = spritesheet_idle
-        self.spritesheet_habilidad = spritesheet_habilidad
-        self.current_spritesheet = spritesheet_idle  # Por defecto usamos idle        #LA SPRITESHEET DEL JUGADOR
-        self.frame_count = frame_count          #CAANTIDAD DE FRAMES DE LA SKIN DEL JUGAODR
+        self.states = {  
+            "idle": (sps_idle, frames_idle),
+            "mover": (sps_mover, frames_mover),
+            "hab":   (sps_hab,   frames_hab),
+            "muerte":(sps_muerte,frames_muerte),
+        }
         self.width_frame = frame_w
         self.height_frame = frame_h   #esto siempre es estatico. como las spritesheets son horizontales entonces esto que qeuda asi . 
         self.scale = scale                              #multiplicador de escala para el sprite
-        self.colour = colour                  #color de fondo del sprite que se va a eliminar
-        self.last_update = t.time()     #tiempo de la ultima actualizacion del frame
-        self.current_frame = 0        #numero de frame que esta actualmente dibujandose.
-        self.current_skin = self.current_spritesheet.get_image(0, 30, 30, scale, colour)
+        self.colour = colour                  #color de fondo del sprite que se va a eliminar  
+        self.state = "idle"
+        self.current_spritesheet, self.frame_count = self.states[self.state]
+        self.current_frame  = 0
+        self.last_update    = t.time()
+        self.last_move_time = t.time() 
+        self.current_skin = self.current_spritesheet.get_image(0, 32, 32, scale, colour)
         self.mask= pg.mask.from_surface(self.current_skin)  # Crea una máscara del sprite actual para colisiones
+        self.muerto=False
+        
     
-    def cambiar_spritesheet(self, nuevo_spritesheet): #esto es para cambiar la spritesheet del jugador, por ejemplo cuando se ejecuta una habilidad
-        self.current_spritesheet = nuevo_spritesheet #cambia el spritesheet actual al nuevo
-        self.current_frame = 0  #reinicia el frame actual a 0
-        self.last_update = t.time()     #reinicia el tiempo de la ultima actualizacion para que no se salte frames al cambiar de spritesheet
+    def set_state(self, new_state):
+        if new_state == self.state:
+            return
+        self.state = new_state
+        self.current_spritesheet, self.frame_count = self.states[new_state]
+        self.current_frame  = 0
+        self.last_update    = t.time()
+ #reinicia el tiempo de la ultima actualizacion para que no se salte frames al cambiar de spritesheet
     
     def animacion_skin(self) : 
-        current_time = t.time()
-        if current_time - self.last_update > 0.1 : # Cambio de frame cada 0.2 segundos
-            self.last_update = current_time
-            self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
-        self.current_skin = self.current_spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
-        self.mask = pg.mask.from_surface(self.current_skin)
-        
+      now = t.time()
+      if now - self.last_update > 0.1:
+           self.last_update  = now
+           self.current_frame = (self.current_frame + 1) % self.frame_count
+
+      self.current_skin = self.current_spritesheet.get_image(self.current_frame,self.width_frame,self.height_frame,self.scale,self.colour)
+      self.mask = pg.mask.from_surface(self.current_skin)
+          
 
     def colisiona_con(self, otro_objeto):
         # Calcular diferencia de posiciones (offset)
@@ -150,29 +162,49 @@ class Jugador :
         offset_y = int(otro_objeto.y) - int(self.y)
         return self.mask.overlap(otro_objeto.mask, (offset_x, offset_y)) is not None
     
-    def mover(self): #metodo para mover al jugador, recibe el frame actual y la velocidad: 
-        #metodo para mover al jugador, recibe el frame actual
-        self.animacion_skin()
-        largo = self.area_juego.get_width() #ancho del aarea de juego
-        alto = self.area_juego.get_height()   #alto del area de juego
+    def mover(self, obstacles):
+          now=t.time()
+          keys = pg.key.get_pressed()
+          dx = (keys[pg.K_RIGHT] - keys[pg.K_LEFT]) * self.velocidad
+          dy = (keys[pg.K_DOWN]  - keys[pg.K_UP])   * self.velocidad
+          if dx != 0 or dy != 0:
+            self.last_move_time = now
+          if hasattr(self, "muerto") and self.muerto:
+            self.set_state("muerte")
+          elif dx != 0 or dy != 0:
+            self.set_state("mover")
+          elif now - self.last_move_time > 0.2:
+            # hace más de 1 segundo sin movimiento → idle
+            self.set_state("idle")
+          self.animacion_skin()
+          # Calcular nueva posición
+          nueva_x = self.x + dx
+          nueva_y = self.y + dy
+          max_x = self.area_juego.get_width()  - 32
+          max_y = self.area_juego.get_height() - 32
+          nueva_x = max(0, min(nueva_x, max_x))
+          nueva_y = max(0, min(nueva_y, max_y))
 
-        ancho_frame = int(self.width_frame * self.scale)    #ancho real del frame del jugador
-        alto_frame = int(self.height_frame * self.scale)    #alto real del frame del jugador
 
-        keys = pg.key.get_pressed() #mover el pene
-        if keys[pg.K_LEFT] and self.x > 0:  #verifica que el jugador no se salga del frame
-            self.x -= self.velocidad #mueve al jugador a la izquierda
-        if keys[pg.K_RIGHT] and self.x + ancho_frame < largo:
-            self.x += self.velocidad    #mueve al jugador a la derecha
-        if keys[pg.K_UP] and self.y > 0:
-            self.y -= self.velocidad  #mueve al jugador hacia arriba
-        if keys[pg.K_DOWN] and self.y +  alto_frame < alto:
-            self.y += self.velocidad  #mueve al jugador hacia abajo
-        #actualiza la posicion del jugador en el frame  
-        self.area_juego.blit(self.current_skin, (self.x, self.y))
+          # Verificar si habría colisión en la nueva posición
+          colision = False
+          for obst in obstacles:
+               offset_x = int(obst.x - nueva_x)
+               offset_y = int(obst.y - nueva_y)
+               if self.mask.overlap(obst.mask, (offset_x, offset_y)):
+                    colision = True
+                    break
+
+          # Si no hay colisión, actualiza posición
+          if not colision:
+               self.x = nueva_x
+               self.y = nueva_y
+
+          # Siempre se dibuja
+          self.area_juego.blit(self.current_skin, (self.x, self.y))
 class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
-    def __init__(self, area_juego, pos_x, pos_y, velocidad,spritesheet_idle,spritesheet_hab,frame_count,F_w,f_H,scale,colour,habilidad, cant_vidas,color_habilidad, color_bajada ):
-        super().__init__( area_juego, pos_x, pos_y, velocidad, spritesheet_idle,spritesheet_hab, frame_count,F_w,f_H, scale, colour)
+    def __init__(self, area_juego, pos_x, pos_y, velocidad,sps_idle,sps_mover,sps_hab,sps_muerte, frames_idle,frames_mover,frames_hab, frames_muerte, frame_w,frame_h, scale, colour,habilidad, cant_vidas,color_habilidad, color_bajada ):
+        super().__init__( area_juego, pos_x, pos_y, velocidad, sps_idle,sps_mover,sps_hab,sps_muerte, frames_idle,frames_mover,frames_hab, frames_muerte, frame_w,frame_h, scale, colour)
         self.habilidad=habilidad
         self.vida=97 #vida del jugador
         self.ejecutando_habilidad = False
@@ -184,10 +216,11 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         self.barra_habilidad = 0  # Tiempo de recarga de la habilidad
         self.color_bajada=color_bajada
         self.powerups= {"dano" : 0 , "vida":0}
-        self.items = {"bombas":6000, "velocidad" : 8 ,"escudo":2 }
+        self.items = {"bombas":5, "velocidad" : 8 ,"escudo":2 }
         self.powerup_en_uso={"dano": False, "vida": False}
         self.item_en_uso={"bombas":False, "velocidad" : False ,"escudo":False }
         self.tiene_llave=False
+        self.ultima_bomba=0
     def ejecutar_habilidad(self ) :
         keys = pg.key.get_pressed()
         current_time = t.time()
@@ -195,7 +228,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         if keys[pg.K_SPACE] and not self.ejecutando_habilidad and self.barra_habilidad >50:
             self.ejecutando_habilidad = True
             self.tiempo_inicio_habilidad = current_time
-            self.cambiar_spritesheet(self.spritesheet_habilidad)
+            self.set_state("hab")
             print(f"Iniciando habilidad: {self.habilidad}")
         
         # Detener si pasa el tiempo máximo
@@ -203,10 +236,11 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
             tiempo_transcurrido = current_time - self.tiempo_inicio_habilidad
             self.barra_habilidad -=1 if self.barra_habilidad >= 1 else self.barra_habilidad==1
             self.color_habilidad = self.color_bajada
+            self.set_state("hab")
             
             if tiempo_transcurrido > self.max_tiempo_habilidad or int(self.barra_habilidad)==0:
                 self.ejecutando_habilidad = False
-                self.cambiar_spritesheet(self.spritesheet_idle)
+                self.set_state("idle")
                 print("Habilidad detenida por tiempo máximo")
 
         if not self.ejecutando_habilidad:
@@ -214,14 +248,23 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
             self.barra_habilidad = min(self.barra_habilidad + 1, 100)   #ni idea porque co 99 sirve pero con ese numero me deja la barra en 100 maximo xd  
     def usar_bomba(self):
              global matriz
+             tiempo_actual=t.time()
              if self.items.get("bombas") > 0:
                  keys = pg.key.get_pressed()
-                 if keys[pg.K_b]:
-                     print (self.y, self.x)
-                     Bomba_R = Bomba_Matriz(self.area_juego, (self.x), (self.y), spritesheet_Bomba, 5, 64, 64, 0.75, 'black', True)
+                 if keys[pg.K_b] and tiempo_actual-self.ultima_bomba>=2:
+                     centro_x = self.x + 16
+                     centro_y = self.y + 16
+                     col = centro_x // 48
+                     fila = centro_y // 48                       
+                     Bomba_R = Bomba_Matriz(self.area_juego, (self.x+16) ,(self.y+16), spritesheet_Bomba, 5, 64, 64, 0.75, 'black', True)
                      lista_B.append(Bomba_R)
-                     matriz[self.y // 48][self.x // 48] = 0
+                     
+
+
+                     matriz[fila][col] = 0 #if matriz[(self.y+24) // 48][(self.x+24) // 48] = *  
                      self.items["bombas"] -= 1
+                     print(f"Jugador en píxeles: ({self.x},{self.y})  →  celda: ({fila},{col})")
+                     self.ultima_bomba = tiempo_actual
 
 
 #ocupo tipo scar tiempo. si en 0,5s no se presiona ninguna tecla entonces el sprote es el statico, si en n se presiona deacruerdo al movimiento cambia el sprite. sis e presiona el de habiliad, entones se muestra el speiret habilidad.
@@ -581,18 +624,23 @@ sps_powerups=pg.image.load("assets\Textures\powerups.png").convert_alpha()
 
 #--- Intangible ----
 preview_intangible = pg.image.load("assets\sprites\players\Intangible\preview.png").convert_alpha() 
-imp_sps_intangible= pg.image.load("assets\sprites\players\Intangible\idle.png").convert_alpha() #placeholder para el sprite intangible
+imp_sps_intangible_idle= pg.image.load("assets\sprites\players\Intangible\idle.png").convert_alpha() #placeholder para el sprite intangible
 imp_sps_intalgible_hab= pg.image.load("assets\sprites\players\Intangible\especial.png").convert_alpha() #placeholder para el sprite intangible de habilidad
-imp_sps_intangible_run= pg.image.load("assets\sprites\players\Intangible\walk.png").convert_alpha() #placeholder para el sprite intangible de correr
+imp_sps_intangible_walk= pg.image.load("assets\sprites\players\Intangible\walk.png").convert_alpha() #placeholder para el sprite intangible de correr
+imp_sps_intangible_death=pg.image.load("assets\sprites\players\Intangible\death.png").convert_alpha() #placeholder para el sprite intangible de correr
 #----tactico----
 preview_tactico = pg.image.load("assets\sprites\players\Tactico\preview.png").convert_alpha() 
-imp_sps_tactico = pg.image.load("assets\sprites\players\Tactico\idle.png").convert_alpha() #placeholder para el sprite intangible de correr
-imp_sps_tactico_hab =pg.image.load("assets\sprites\players\Tactico\especial.png").convert_alpha() #placeholder para el sprite intangible de correr
+imp_sps_tac_idle= pg.image.load("assets\sprites\players\Intangible\idle.png").convert_alpha() #placeholder para el sprite intangible
+imp_sps_tac_hab= pg.image.load("assets\sprites\players\Intangible\especial.png").convert_alpha() #placeholder para el sprite intangible de habilidad
+imp_sps_tac_walk= pg.image.load("assets\sprites\players\Intangible\walk.png").convert_alpha() #placeholder para el sprite intangible de correr
+imp_sps_tac_death=pg.image.load("assets\sprites\players\Tactico\Death.png").convert_alpha() #placeholder para el sprite intangible de correr
 
 #---kamikaze---
 preview_kamikaze = pg.image.load("assets\sprites\players\Kamikaze\preview.png").convert_alpha() 
-imp_sps_kamikaze = pg.image.load("assets\sprites\players\Kamikaze\idle.png").convert_alpha() #placeholder para el sprite intangible de correr
-imp_sps_kamikaze_hab =pg.image.load("assets\sprites\players\kamikaze\especial.png").convert_alpha() #placeholder para el sprite intangible de correr
+imp_sps_kam_idle= pg.image.load("assets\sprites\players\Intangible\idle.png").convert_alpha() #placeholder para el sprite intangible
+imp_sps_kam_hab= pg.image.load("assets\sprites\players\Intangible\especial.png").convert_alpha() #placeholder para el sprite intangible de habilidad
+imp_sps_kam_walk= pg.image.load("assets\sprites\players\Intangible\walk.png").convert_alpha() #placeholder para el sprite intangible de correr
+imp_sps_kam_death=pg.image.load("assets\sprites\players\Intangible\death.png").convert_alpha() #placeholder para el sprite intangible de correr
 
 
 
@@ -602,19 +650,21 @@ spritecheet_items= SpriteSheet (sps_items)
 spritesheet_powerups=SpriteSheet(sps_powerups)
 
 #Invencible 
-spritesheet_idle_int = SpriteSheet(imp_sps_intangible) #crea una instancia de la clase SpriteSheet con el sprite del jugador
+spritesheet_idle_int = SpriteSheet(imp_sps_intangible_idle) #crea una instancia de la clase SpriteSheet con el sprite del jugador
 spritesheet_habilidad_int = SpriteSheet(imp_sps_intalgible_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
-sritesheet_run_int = SpriteSheet(imp_sps_intangible_run) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
+sritesheet_walk_int = SpriteSheet(imp_sps_intangible_walk) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
+sritesheet_death_int = SpriteSheet(imp_sps_intangible_death) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
 
 #tactico
-spritesheet_idle_tac= SpriteSheet(imp_sps_tactico) #crea una instancia de la clase SpriteSheet con el sprite del jugador
-spritesheet_habilidad_tac = SpriteSheet(imp_sps_tactico_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
-sritesheet_run_tac = SpriteSheet(imp_sps_tactico_hab) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
-
+spritesheet_idle_int = SpriteSheet(imp_sps_tac_idle) #crea una instancia de la clase SpriteSheet con el sprite del jugador
+spritesheet_habilidad_int = SpriteSheet(imp_sps_intalgible_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
+sritesheet_walk_int = SpriteSheet(imp_sps_tac_hab) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
+sritesheet_death_int = SpriteSheet(imp_sps_tac_death) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
 #kamikaze
-spritesheet_idle_kam = SpriteSheet(imp_sps_kamikaze) #crea una instancia de la clase SpriteSheet con el sprite del jugador
-spritesheet_habilidad_kam = SpriteSheet(imp_sps_kamikaze_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
-sritesheet_run_kam = SpriteSheet(imp_sps_intangible_run) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
+spritesheet_idle_int = SpriteSheet(imp_sps_kam_idle) #crea una instancia de la clase SpriteSheet con el sprite del jugador
+spritesheet_habilidad_int = SpriteSheet(imp_sps_kam_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
+sritesheet_walk_int = SpriteSheet(imp_sps_kam_walk) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
+sritesheet_death_int = SpriteSheet(imp_sps_kam_death) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
 
 
 Player_1 = None
@@ -758,26 +808,31 @@ def fade_in_from_white(duration_ms=2500):
 
 
 #FUNCION PANTALLA TITULO
-def pantalla_titulo () :
-    global global_fade, bara_texto
-    bg_men_parallax()
-    titulo1= font_tit.render("EL HOMBRE", False, "white")
-    titulo2= font_tit.render("Que tiraba bombas", False, "white")
-    credit=font0.render("Steadman Murillo - Benjamin Ortiz  2025", False, "white")
-    screen.blit (titulo1,(250,50))
-    screen.blit(titulo2,(120,90))
-    if not global_fade :
-        fade_in_from_white() 
-        global_fade=True
-    #dibujo botones 
-    rectangulo_entrada= pg.Rect (300, 300, 200, 35)
-    texto_entrada= font.render(bara_texto, False , "black")
-    pg.draw.rect(screen, "white", rectangulo_entrada, 0, 4)  
-    pg.draw.rect(screen, "black", rectangulo_entrada, 2, 4)  
-    screen.blit(texto_entrada, (rectangulo_entrada.x + 10, rectangulo_entrada.y + 5))
+def escribir_menu () : 
+     return 
 
-    Boton_ingresar.draw(screen)
-    screen.blit(credit,(5,605))
+def pantalla_titulo () :
+     global global_fade, bara_texto
+     bg_men_parallax()
+     titulo1= font_tit.render("EL HOMBRE", False, "white")
+     titulo2= font_tit.render("Que tiraba bombas", False, "white")
+     texto=font0.render("Usuario :", False, "black")
+     credit=font0.render("Steadman Murillo - Benjamin Ortiz  2025", False, "white")
+     screen.blit (titulo1,(250,50))
+     screen.blit(titulo2,(120,90))
+     if not global_fade :
+          fade_in_from_white() 
+          global_fade=True
+     #dibujo botones 
+     rectangulo_entrada= pg.Rect (300, 300, 200, 35)
+     texto_entrada= font.render(bara_texto, False , "black")
+     pg.draw.rect(screen, "white", rectangulo_entrada, 0, 4)  
+     pg.draw.rect(screen, "black", rectangulo_entrada, 2, 4)  
+     screen.blit(texto_entrada, (rectangulo_entrada.x + 10, rectangulo_entrada.y + 5))
+
+     Boton_ingresar.draw(screen)
+     screen.blit(texto,(360,280))
+     screen.blit(credit,(5,605))
     
 def dibujar_gui() :
     global tiempo_juego, puntaje_nivel
@@ -957,7 +1012,7 @@ def limpiar():
                             matriz[fil][col] = 0
                        
 def bombastic_hitbox ():
-     global star_up, star_right, star_left, star_down
+     global star_up, star_right, star_left, star_down,puntaje_nivel
      for bomba in lista_B:
           bomba.auto_animate()
      for exp in lista_E:
@@ -969,6 +1024,7 @@ def bombastic_hitbox ():
                    obstacles.remove(obsR)
           for enemies in Lista_Enemigos_1:
               if Explosion_Matriz.colisiona_con(exp, enemies):
+                   puntaje_nivel+=1
                    enemies.animacion_muerte()
           
           
@@ -1080,6 +1136,7 @@ def bombastic_hitbox ():
                    obstacles.remove(obsR)
           for enemies in Lista_Enemigos_1:
               if Explosion_Matriz_Lados.colisiona_con(exp_l, enemies):
+                   puntaje_nivel+=1
                    enemies.animacion_muerte()
           limpiar()
                     
@@ -1094,14 +1151,16 @@ def init (nivel):
         texto_nivel = f"Nivel_{nivel}.txt"
         matriz = eval(leer_archivo(texto_nivel))
 init(nivel)
-
+Enemigo_perro = Enemigos(screen, (0), (0), 1.1, spritesheet_perro_cañon, spritesheet_perro_muerte, 3, 48, 48, 0, 'black', False, random.randint(0,3)) #enemigo fantasma para weas
+Lista_Enemigos_1 += [Enemigo_perro]
 B_1 = Bomba(game_surface, 0, 0, spritesheet_Bomba, 5, 64, 64, 0.75, 'black',False) #Para la habilidad del tactico
 E_1 = Explosion(game_surface, 0, 0, spritesheet_exp_c, 5, 64, 64, 0.75, 'black',False) #Para la habilidad del tactico
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO  
-    global matriz
+    global matriz, puntaje_nivel,puntaje_final
     screen.fill("white")        
-    dibujar_gui()
+    
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantallag
+    dibujar_gui()      
 
     if primera_vez:
         save_positions(game_surface)
@@ -1109,13 +1168,18 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     generate(game_surface)
     bombastic_pos(game_surface)
     bombastic_hitbox()
+    Player_1.mover(obstacles)
+
+    
     for ene_1 in Lista_Enemigos_1:
         ene_1.auto_move()
         #obstaculos funciona con la mascara de los obstaculos, asi pues para hacer colisiones solo ve si hay choque entre mascaras
         for obst in obstacles:
-             if Enemigos.colisiona_con(ene_1, obst):
-                # aquí ya chocaron
-                ene_1.rebote()
+               if Enemigos.colisiona_con(ene_1, obst):
+                              # aquí ya chocaron
+                              ene_1.rebote()
+                    
+                  
     
     
     if B_1.bomba_animacion:
@@ -1123,18 +1187,23 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     if E_1.bomba_animacion:
          E_1.auto_animate()
          for obsR in obstacles_R:
+              puntaje_nivel+=100
               if Explosion.colisiona_con(E_1, obsR):
                    matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
                    obstacles_R.remove(obsR)
                    obstacles.remove(obsR)
+                   print (puntaje_nivel)
          for enemies in Lista_Enemigos_1:
               if Explosion.colisiona_con(E_1, enemies):
                    enemies.animacion_muerte()
+     
                    
-    Player_1.mover()
+    
     Player_1.usar_bomba()
-    Player_1.ejecutar_habilidad()          
+    Player_1.ejecutar_habilidad()   
+     
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
+    
 
 def pantalla_seleccion_jugador () : 
     global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion, estado, Player_1
@@ -1179,7 +1248,7 @@ def pantalla_seleccion_jugador () :
         skin_seleccionada = prev_seleccion
         skin_seleccionada = skin_viendo
         if skin_seleccionada == 0 : 
-            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_int,spritesheet_habilidad_int,9,32,32,1.5,"black","Invencible",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
+            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_int,sritesheet_walk_int,spritesheet_habilidad_int,sritesheet_death_int,9,8,8,8,32,32,1.5,"black","Invencible",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
         elif skin_seleccionada == 1 : 
             Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_habilidad_kam,8,31,54,1,"black","Kamikaze",6,(3, 240, 252),"yellow")    #GENERAR PLAYER KAMIKAZE
         elif skin_seleccionada == 2 :
@@ -1219,17 +1288,9 @@ while True:
             tiempo_juego.detener()
             pg.quit()
             sys.exit()
+         
+          
 
-        '''if event.type == pg.MOUSEBUTTONDOWN:           #
-             mouse_pos = pg.mouse.get_pos()
-             if 0 < mouse_pos[0] < 816 and 100 < mouse_pos[1] < 628:
-               #B_1 = Bomba(game_surface, mouse_pos[0]-32, mouse_pos[1]-132, spritesheet_Bomba, 5, 64, 64, 0.75, 'black',True)
-               #E_1 = Explosion(game_surface, mouse_pos[0]-88, mouse_pos[1]-200, spritesheet_exp_c, 4, 64, 64, 3, 'black',False)
-               
-               if 0 <= mouse_pos[0]//48 < 17 and 0 <= mouse_pos[1]//48 < 13:
-                    if matriz[(mouse_pos[1]-100)//48][(mouse_pos[0]//48)] not in ('#','*'):
-                         matriz[(mouse_pos[1]-100)//48][(mouse_pos[0]//48)] = 8
-                    bomba_in_bounds = True  '''
         
                     
     pg.display.flip()
