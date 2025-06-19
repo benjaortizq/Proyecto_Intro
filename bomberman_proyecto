@@ -125,7 +125,8 @@ class Jugador :
         }
         self.width_frame = frame_w
         self.height_frame = frame_h   #esto siempre es estatico. como las spritesheets son horizontales entonces esto que qeuda asi . 
-        self.scale = scale                              #multiplicador de escala para el sprite
+        self.scale = scale       
+        self.frames_muerte=frames_muerte                       #multiplicador de escala para el sprite
         self.colour = colour                  #color de fondo del sprite que se va a eliminar  
         self.state = "idle"
         self.current_spritesheet, self.frame_count = self.states[self.state]
@@ -278,8 +279,8 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
                  if keys[pg.K_b] and tiempo_actual-self.ultima_bomba>=2:
                      centro_x = self.x + 16
                      centro_y = self.y + 16
-                     col = centro_x // 48
-                     fila = centro_y // 48                       
+                     col = int(centro_x // 48)
+                     fila = int(centro_y // 48 )                      
                      Bomba_R = Bomba_Matriz(self.area_juego, (self.x+16) ,(self.y+16), spritesheet_Bomba, 5, 64, 64, 0.75, 'black', True)
                      lista_B.append(Bomba_R)
                      
@@ -469,7 +470,7 @@ class Bomba_Matriz(Bomba):
        if self.bomba_animacion:
           self.animacion_skin()
           if self.current_frame == 4:
-               matriz[self.y//48][self.x//48] = 9
+               matriz[int(self.y//48)][int(self.x//48)] = 9
                lista_B.remove(self)
           self.screen.blit(self.current_skin, (self.x, self.y))
 
@@ -858,7 +859,7 @@ def pantalla_titulo () :
      screen.blit(credit,(5,605))
     
 def dibujar_gui() :
-    global tiempo_juego, puntaje_nivel
+    global tiempo_juego, puntaje_nivel, estado
     screen.fill((24,24,24))
     lista_pw_uso = ["vida","dano"]
     texto_tiempo=font0.render(f"Tiempo : {tiempo_juego.tiempo}", False , "white")
@@ -869,6 +870,8 @@ def dibujar_gui() :
     
     default_pw = spritesheet_powerups.get_image(2, 64, 64, 1, "black")
     default_pw_p = spritesheet_powerups.get_image(2, 64, 64, 0.5, "black")
+    if Player_1.muerto and Player_1.current_frame == Player_1.frames_muerte-1 : 
+        estado = "menu"
 
     powerup_sprites = {"vida": [spritesheet_powerups.get_image(0, 64, 64, 1, "black"),spritesheet_powerups.get_image(0, 64, 64, 0.5, "black")],"dano": [spritesheet_powerups.get_image(1, 64, 64, 1, "black"),spritesheet_powerups.get_image(1, 64, 64, 0.5, "black")]}
     pw_uso_1 = default_pw
@@ -1181,7 +1184,7 @@ Lista_Enemigos_1 += [Enemigo_perro]
 B_1 = Bomba(game_surface, 0, 0, spritesheet_Bomba, 5, 64, 64, 0.75, 'black',False) #Para la habilidad del tactico
 E_1 = Explosion(game_surface, 0, 0, spritesheet_exp_c, 5, 64, 64, 0.75, 'black',False) #Para la habilidad del tactico
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO  
-    global matriz, puntaje_nivel,puntaje_final
+    global matriz, puntaje_nivel,puntaje_final, estado
     screen.fill("white")        
     
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantallag
@@ -1279,7 +1282,7 @@ def pantalla_seleccion_jugador () :
         elif skin_seleccionada == 1 : 
             Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_walk_kam ,spritesheet_habilidad_kam,spritesheet_death_kam,9,8,8,8,32,32,0.75,"black","Invencible",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
         elif skin_seleccionada == 2 :
-            Player_1= Jugador_1(game_surface,0,0,1,spritesheet_idle_tac,spritesheet_walk_tac ,spritesheet_habilidad_tac,spritesheet_death_tac,4,6,8,6,96,96,0.5,"black","Tactico",6,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
+            Player_1= Jugador_1(game_surface,0,0,1.5,spritesheet_idle_tac,spritesheet_walk_tac ,spritesheet_habilidad_tac,spritesheet_death_tac,4,6,8,6,96,96,0.5,"black","Tactico",6,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
         
         estado ="juego" #SIEMPRE BAMCIAR EL ESTADO AML SIGUIENTE ANTES DE JUEGO O NO SE 
     prev_seleccion = nuevo_seleccion_actual  # Actualizar estado previo 
@@ -1308,6 +1311,7 @@ def boombox() :
      estado_anterior=estado
 while True:
 #cambiador de estado
+    print(estado)
     boombox()
     if estado == "juego":  # Si el estado es "juego", se muestra la pantalla de juego
         tiempo_juego.reanudar()
