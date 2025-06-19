@@ -136,6 +136,7 @@ class Jugador :
         self.mask= pg.mask.from_surface(self.current_skin)  # Crea una máscara del sprite actual para colisiones
         self.muerto=False
         self.can_always_move=False
+        self.facing_left = False 
         
     
     def set_state(self, new_state):
@@ -153,8 +154,11 @@ class Jugador :
       if now - self.last_update > 0.1:
            self.last_update  = now
            self.current_frame = (self.current_frame + 1) % self.frame_count
-
-      self.current_skin = self.current_spritesheet.get_image(self.current_frame,self.width_frame,self.height_frame,self.scale,self.colour)
+      img=self.current_spritesheet.get_image(self.current_frame,self.width_frame,self.height_frame,self.scale,self.colour)
+      if self.facing_left : 
+           img=pg.transform.flip(img,True,False) 
+      img.set_colorkey (self.colour)
+      self.current_skin = img
       self.mask = pg.mask.from_surface(self.current_skin)
           
 
@@ -170,16 +174,13 @@ class Jugador :
           keys = pg.key.get_pressed()
           dx = (keys[pg.K_RIGHT] - keys[pg.K_LEFT]) * self.velocidad
           dy = (keys[pg.K_DOWN]  - keys[pg.K_UP])   * self.velocidad
+          if dx < 0 : 
+               self.facing_left = True 
+          else: 
+               self.facing_left = False 
           if dx != 0 or dy != 0:
             self.last_move_time = now
-          if hasattr(self, "muerto") and self.muerto:
-            self.set_state("muerte")
-          elif dx != 0 or dy != 0:
-            self.set_state("mover")
-          elif now - self.last_move_time > 0.2:
-            # hace más de 1 segundo sin movimiento → idle
-            self.set_state("idle")
-          self.animacion_skin()
+
           # Calcular nueva posición
           nueva_x = self.x + dx
           nueva_y = self.y + dy
@@ -207,6 +208,19 @@ class Jugador :
           if not colision:
                self.x = nueva_x
                self.y = nueva_y
+          self.ejecutar_habilidad()
+          if self.ejecutando_habilidad:
+               self.set_state("hab")
+          else:
+               if hasattr(self, "muerto") and self.muerto:
+                    self.set_state("muerte")
+               elif dx != 0 or dy != 0:
+                    self.set_state("mover")
+               elif now - self.last_move_time > 0.2:
+                    self.set_state("idle")
+
+
+          self.animacion_skin()
 
           # Siempre se dibuja
           self.area_juego.blit(self.current_skin, (self.x, self.y))
@@ -635,9 +649,9 @@ imp_sps_intangible_walk= pg.image.load("assets\sprites\players\Intangible\walk.p
 imp_sps_intangible_death=pg.image.load("assets\sprites\players\Intangible\death.png").convert_alpha() #placeholder para el sprite intangible de correr
 #----tactico----
 preview_tactico = pg.image.load("assets\sprites\players\Tactico\preview.png").convert_alpha() 
-imp_sps_tac_idle= pg.image.load("assets\sprites\players\Intangible\idle.png").convert_alpha() #placeholder para el sprite intangible
-imp_sps_tac_hab= pg.image.load("assets\sprites\players\Intangible\especial.png").convert_alpha() #placeholder para el sprite intangible de habilidad
-imp_sps_tac_walk= pg.image.load("assets\sprites\players\Intangible\walk.png").convert_alpha() #placeholder para el sprite intangible de correr
+imp_sps_tac_idle= pg.image.load("assets\sprites\players\Tactico\idle.png").convert_alpha() #placeholder para el sprite intangible
+imp_sps_tac_hab= pg.image.load("assets\sprites\players\Tactico\especial.png").convert_alpha() #placeholder para el sprite intangible de habilidad
+imp_sps_tac_walk= pg.image.load("assets\sprites\players\Tactico\walk.png").convert_alpha() #placeholder para el sprite intangible de correr
 imp_sps_tac_death=pg.image.load("assets\sprites\players\Tactico\Death.png").convert_alpha() #placeholder para el sprite intangible de correr
 
 #---kamikaze---
@@ -657,19 +671,19 @@ spritesheet_powerups=SpriteSheet(sps_powerups)
 #Invencible 
 spritesheet_idle_int = SpriteSheet(imp_sps_intangible_idle) #crea una instancia de la clase SpriteSheet con el sprite del jugador
 spritesheet_habilidad_int = SpriteSheet(imp_sps_intalgible_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
-sritesheet_walk_int = SpriteSheet(imp_sps_intangible_walk) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
-sritesheet_death_int = SpriteSheet(imp_sps_intangible_death) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
+spritesheet_walk_int = SpriteSheet(imp_sps_intangible_walk) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
+spritesheet_death_int = SpriteSheet(imp_sps_intangible_death) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
 
 #tactico
-spritesheet_idle_int = SpriteSheet(imp_sps_tac_idle) #crea una instancia de la clase SpriteSheet con el sprite del jugador
-spritesheet_habilidad_int = SpriteSheet(imp_sps_intalgible_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
-sritesheet_walk_int = SpriteSheet(imp_sps_tac_hab) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
-sritesheet_death_int = SpriteSheet(imp_sps_tac_death) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
+spritesheet_idle_tac = SpriteSheet(imp_sps_tac_idle) #crea una instancia de la clase SpriteSheet con el sprite del jugador
+spritesheet_habilidad_tac = SpriteSheet(imp_sps_tac_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
+spritesheet_walk_tac = SpriteSheet(imp_sps_tac_walk) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
+spritesheet_death_tac = SpriteSheet(imp_sps_tac_death) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
 #kamikaze
-spritesheet_idle_int = SpriteSheet(imp_sps_kam_idle) #crea una instancia de la clase SpriteSheet con el sprite del jugador
-spritesheet_habilidad_int = SpriteSheet(imp_sps_kam_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
-sritesheet_walk_int = SpriteSheet(imp_sps_kam_walk) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
-sritesheet_death_int = SpriteSheet(imp_sps_kam_death) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
+spritesheet_idle_kam= SpriteSheet(imp_sps_kam_idle) #crea una instancia de la clase SpriteSheet con el sprite del jugador
+spritesheet_habilidad_kam = SpriteSheet(imp_sps_kam_hab) #crea una instancia de la clase SpriteSheet con el sprite de habilidad del jugador
+spritesheet_walk_kam = SpriteSheet(imp_sps_kam_walk) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
+spritesheet_death_kam = SpriteSheet(imp_sps_kam_death) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
 
 
 Player_1 = None
@@ -849,6 +863,8 @@ def dibujar_gui() :
     lista_pw_uso = ["vida","dano"]
     texto_tiempo=font0.render(f"Tiempo : {tiempo_juego.tiempo}", False , "white")
     texto_puntaje_nivel = font0.render(f"Puntaje : {puntaje_nivel}",False,"white")
+    if Player_1.vida == 0 : 
+         Player_1.muerto=True
 
     
     default_pw = spritesheet_powerups.get_image(2, 64, 64, 1, "black")
@@ -1182,7 +1198,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     
     for ene_1 in Lista_Enemigos_1:
         if Player_1.colisiona_con(ene_1) :
-             Player_1.vida-=0.01
+             Player_1.vida-=1
         ene_1.auto_move()
         #obstaculos funciona con la mascara de los obstaculos, asi pues para hacer colisiones solo ve si hay choque entre mascaras
         for obst in obstacles:
@@ -1259,11 +1275,11 @@ def pantalla_seleccion_jugador () :
         skin_seleccionada = prev_seleccion
         skin_seleccionada = skin_viendo
         if skin_seleccionada == 0 : 
-            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_int,sritesheet_walk_int,spritesheet_habilidad_int,sritesheet_death_int,9,8,8,8,32,32,1.5,"black","Invencible",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
+            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_int,spritesheet_walk_int,spritesheet_habilidad_int,spritesheet_death_int,9,8,8,8,32,32,1.5,"black","Invencible",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
         elif skin_seleccionada == 1 : 
-            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_habilidad_kam,8,31,54,1,"black","Kamikaze",6,(3, 240, 252),"yellow")    #GENERAR PLAYER KAMIKAZE
+            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_walk_kam ,spritesheet_habilidad_kam,spritesheet_death_kam,9,8,8,8,32,32,0.75,"black","Invencible",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
         elif skin_seleccionada == 2 :
-            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_tac,spritesheet_habilidad_tac,3,96,96,0.7,"black","Tactico",6,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
+            Player_1= Jugador_1(game_surface,0,0,1,spritesheet_idle_tac,spritesheet_walk_tac ,spritesheet_habilidad_tac,spritesheet_death_tac,4,6,8,6,96,96,0.5,"black","Tactico",6,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
         
         estado ="juego" #SIEMPRE BAMCIAR EL ESTADO AML SIGUIENTE ANTES DE JUEGO O NO SE 
     prev_seleccion = nuevo_seleccion_actual  # Actualizar estado previo 
@@ -1307,6 +1323,12 @@ while True:
             tiempo_juego.detener()
             pg.quit()
             sys.exit()
+        elif event.type == pg.KEYDOWN : 
+              if estado== "menu" : 
+                    if event.key == pg.K_BACKSPACE:
+                         bara_texto = bara_texto[:-1]
+                    else:
+                         bara_texto += event.unicode
          
           
 
