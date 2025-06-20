@@ -718,6 +718,7 @@ prev_atras=False
 
 #----------------------MUSICA--------------------
 musica_menu=pg.mixer.Sound("sounds\music\Main_menu.mp3")
+musica_puntajes=pg.mixer.Sound("sounds\music\puntajes.mp3")
 #-----------------------SPRITES------------------------------
 #Obstaculos
 sps_obstacles = pg.image.load("assets\Textures\Bricks.png")
@@ -794,10 +795,17 @@ def get_partidas () :
         personaje= partida["personaje"]
         jugadas.append([f"{usuario:10s} | Puntaje: {puntaje:5d} | Nivel: {nivel:d} | Personaje: {personaje}"])
 
-def dibujar_scoreboard(screen, partidas, font, x=50, y=50, line_height=30):
+def dibujar_scoreboard(screen, partidas, font, x=50, y=50, line_height=35):
     for idx, p in enumerate(partidas):
-        texto = font.render(f"{idx+1}. {p['usuario']} — {p['puntaje']}", True, (255,255,255))
-        screen.blit(texto, (x, y + idx*line_height))
+        # Extraer campos con respaldo por si falta algo
+        usuario   = str(p.get("usuario", "Desconocido"))
+        puntaje   = int(p.get("puntaje", 0))
+        nivel     = int(p.get("nivel", 0))
+        personaje = str(p.get("personaje", "???"))
+
+        linea = f"{idx+1}. {usuario:<12}  Puntaje: {puntaje:<5}  Nivel: {nivel:<2}  Personaje: {personaje}"
+        texto = font.render(linea, True, (255, 255, 255))
+        screen.blit(texto, (x, y + idx * line_height))
 #------------------------------------------------------FUNCIONES SECUNDARIAS PARA NIVEL---------------------------------------- 
 #Funcion que ha partir de la matriz lee las posiciones iniciales 
 def save_positions(screen):
@@ -1138,7 +1146,7 @@ def fade_in_from_white(duration_ms=1000):
 def animar_cuadro(screen,
                   target_size=(716, 524),
                   speed=20,
-                  alpha=40,
+                  alpha=100,
                   reset=False):
     global global_cuadrado
 
@@ -1229,7 +1237,16 @@ def pantalla_puntajes() :
      if click_atras and not prev_atras : 
           estado= "menu"
      prev_atras= click_atras
+
+     titulo= font_tit1.render("TOP 5 ", False, "white")
+     screen.blit(titulo,(340,70))
      boton_back.draw(screen)
+     data=cargar_partidas()
+     todas= data.get("partidas",[])
+     mejores= sorted(todas, key=lambda p: p["puntaje"],reverse=True)
+     max_display = min(len(mejores), 5)    #solo top5
+     top_cinco = mejores[:max_display]
+     dibujar_scoreboard(screen , top_cinco, font, x=100, y=150, line_height=40 )
 
 def dibujar_gui() :
     global tiempo_juego, puntaje_nivel, estado
@@ -1425,6 +1442,8 @@ def boombox() :
                pg.mixer.stop()
                if estado== 'menu': 
                     musica_menu.play(-1)  
+               elif estado=="puntajes" : 
+                    musica_puntajes.play(-1)
      estado_anterior=estado
 while True:
 #cambiador de estado

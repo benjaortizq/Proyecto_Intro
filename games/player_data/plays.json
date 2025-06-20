@@ -3,14 +3,15 @@
     {
       "usuario": "Benjamin",
       "puntaje": 5000,
-      "personaje": "Invencible",
-      "nivel": 4
+      "nivel": 4,
+      "personaje": "Invencible"
+      
     },
     {
       "usuario": "Steadman",
       "puntaje": 4600,
-      "personaje": "Kamikaze",
-       "nivel": 4
+      "nivel": 4,
+      "personaje": "Kamikaze"
     }
   ]
 }
