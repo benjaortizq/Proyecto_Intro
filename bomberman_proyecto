@@ -185,8 +185,8 @@ class Jugador :
           # Calcular nueva posición
           nueva_x = self.x + dx
           nueva_y = self.y + dy
-          max_x = self.area_juego.get_width()  - 32
-          max_y = self.area_juego.get_height() - 32
+          max_x = self.area_juego.get_width()  -40
+          max_y = self.area_juego.get_height() -40
           nueva_x = max(0, min(nueva_x, max_x))
           nueva_y = max(0, min(nueva_y, max_y))
 
@@ -601,7 +601,7 @@ reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 
 #*!-----------------------GLOBALES------------------------------
-estado = "seleccion_personaje" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+estado = "menu" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 estado_anterior=""
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
@@ -657,10 +657,10 @@ imp_sps_tac_death=pg.image.load("assets\sprites\players\Tactico\Death.png").conv
 
 #---kamikaze---
 preview_kamikaze = pg.image.load("assets\sprites\players\Kamikaze\preview.png").convert_alpha() 
-imp_sps_kam_idle= pg.image.load("assets\sprites\players\Intangible\idle.png").convert_alpha() #placeholder para el sprite intangible
-imp_sps_kam_hab= pg.image.load("assets\sprites\players\Intangible\especial.png").convert_alpha() #placeholder para el sprite intangible de habilidad
-imp_sps_kam_walk= pg.image.load("assets\sprites\players\Intangible\walk.png").convert_alpha() #placeholder para el sprite intangible de correr
-imp_sps_kam_death=pg.image.load("assets\sprites\players\Intangible\death.png").convert_alpha() #placeholder para el sprite intangible de correr
+imp_sps_kam_idle= pg.image.load("assets\sprites\players\Kamikaze\idle.png").convert_alpha() #placeholder para el sprite intangible
+imp_sps_kam_hab= pg.image.load("assets\sprites\players\Kamikaze\especial.png").convert_alpha() #placeholder para el sprite intangible de habilidad
+imp_sps_kam_walk= pg.image.load("assets\sprites\players\Kamikaze\walk.png").convert_alpha() #placeholder para el sprite intangible de correr
+imp_sps_kam_death=pg.image.load("assets\sprites\players\Kamikaze\death.png").convert_alpha() #placeholder para el sprite intangible de correr
 
 
 
@@ -703,15 +703,18 @@ skin_viendo=0
 ##BOTONES GLOBALES 
 boton_siguiente_opcion= Boton(300, 500, 150, 30, "Siguiente", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #"crea un boton de siguiente opcion (tiene que estar afuera por tipo int)
 boton_seleccionar = Boton(300, 540, 150, 30, "Seleccionar", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 ) ) #crea un boton de seleccionar
-Boton_ingresar= Boton (320,360,150,30,"Ingresar", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
+Boton_ingresar = Boton (320,320,150,30,"Empezar", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
+Boton_mejores_p = Boton (320,360,150,30,"Ver Puntajes", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
+Boton_opciones = Boton (320,400,150,30,"Opciones", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
 prev_siguiente = False #variable para controlar si se ha hecho clic en el botón de siguiente opción
 prev_seleccion = False  #variable para controlar si se ha hecho clic en el botón de seleccionar
+prev_ing=False
+prev_mejor_p=False
+prev_opc=False
+prev_atras=False
 
 #----------------------MUSICA--------------------
 musica_menu=pg.mixer.Sound("sounds\music\Main_menu.mp3")
-
-
-#_______Sprites Enemigos Steadman
 #-----------------------SPRITES------------------------------
 #Obstaculos
 sps_obstacles = pg.image.load("assets\Textures\Bricks.png")
@@ -753,177 +756,7 @@ spritesheet_exp_b = SpriteSheet(sps_exp_borde)
 sps_exp_lado = pg.image.load("assets\Textures\Bomba\explosion_l.png")
 spritesheet_exp_l = SpriteSheet(sps_exp_lado)
 
-#FUNCIONES DE LA PANTALLA MENU
-def bg_men_parallax(): 
-    global fondo_p_men, pos_par_men
-    parallax_speeds = [0.05, 0.001, 0.1, 0.15, 0.2, 0.5 ]
-    
-    # Dibujar capas desde la más lejana (0) a la más cercana (6)
-    for i in range (len (fondo_p_men)) :
-        # Calcular nueva posición (movimiento infinito)
-        pos_par_men[i] -= parallax_speeds[i]
-        img= pg.transform.scale (fondo_p_men[i],(fondo_p_men[i].get_width()*0.25,fondo_p_men[i].get_height()*0.25) if 0<i<5  else((fondo_p_men[i].get_width()*0.55,fondo_p_men[i].get_height()*0.55) ))
-        
-        # Reiniciar posición cuando la imagen sale completamente de la pantalla
-        if pos_par_men[i] <= -img.get_width():
-            pos_par_men[i] = 0
-        
-        # Dibujar dos copias para el efecto de scroll infinito
-        screen.blit(img, (pos_par_men[i], (0 )))
-        screen.blit(img, (pos_par_men[i] + img.get_width(), 0))
-def bg_opc_parallax():
-    global fondos_p_op
-    factores = [0.1, 0.3, 0.5, 0.7]
-
-    mouse_pos = pg.mouse.get_pos()   
-    """Dibuja el fondo con efecto parallax basado en la posición del mouse"""
-    mouse_x, mouse_y = mouse_pos
-    
-    # Calcular desplazamiento relativo al centro
-    rel_x = (mouse_x - 816 // 2) / (816 // 2)
-    rel_y = (mouse_y - 624 // 2) / (624 // 2)
-    
-    # Dibujar capas desde la más lejana (0) a la más cercana (3)
-    for i, fondo in enumerate(fondos_p_op):
-        # Calcular desplazamiento para esta capa
-        fondo=pg.transform.scale(fondo, (1400,780))
-        offset_x = rel_x * factores[i] * 100
-        offset_y = rel_y * factores[i] * 100
-        
-        # Posición de dibujo (centrada con offset)
-        pos_x = (816 - fondo.get_width()) // 2 + offset_x
-        pos_y = (624 - fondo.get_height()) // 2 + offset_y
-        
-        screen.blit(fondo, (pos_x, pos_y))
-    
-def fade_in_from_white(duration_ms=1000):
-    # Capturar la escena actual como fondo estático
-    background = screen.copy()
-    
-    overlay = pg.Surface(screen.get_size(), pg.SRCALPHA)
-    overlay.fill((255, 255, 255))
-    start_time = pg.time.get_ticks()
-    clock = pg.time.Clock()
-    
-    running = True
-    while running:
-        screen.blit(background ,(0,0))
-        elapsed = pg.time.get_ticks() - start_time
-        progress = min(1, elapsed / duration_ms)
-        
-        if progress >= 1:
-            alpha = 0
-            running = False
-        else :
-            alpha = 255-int(255 * progress)
-            print (alpha)
-        
-        overlay.set_alpha(alpha)
-        screen.blit(overlay, (0, 0))
-        pg.display.flip()
-        
-        # Manejo de eventos sin bloquear
-        for evt in pg.event.get():
-            if evt.type == pg.QUIT:
-                pg.quit()
-                sys.exit()
-        
-        clock.tick(60)
-
-
-#FUNCION PANTALLA TITULO
-def escribir_menu () : 
-     return 
-
-def pantalla_titulo () :
-     global global_fade, bara_texto
-     bg_men_parallax()
-     titulo1= font_tit.render("EL HOMBRE", False, "white")
-     titulo2= font_tit.render("Que tiraba bombas", False, "white")
-     texto=font0.render("Usuario :", False, "black")
-     credit=font0.render("Steadman Murillo - Benjamin Ortiz  2025", False, "white")
-     screen.blit (titulo1,(250,50))
-     screen.blit(titulo2,(120,90))
-     if not global_fade :
-          fade_in_from_white() 
-          global_fade=True
-     #dibujo botones 
-     rectangulo_entrada= pg.Rect (300, 300, 200, 35)
-     texto_entrada= font.render(bara_texto, False , "black")
-     pg.draw.rect(screen, "white", rectangulo_entrada, 0, 4)  
-     pg.draw.rect(screen, "black", rectangulo_entrada, 2, 4)  
-     screen.blit(texto_entrada, (rectangulo_entrada.x + 10, rectangulo_entrada.y + 5))
-
-     Boton_ingresar.draw(screen)
-     screen.blit(texto,(360,280))
-     screen.blit(credit,(5,605))
-    
-def dibujar_gui() :
-    global tiempo_juego, puntaje_nivel, estado
-    screen.fill((24,24,24))
-    lista_pw_uso = ["vida","dano"]
-    texto_tiempo=font0.render(f"Tiempo : {tiempo_juego.tiempo}", False , "white")
-    texto_puntaje_nivel = font0.render(f"Puntaje : {puntaje_nivel}",False,"white")
-    if Player_1.vida == 0 : 
-         Player_1.muerto=True
-
-    
-    default_pw = spritesheet_powerups.get_image(2, 64, 64, 1, "black")
-    default_pw_p = spritesheet_powerups.get_image(2, 64, 64, 0.5, "black")
-    if Player_1.muerto and Player_1.current_frame == Player_1.frames_muerte-1 : 
-        estado = "menu"
-
-    powerup_sprites = {"vida": [spritesheet_powerups.get_image(0, 64, 64, 1, "black"),spritesheet_powerups.get_image(0, 64, 64, 0.5, "black")],"dano": [spritesheet_powerups.get_image(1, 64, 64, 1, "black"),spritesheet_powerups.get_image(1, 64, 64, 0.5, "black")]}
-    pw_uso_1 = default_pw
-    pw_uso_2 = default_pw_p
-    if len(lista_pw_uso) >= 1:
-        nombre1 = lista_pw_uso[0]
-        sprites  = powerup_sprites.get(nombre1)
-        if sprites:
-            pw_uso_1 = sprites[0]
-        # Si hay un segundo power‑up, úsalo en la ranura 2
-        if len(lista_pw_uso) == 2:
-            nombre2 = lista_pw_uso[1]
-            sprites2  = powerup_sprites.get(nombre2)
-            if sprites2:
-                pw_uso_2 = sprites2[1]
-
-    # Ahora dibuja pw_uso_1 y pw_uso_2 donde corresponda en tu GUI
-    vida_jugador=Healthbar_Player (73, 15, 110, 20, Player_1.vida, heart_texture,Player_1.cant_vidas,font0)  # Dibuja la barra de salud del jugador
-    vida_jugador.draw(screen)  # Dibuja la barra de salud en la superficie del juego
-    vida_jugador.draw_atributes(screen)  # Dibuja los atributos de la barra de salud en la superficie del juego
-    habilidad_jugador= HealthBar(73, 55, 110, 20, Player_1.barra_habilidad, (129, 133, 137), Player_1.color_habilidad)  # Dibuja la barra de habilidad del jugador
-    habilidad_jugador.draw(screen)  # Dibuja la barra de habilidad en la superficie del juego
-    icono_habilidad= spritesheet_habilidades_prev.get_image(skin_seleccionada, 128,128,0.5,"black")
-    bombas_img=spritecheet_items.get_image(0,64,64,1.5,"black")
-    velocidad_img=spritecheet_items.get_image(1,64,64,1.5,"black")
-    escudo_img=spritecheet_items.get_image(2,64,64,1.5,"black")
-    cant_bombas =Player_1.items.get("bombas")
-    cant_velos=Player_1.items.get("velocidad")
-    cant_escus=Player_1.items.get("escudo")
-    bombas_tex = font0.render(f" x {cant_bombas}", False, "white")
-    velo_text = font0.render(f" x {cant_velos}", False, "white")
-    escu_text = font0.render(f" x {cant_escus}", False, "white")
-    
-    screen.blit(icono_habilidad, (7,30))
-
-
-    screen.blit(pw_uso_1,(510,20))
-    screen.blit(pw_uso_2,(550,0))
-    
-    screen.blit(bombas_img,(570,0))
-    screen.blit (bombas_tex,(598,80))
-
-    screen.blit(velocidad_img,(644,0))
-    screen.blit (velo_text,(672,80))
-
-    screen.blit(escudo_img,(718,0))
-    screen.blit (escu_text,(746,80))
-
-    screen.blit(texto_tiempo,(327,5))
-    screen.blit(texto_puntaje_nivel,(332,25))
-    #screen.blit(texto_puntaje_nivel, (425,5))
-
+#------------------------------------------------------FUNCIONES SECUNDARIAS PARA NIVEL---------------------------------------- 
 #Funcion que ha partir de la matriz lee las posiciones iniciales 
 def save_positions(screen):
         global obstacles, matriz, Lista_Enemigos_1, obstacles_R
@@ -1166,8 +999,7 @@ def bombastic_hitbox ():
               if Explosion_Matriz_Lados.colisiona_con(exp_l, enemies):
                    puntaje_nivel+=1
                    enemies.animacion_muerte()
-          limpiar()
-                    
+          limpiar()          
 #Funcion para leer la matriz de nivel
 def leer_archivo(path):
         archivo = open(path, 'r')
@@ -1183,6 +1015,182 @@ Enemigo_perro = Enemigos(screen, (0), (0), 1.1, spritesheet_perro_cañon, sprite
 Lista_Enemigos_1 += [Enemigo_perro]
 B_1 = Bomba(game_surface, 0, 0, spritesheet_Bomba, 5, 64, 64, 0.75, 'black',False) #Para la habilidad del tactico
 E_1 = Explosion(game_surface, 0, 0, spritesheet_exp_c, 5, 64, 64, 0.75, 'black',False) #Para la habilidad del tactico
+
+#!---------------------------------------------EFECTOS ESPECIALES :o --------------------------------
+def bg_men_parallax(): 
+    global fondo_p_men, pos_par_men
+    parallax_speeds = [0.05, 0.001, 0.1, 0.15, 0.2, 0.5 ]
+    
+    # Dibujar capas desde la más lejana (0) a la más cercana (6)
+    for i in range (len (fondo_p_men)) :
+        # Calcular nueva posición (movimiento infinito)
+        pos_par_men[i] -= parallax_speeds[i]
+        img= pg.transform.scale (fondo_p_men[i],(fondo_p_men[i].get_width()*0.25,fondo_p_men[i].get_height()*0.25) if 0<i<5  else((fondo_p_men[i].get_width()*0.55,fondo_p_men[i].get_height()*0.55) ))
+        
+        # Reiniciar posición cuando la imagen sale completamente de la pantalla
+        if pos_par_men[i] <= -img.get_width():
+            pos_par_men[i] = 0
+        
+        # Dibujar dos copias para el efecto de scroll infinito
+        screen.blit(img, (pos_par_men[i], (0 )))
+        screen.blit(img, (pos_par_men[i] + img.get_width(), 0))
+def bg_opc_parallax():
+    global fondos_p_op
+    factores = [0.1, 0.3, 0.5, 0.7]
+
+    mouse_pos = pg.mouse.get_pos()   
+    """Dibuja el fondo con efecto parallax basado en la posición del mouse"""
+    mouse_x, mouse_y = mouse_pos
+    
+    # Calcular desplazamiento relativo al centro
+    rel_x = (mouse_x - 816 // 2) / (816 // 2)
+    rel_y = (mouse_y - 624 // 2) / (624 // 2)
+    
+    # Dibujar capas desde la más lejana (0) a la más cercana (3)
+    for i, fondo in enumerate(fondos_p_op):
+        # Calcular desplazamiento para esta capa
+        fondo=pg.transform.scale(fondo, (1400,780))
+        offset_x = rel_x * factores[i] * 100
+        offset_y = rel_y * factores[i] * 100
+        
+        # Posición de dibujo (centrada con offset)
+        pos_x = (816 - fondo.get_width()) // 2 + offset_x
+        pos_y = (624 - fondo.get_height()) // 2 + offset_y
+        
+        screen.blit(fondo, (pos_x, pos_y))
+    
+def fade_in_from_white(duration_ms=1000):
+    # Capturar la escena actual como fondo estático
+    background = screen.copy()
+    
+    overlay = pg.Surface(screen.get_size(), pg.SRCALPHA)
+    overlay.fill((255, 255, 255))
+    start_time = pg.time.get_ticks()
+    clock = pg.time.Clock()
+    
+    running = True
+    while running:
+        screen.blit(background ,(0,0))
+        elapsed = pg.time.get_ticks() - start_time
+        progress = min(1, elapsed / duration_ms)
+        
+        if progress >= 1:
+            alpha = 0
+            running = False
+        else :
+            alpha = 255-int(255 * progress)
+            print (alpha)
+        
+        overlay.set_alpha(alpha)
+        screen.blit(overlay, (0, 0))
+        pg.display.flip()
+        
+        # Manejo de eventos sin bloquear
+        for evt in pg.event.get():
+            if evt.type == pg.QUIT:
+                pg.quit()
+                sys.exit()
+        
+        clock.tick(60)
+
+
+#!------------------------------------------------PANTALLAS-------------------------------------------------
+def pantalla_titulo () :
+     global global_fade, bara_texto, estado,prev_ing,prev_ing,prev_opc,prev_mejor_p
+     bg_men_parallax()
+     titulo1= font_tit.render("EL HOMBRE", False, "white")
+     titulo2= font_tit.render("Que tiraba bombas", False, "white")
+     titulo3 =font0.render("Proyecto 3 , IC-1802 - Tecnologico de Costa Rica", False,"gray")
+     credit=font0.render("Steadman Murillo - Benjamin Ortiz  2025", False, "white")
+     screen.blit (titulo1,(250,50))
+     screen.blit(titulo2,(120,90))
+     
+     if not global_fade :
+          fade_in_from_white() 
+          global_fade=True
+     #dibujo botones 
+     click_empezar=Boton_ingresar.check_click()
+     click_puntajes=Boton_mejores_p.check_click()
+     click_opc=Boton_opciones.check_click()
+     if click_empezar and not prev_ing :
+          estado="seleccion_personaje"
+
+     Boton_ingresar.draw(screen)
+     Boton_mejores_p.draw(screen)
+     Boton_opciones.draw(screen)
+     screen.blit(credit,(5,605))
+     screen.blit(titulo3,(200,150))
+
+def pantalla_opciones() : 
+     return
+
+
+def dibujar_gui() :
+    global tiempo_juego, puntaje_nivel, estado
+    screen.fill((24,24,24))
+    lista_pw_uso = ["vida","dano"]
+    texto_tiempo=font0.render(f"Tiempo : {tiempo_juego.tiempo}", False , "white")
+    texto_puntaje_nivel = font0.render(f"Puntaje : {puntaje_nivel}",False,"white")
+    if Player_1.vida <= 1 : 
+         Player_1.muerto=True
+
+    
+    default_pw = spritesheet_powerups.get_image(2, 64, 64, 1, "black")
+    default_pw_p = spritesheet_powerups.get_image(2, 64, 64, 0.5, "black")
+    if Player_1.muerto and Player_1.current_frame == Player_1.frames_muerte-1 : 
+        estado = "menu"
+
+    powerup_sprites = {"vida": [spritesheet_powerups.get_image(0, 64, 64, 1, "black"),spritesheet_powerups.get_image(0, 64, 64, 0.5, "black")],"dano": [spritesheet_powerups.get_image(1, 64, 64, 1, "black"),spritesheet_powerups.get_image(1, 64, 64, 0.5, "black")]}
+    pw_uso_1 = default_pw
+    pw_uso_2 = default_pw_p
+    if len(lista_pw_uso) >= 1:
+        nombre1 = lista_pw_uso[0]
+        sprites  = powerup_sprites.get(nombre1)
+        if sprites:
+            pw_uso_1 = sprites[0]
+        # Si hay un segundo power‑up, úsalo en la ranura 2
+        if len(lista_pw_uso) == 2:
+            nombre2 = lista_pw_uso[1]
+            sprites2  = powerup_sprites.get(nombre2)
+            if sprites2:
+                pw_uso_2 = sprites2[1]
+
+    # Ahora dibuja pw_uso_1 y pw_uso_2 donde corresponda en tu GUI
+    vida_jugador=Healthbar_Player (73, 15, 110, 20, Player_1.vida, heart_texture,Player_1.cant_vidas,font0)  # Dibuja la barra de salud del jugador
+    vida_jugador.draw(screen)  # Dibuja la barra de salud en la superficie del juego
+    vida_jugador.draw_atributes(screen)  # Dibuja los atributos de la barra de salud en la superficie del juego
+    habilidad_jugador= HealthBar(73, 55, 110, 20, Player_1.barra_habilidad, (129, 133, 137), Player_1.color_habilidad)  # Dibuja la barra de habilidad del jugador
+    habilidad_jugador.draw(screen)  # Dibuja la barra de habilidad en la superficie del juego
+    icono_habilidad= spritesheet_habilidades_prev.get_image(skin_seleccionada, 128,128,0.5,"black")
+    bombas_img=spritecheet_items.get_image(0,64,64,1.5,"black")
+    velocidad_img=spritecheet_items.get_image(1,64,64,1.5,"black")
+    escudo_img=spritecheet_items.get_image(2,64,64,1.5,"black")
+    cant_bombas =Player_1.items.get("bombas")
+    cant_velos=Player_1.items.get("velocidad")
+    cant_escus=Player_1.items.get("escudo")
+    bombas_tex = font0.render(f" x {cant_bombas}", False, "white")
+    velo_text = font0.render(f" x {cant_velos}", False, "white")
+    escu_text = font0.render(f" x {cant_escus}", False, "white")
+    
+    screen.blit(icono_habilidad, (7,30))
+
+
+    screen.blit(pw_uso_1,(510,20))
+    screen.blit(pw_uso_2,(550,0))
+    
+    screen.blit(bombas_img,(570,0))
+    screen.blit (bombas_tex,(598,80))
+
+    screen.blit(velocidad_img,(644,0))
+    screen.blit (velo_text,(672,80))
+
+    screen.blit(escudo_img,(718,0))
+    screen.blit (escu_text,(746,80))
+
+    screen.blit(texto_tiempo,(327,5))
+    screen.blit(texto_puntaje_nivel,(332,25))
+    #screen.blit(texto_puntaje_nivel, (425,5))
+
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO  
     global matriz, puntaje_nivel,puntaje_final, estado
     screen.fill("white")        
@@ -1196,12 +1204,12 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     generate(game_surface)
     bombastic_pos(game_surface)
     bombastic_hitbox()
-    Player_1.mover(obstacles)
+    
 
     
     for ene_1 in Lista_Enemigos_1:
         if Player_1.colisiona_con(ene_1) :
-             Player_1.vida-=1
+             Player_1.vida-=0.2
         ene_1.auto_move()
         #obstaculos funciona con la mascara de los obstaculos, asi pues para hacer colisiones solo ve si hay choque entre mascaras
         for obst in obstacles:
@@ -1228,12 +1236,11 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
                    enemies.animacion_muerte()
      
                    
-    
+    Player_1.mover(obstacles)
     Player_1.usar_bomba()
     Player_1.ejecutar_habilidad()   
      
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
-    
 
 def pantalla_seleccion_jugador () : 
     global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion, estado, Player_1
@@ -1280,10 +1287,9 @@ def pantalla_seleccion_jugador () :
         if skin_seleccionada == 0 : 
             Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_int,spritesheet_walk_int,spritesheet_habilidad_int,spritesheet_death_int,9,8,8,8,32,32,1.5,"black","Invencible",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
         elif skin_seleccionada == 1 : 
-            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_walk_kam ,spritesheet_habilidad_kam,spritesheet_death_kam,9,8,8,8,32,32,0.75,"black","Invencible",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
+            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_walk_kam ,spritesheet_habilidad_kam,spritesheet_death_kam,4,7,12,8,48,32,1.35,"black","Kamikaze",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
         elif skin_seleccionada == 2 :
-            Player_1= Jugador_1(game_surface,0,0,1.5,spritesheet_idle_tac,spritesheet_walk_tac ,spritesheet_habilidad_tac,spritesheet_death_tac,4,6,8,6,96,96,0.5,"black","Tactico",6,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
-        
+            Player_1= Jugador_1(game_surface,0,0,1.5,spritesheet_idle_tac,spritesheet_walk_tac ,spritesheet_habilidad_tac,spritesheet_death_tac,4,6,9,6,96,96,0.5,"black","Tactico",6,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
         estado ="juego" #SIEMPRE BAMCIAR EL ESTADO AML SIGUIENTE ANTES DE JUEGO O NO SE 
     prev_seleccion = nuevo_seleccion_actual  # Actualizar estado previo 
  
@@ -1332,15 +1338,9 @@ while True:
                     if event.key == pg.K_BACKSPACE:
                          bara_texto = bara_texto[:-1]
                     else:
-                         bara_texto += event.unicode
-         
-          
-
-        
-                    
+                         bara_texto += event.unicode           
     pg.display.flip()
     reloj.tick(60)
-
 
 #TODO : benja
 #cambiar powerups para aferctar varas del player
