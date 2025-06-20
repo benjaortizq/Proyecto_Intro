@@ -1199,6 +1199,7 @@ def pantalla_opciones() :
 
 def pantalla_puntajes() : 
      bg_opc_parallax() 
+     animar_cuadro(screen)
      boton_back.draw(screen)
 
 def dibujar_gui() :
