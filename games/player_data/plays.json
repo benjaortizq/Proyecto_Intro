@@ -1,0 +1,16 @@
+{
+  "partidas": [
+    {
+      "usuario": "Benjamin",
+      "puntaje": 5000,
+      "personaje": "Invencible",
+      "nivel": 4
+    },
+    {
+      "usuario": "Steadman",
+      "puntaje": 4600,
+      "personaje": "Kamikaze",
+       "nivel": 4
+    }
+  ]
+}

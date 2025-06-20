@@ -10,7 +10,7 @@ import time as t
 import threading as th
 import random 
 import sys 
-import os 
+import json
 #pinche benja
 #Aqui epiezan las clases del juego  
 #----------------------------------------------------------CLASES UTILES DE PYGAME---------------------------------------
@@ -599,6 +599,7 @@ pg.display.set_caption("El hombre que tiraba bombas") #Nombre de la ventana
 tiempo_juego= Reloj(300)
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
+RUTA_PLAYS= "games\player_data\plays.json"
 
 #*!-----------------------GLOBALES------------------------------
 estado = "menu" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
@@ -625,6 +626,7 @@ primera_vez = True #debido a que ciertas cosas SOLO se deben generar una vez por
 puntaje_nivel=0
 puntaje_final=0
 global_fade=False
+global_cuadrado=False
 bara_texto =""
 nombre_jugador=""
 
@@ -701,6 +703,7 @@ skin_viendo=0
 
 
 ##BOTONES GLOBALES 
+boton_back= Boton (740,594,70,30,"Atras", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
 boton_siguiente_opcion= Boton(300, 500, 150, 30, "Siguiente", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #"crea un boton de siguiente opcion (tiene que estar afuera por tipo int)
 boton_seleccionar = Boton(300, 540, 150, 30, "Seleccionar", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 ) ) #crea un boton de seleccionar
 Boton_ingresar = Boton (320,320,150,30,"Empezar", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
@@ -755,6 +758,31 @@ spritesheet_exp_b = SpriteSheet(sps_exp_borde)
 #Explosion Lado:
 sps_exp_lado = pg.image.load("assets\Textures\Bomba\explosion_l.png")
 spritesheet_exp_l = SpriteSheet(sps_exp_lado)
+#--------------------------------------------------------FUNCIONES GET PLAYS---------------------------
+def cargar_partidas() : 
+     global RUTA_PLAYS 
+     try :
+          with open(RUTA_PLAYS, 'r', encoding='utf-8') as f:
+               return json.load(f)
+     except FileNotFoundError:
+        return {"partidas": []}
+
+def guardar_partida(data) : 
+     global RUTA_PLAYS 
+     with open(RUTA_PLAYS, 'w', encoding='utf-8') as f : 
+          json.dump(data, f, indent=2, ensure_ascii=False)
+
+def nueva_partida( usuario, puntaje, personaje, nivel):
+    global RUTA_PLAYS
+    data = cargar_partidas(RUTA_PLAYS)
+    partida = {
+        "usuario": usuario,
+        "puntaje": puntaje,
+        "personaje": personaje,
+        "nivel": nivel,
+    }
+    data["partidas"].append(partida)
+    guardar_partida(data)
 
 #------------------------------------------------------FUNCIONES SECUNDARIAS PARA NIVEL---------------------------------------- 
 #Funcion que ha partir de la matriz lee las posiciones iniciales 
@@ -1011,7 +1039,7 @@ def init (nivel):
         texto_nivel = f"Nivel_{nivel}.txt"
         matriz = eval(leer_archivo(texto_nivel))
 init(nivel)
-Enemigo_perro = Enemigos(screen, (0), (0), 1.1, spritesheet_perro_cañon, spritesheet_perro_muerte, 3, 48, 48, 0, 'black', False, random.randint(0,3)) #enemigo fantasma para weas
+Enemigo_perro = Enemigos(screen, (0), (0), 1.1, spritesheet_perro_cañon, spritesheet_perro_muerte, 3, 48, 48, 0, 'black', False, random.randint(0,3)) #enemigo fantasma para q no explote todo xd
 Lista_Enemigos_1 += [Enemigo_perro]
 B_1 = Bomba(game_surface, 0, 0, spritesheet_Bomba, 5, 64, 64, 0.75, 'black',False) #Para la habilidad del tactico
 E_1 = Explosion(game_surface, 0, 0, spritesheet_exp_c, 5, 64, 64, 0.75, 'black',False) #Para la habilidad del tactico
@@ -1093,7 +1121,44 @@ def fade_in_from_white(duration_ms=1000):
         
         clock.tick(60)
 
+def animar_cuadro(screen,
+                  target_size=(716, 524),
+                  speed=20,
+                  alpha=40,
+                  reset=False):
+    global global_cuadrado
 
+    # Reinicia la animación si hace falta
+    if reset or not hasattr(animar_cuadro, "size"):
+        animar_cuadro.size = [0, 0]
+        global_cuadrado = False
+
+    # Obtén el tamaño actual
+    w, h = animar_cuadro.size
+    tw, th = target_size
+
+    # Actualiza anchura y altura
+    if w < tw:
+        w = min(w + speed, tw)
+    if h < th:
+        h = min(h + speed, th)
+
+    # Guarda el nuevo tamaño
+    animar_cuadro.size = [w, h]
+
+    # Cuando llegue al tope, activa la flag
+    #if w == tw and h == th :
+     #   global_cuadrado = True
+
+    # Crea la superficie blanca semitransparente
+    surf = pg.Surface((w, h), pg.SRCALPHA)
+    surf.fill((24,24,24, alpha))
+
+    # Centra y dibuja
+    sw, sh = screen.get_size()
+    x = (sw - w) // 2
+    y = (sh - h) // 2
+    screen.blit(surf, (x, y))
 #!------------------------------------------------PANTALLAS-------------------------------------------------
 def pantalla_titulo () :
      global global_fade, bara_texto, estado,prev_ing,prev_ing,prev_opc,prev_mejor_p
@@ -1114,6 +1179,10 @@ def pantalla_titulo () :
      click_opc=Boton_opciones.check_click()
      if click_empezar and not prev_ing :
           estado="seleccion_personaje"
+     if click_puntajes and not prev_mejor_p :
+          estado= "puntajes"
+     if click_opc and not prev_opc : 
+          estado="opciones"
 
      Boton_ingresar.draw(screen)
      Boton_mejores_p.draw(screen)
@@ -1122,8 +1191,15 @@ def pantalla_titulo () :
      screen.blit(titulo3,(200,150))
 
 def pantalla_opciones() : 
-     return
+     global global_cuadrado
+     bg_men_parallax()
+     if not global_cuadrado :
+          animar_cuadro(screen)
+     boton_back.draw(screen)
 
+def pantalla_puntajes() : 
+     bg_opc_parallax() 
+     boton_back.draw(screen)
 
 def dibujar_gui() :
     global tiempo_juego, puntaje_nivel, estado
@@ -1328,6 +1404,10 @@ while True:
         pantalla_seleccion_jugador()
     elif estado=="menu" : 
         pantalla_titulo()
+    elif estado=="opciones" : 
+         pantalla_opciones()
+    elif estado== "puntajes" : 
+         pantalla_puntajes()
     for event in pg.event.get():
         if event.type == pg.QUIT:
             tiempo_juego.detener()
