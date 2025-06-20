@@ -629,7 +629,7 @@ global_fade=False
 global_cuadrado=False
 bara_texto =""
 nombre_jugador=""
-
+jugadas =[]
 #-------------area de juego-----------
 game_surface = pg.Surface((816,528)) #*! ya cambie el tamano del frame enves de 624 a 524, estaba pintando el frame 100 pix hacia abajo y hacia que pete todo
 
@@ -784,6 +784,20 @@ def nueva_partida( usuario, puntaje, personaje, nivel):
     data["partidas"].append(partida)
     guardar_partida(data)
 
+def get_partidas () :
+    global jugadas
+    data = cargar_partidas()
+    for partida in data["partidas"]:
+        usuario  = partida["usuario"]
+        puntaje  = partida["puntaje"]
+        nivel    = partida["nivel"]
+        personaje= partida["personaje"]
+        jugadas.append([f"{usuario:10s} | Puntaje: {puntaje:5d} | Nivel: {nivel:d} | Personaje: {personaje}"])
+
+def dibujar_scoreboard(screen, partidas, font, x=50, y=50, line_height=30):
+    for idx, p in enumerate(partidas):
+        texto = font.render(f"{idx+1}. {p['usuario']} — {p['puntaje']}", True, (255,255,255))
+        screen.blit(texto, (x, y + idx*line_height))
 #------------------------------------------------------FUNCIONES SECUNDARIAS PARA NIVEL---------------------------------------- 
 #Funcion que ha partir de la matriz lee las posiciones iniciales 
 def save_positions(screen):
@@ -1165,7 +1179,7 @@ def pantalla_titulo () :
      bg_men_parallax()
      titulo1= font_tit.render("EL HOMBRE", False, "white")
      titulo2= font_tit.render("Que tiraba bombas", False, "white")
-     titulo3 =font0.render("Proyecto 3 , IC-1802 - Tecnologico de Costa Rica", False,"gray")
+     titulo3 =font0.render("Proyecto 2 , IC-1802 - Tecnologico de Costa Rica", False,"gray")
      credit=font0.render("Steadman Murillo - Benjamin Ortiz  2025", False, "white")
      screen.blit (titulo1,(250,50))
      screen.blit(titulo2,(120,90))
@@ -1180,8 +1194,10 @@ def pantalla_titulo () :
      if click_empezar and not prev_ing :
           estado="seleccion_personaje"
      if click_puntajes and not prev_mejor_p :
+          animar_cuadro(screen,reset=True)
           estado= "puntajes"
      if click_opc and not prev_opc : 
+          animar_cuadro(screen,reset=True)
           estado="opciones"
 
      Boton_ingresar.draw(screen)
@@ -1191,15 +1207,28 @@ def pantalla_titulo () :
      screen.blit(titulo3,(200,150))
 
 def pantalla_opciones() : 
-     global global_cuadrado
+     global global_cuadrado, prev_atras, estado, estado_anterior
      bg_men_parallax()
-     if not global_cuadrado :
+     if not global_cuadrado : 
           animar_cuadro(screen)
+     click_back= boton_back.check_click() 
+     if click_back and not prev_atras : 
+          estado= "menu"
+          global_cuadrado= False
+     prev_atras= click_back
      boton_back.draw(screen)
 
 def pantalla_puntajes() : 
+     global prev_atras, estado
      bg_opc_parallax() 
      animar_cuadro(screen)
+
+     
+
+     click_atras = boton_back.check_click ()
+     if click_atras and not prev_atras : 
+          estado= "menu"
+     prev_atras= click_atras
      boton_back.draw(screen)
 
 def dibujar_gui() :
@@ -1389,8 +1418,13 @@ tiempo_juego.start()
 def boombox() :
      global estado_anterior
      if estado!= estado_anterior : 
-          if estado== 'menu' : 
-               musica_menu.play(-1)  
+          if (estado == 'menu' or estado == 'opciones') and \
+               (estado_anterior == 'menu' or estado_anterior == 'opciones'):
+               pass  # No se detiene ni se reinicia la música
+          else : 
+               pg.mixer.stop()
+               if estado== 'menu': 
+                    musica_menu.play(-1)  
      estado_anterior=estado
 while True:
 #cambiador de estado
