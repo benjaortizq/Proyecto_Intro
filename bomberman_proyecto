@@ -601,8 +601,12 @@ reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 RUTA_PLAYS= "games\player_data\plays.json"
 
-#*!IMPORTANTISIMO 
+#*!super importante, SI NO NO CARGA NADA (FUE UNA EPIFANIA QUE TUVE)
 perro= pg.image.load("assets\perro.png").convert_alpha()
+esteman= pg.image.load("assets\STEMAN.png").convert_alpha()
+esteman=pg.transform.scale(esteman, (112, 199)) #redimensiona la imagen de Steadman a 112x199
+benja= pg.image.load("assets\BENJA.png").convert_alpha()
+benja=pg.transform.scale(benja, (138, 184)) #redimensiona la imagen de Benja a 128x128
 
 #*!-----------------------GLOBALES------------------------------
 estado = "menu" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
@@ -712,7 +716,7 @@ boton_seleccionar = Boton(300, 540, 150, 30, "Seleccionar", "fonts/Pixeltype.ttf
 Boton_ingresar = Boton (320,320,150,30,"Empezar", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
 Boton_mejores_p = Boton (320,360,150,30,"Ver Puntajes", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
 Boton_opciones = Boton (320,400,150,30,"Opciones", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
-Boton_creditos = Boton (100,594,100,30,"Ver Creditos", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
+Boton_creditos = Boton (100,594,130,30,"Ver Creditos", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
 prev_siguiente = False #variable para controlar si se ha hecho clic en el botón de siguiente opción
 prev_seleccion = False  #variable para controlar si se ha hecho clic en el botón de seleccionar
 prev_ing=False
@@ -1215,7 +1219,7 @@ def pantalla_titulo () :
      bg_men_parallax()
      titulo1= font_tit.render("EL HOMBRE", False, "white")
      titulo2= font_tit.render("Que tiraba bombas", False, "white")
-     titulo3 =font0.render("Proyecto 2 , IC-1802 - Tecnologico de Costa Rica", False,"gray")
+     titulo3 =font0.render("Proyecto 2 , IC-1801 - Tecnologico de Costa Rica", False,"gray")
      credit=font0.render("Steadman Murillo - Benjamin Ortiz  2025", False, "white")
      screen.blit (titulo1,(250,50))
      screen.blit(titulo2,(120,90))
@@ -1468,10 +1472,11 @@ def pantalla_seleccion_jugador () :
 def pantalla_creditos() :
      global prev_atras,estado
      bg_men_parallax()
-     texto= ["Instituto Tecnologico de Costa Rica","Escuela de Ingieneria en Computacion "," ","2DO PROYECTO IC-1803"," " ," "," HECHO POR : "," ", "Benjamin Ortiz Quispe ","2025064599"," ", "Steadman Murillo Parrales", "2025097768"," " ," ","Profesores : "," ", "Jeff Schmidt", "Diego Mora"," "," ","Musica :"," ","ZUN"," "," ", "Agradecimentos especiales a :"," ","Diego mora", "Jeff Schmidt","Beremiz Samir","Mi perro Kira","La muni de Curri","Heredia mi amada"," ","Creditos de Sprites a sus respectivos autores"," ","Junio 2025"]
-     imagenes= [(perro, -90, 1300)]
+     texto= ["Instituto Tecnologico de Costa Rica","Escuela de Ingieneria en Computacion "," ","2DO PROYECTO IC-1801","Vintage Bomberman Game" ," "," HECHO POR : "," ", "Benjamin Ortiz Quispe ","2025064599"," "," "," "," "," "," ", "Steadman Murillo Parrales", "2025097768"," "," "," "," "," "," "," ","Profesores : "," ", "Jeff Schmidt", "Diego Mora"," "," ","Musica :","Ariabela","ZUN"," ", "Agradecimientos especiales a :"," ","Diego mora", "Jeff Schmidt","Beremiz Samir","Kira"," "," "," ","Creditos de Sprites a sus respectivos autores"," ","Junio 2025"]
+     imagenes= [(perro, -90, 1300),(esteman,-50,560),(benja,-50,310)]
      click_atras= boton_back.check_click()
      if click_atras and not prev_atras: 
+          star_wars_crawl.offset_y = screen.get_height()
           estado = "menu"
      prev_atras= click_atras
      boton_back.draw(screen)

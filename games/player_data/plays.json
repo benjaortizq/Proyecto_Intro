@@ -12,6 +12,27 @@
       "puntaje": 4600,
       "nivel": 4,
       "personaje": "Kamikaze"
+    },
+    {
+      "usuario": "Beremiz",
+      "puntaje": 5616,
+      "nivel": 4,
+      "personaje": "Tactico"
+      
+    },
+    {
+      "usuario": "Kira",
+      "puntaje": 3102,
+      "nivel": 3,
+      "personaje": "Invencible"
+      
+    },
+    {
+      "usuario": "Juan",
+      "puntaje": 2451,
+      "nivel": 3,
+      "personaje": "Kamikaze"
+      
     }
   ]
 }
