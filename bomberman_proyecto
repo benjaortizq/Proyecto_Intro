@@ -601,6 +601,9 @@ reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 RUTA_PLAYS= "games\player_data\plays.json"
 
+#*!IMPORTANTISIMO 
+perro= pg.image.load("assets\perro.png").convert_alpha()
+
 #*!-----------------------GLOBALES------------------------------
 estado = "menu" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 estado_anterior=""
@@ -709,16 +712,19 @@ boton_seleccionar = Boton(300, 540, 150, 30, "Seleccionar", "fonts/Pixeltype.ttf
 Boton_ingresar = Boton (320,320,150,30,"Empezar", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
 Boton_mejores_p = Boton (320,360,150,30,"Ver Puntajes", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
 Boton_opciones = Boton (320,400,150,30,"Opciones", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
+Boton_creditos = Boton (100,594,100,30,"Ver Creditos", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
 prev_siguiente = False #variable para controlar si se ha hecho clic en el botón de siguiente opción
 prev_seleccion = False  #variable para controlar si se ha hecho clic en el botón de seleccionar
 prev_ing=False
 prev_mejor_p=False
 prev_opc=False
 prev_atras=False
+prev_creditos=False
 
 #----------------------MUSICA--------------------
 musica_menu=pg.mixer.Sound("sounds\music\Main_menu.mp3")
 musica_puntajes=pg.mixer.Sound("sounds\music\puntajes.mp3")
+musica_creditos=pg.mixer.Sound("sounds\music\credits.mp3")
 #-----------------------SPRITES------------------------------
 #Obstaculos
 sps_obstacles = pg.image.load("assets\Textures\Bricks.png")
@@ -1181,6 +1187,28 @@ def animar_cuadro(screen,
     x = (sw - w) // 2
     y = (sh - h) // 2
     screen.blit(surf, (x, y))
+
+def star_wars_crawl(surface, text_lines, images, font, color, speed):
+    if not hasattr(star_wars_crawl, "offset_y"):
+        star_wars_crawl.offset_y = surface.get_height()
+
+    star_wars_crawl.offset_y -= speed  # subir todo
+
+    # Dibuja texto
+    y = star_wars_crawl.offset_y
+    center_x = surface.get_width() // 2
+    for line in text_lines:
+        text_surface = font.render(line, True, color)
+        text_rect = text_surface.get_rect(center=(center_x, y))
+        surface.blit(text_surface, text_rect)
+        y += font.get_height() + 10  # espacio entre líneas
+
+    # Dibuja imágenes moviéndose igual que el texto
+    for img_surf, x_offset, y_offset in images:
+        img_rect = img_surf.get_rect()
+        img_x = (surface.get_width() // 2) + x_offset
+        img_y = star_wars_crawl.offset_y + y_offset
+        surface.blit(img_surf, (img_x, img_y))
 #!------------------------------------------------PANTALLAS-------------------------------------------------
 def pantalla_titulo () :
      global global_fade, bara_texto, estado,prev_ing,prev_ing,prev_opc,prev_mejor_p
@@ -1227,26 +1255,33 @@ def pantalla_opciones() :
      boton_back.draw(screen)
 
 def pantalla_puntajes() : 
-     global prev_atras, estado
+     global prev_atras, estado, prev_creditos
      bg_opc_parallax() 
      animar_cuadro(screen)
 
      
 
      click_atras = boton_back.check_click ()
+     click_creditos =Boton_creditos.check_click()
      if click_atras and not prev_atras : 
           estado= "menu"
+     if click_creditos and not prev_creditos : 
+          estado="creditos"
      prev_atras= click_atras
+     prev_creditos=click_creditos
+
 
      titulo= font_tit1.render("TOP 5 ", False, "white")
      screen.blit(titulo,(340,70))
      boton_back.draw(screen)
+     Boton_creditos.draw(screen)
      data=cargar_partidas()
      todas= data.get("partidas",[])
      mejores= sorted(todas, key=lambda p: p["puntaje"],reverse=True)
      max_display = min(len(mejores), 5)    #solo top5
      top_cinco = mejores[:max_display]
      dibujar_scoreboard(screen , top_cinco, font, x=100, y=150, line_height=40 )
+
 
 def dibujar_gui() :
     global tiempo_juego, puntaje_nivel, estado
@@ -1430,6 +1465,17 @@ def pantalla_seleccion_jugador () :
     boton_siguiente_opcion.draw(screen)  # Dibuja el botón en la pantalla
     boton_seleccionar.draw(screen)  # Dibuja el botón en la pantalla
 
+def pantalla_creditos() :
+     global prev_atras,estado
+     bg_men_parallax()
+     texto= ["Instituto Tecnologico de Costa Rica","Escuela de Ingieneria en Computacion "," ","2DO PROYECTO IC-1803"," " ," "," HECHO POR : "," ", "Benjamin Ortiz Quispe ","2025064599"," ", "Steadman Murillo Parrales", "2025097768"," " ," ","Profesores : "," ", "Jeff Schmidt", "Diego Mora"," "," ","Musica :"," ","ZUN"," "," ", "Agradecimentos especiales a :"," ","Diego mora", "Jeff Schmidt","Beremiz Samir","Mi perro Kira","La muni de Curri","Heredia mi amada"," ","Creditos de Sprites a sus respectivos autores"," ","Junio 2025"]
+     imagenes= [(perro, -90, 1300)]
+     click_atras= boton_back.check_click()
+     if click_atras and not prev_atras: 
+          estado = "menu"
+     prev_atras= click_atras
+     boton_back.draw(screen)
+     star_wars_crawl(screen,texto, imagenes,font,(255,255,255),0.5)
 tiempo_juego.start()
 
 def boombox() :
@@ -1444,6 +1490,8 @@ def boombox() :
                     musica_menu.play(-1)  
                elif estado=="puntajes" : 
                     musica_puntajes.play(-1)
+               elif estado=="creditos" : 
+                    musica_creditos.play(-1)
      estado_anterior=estado
 while True:
 #cambiador de estado
@@ -1462,6 +1510,8 @@ while True:
          pantalla_opciones()
     elif estado== "puntajes" : 
          pantalla_puntajes()
+    elif estado=="creditos" : 
+         pantalla_creditos()   
     for event in pg.event.get():
         if event.type == pg.QUIT:
             tiempo_juego.detener()
