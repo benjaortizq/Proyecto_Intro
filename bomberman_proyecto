@@ -1119,7 +1119,7 @@ def bg_opc_parallax():
         
         screen.blit(fondo, (pos_x, pos_y))
     
-def fade_in_from_white(duration_ms=1000):
+def fade_in_from_white(duration_ms=400):
     # Capturar la escena actual como fondo estático
     background = screen.copy()
     
