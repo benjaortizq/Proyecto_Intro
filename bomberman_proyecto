@@ -252,7 +252,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
             self.ejecutando_habilidad = True
             self.tiempo_inicio_habilidad = current_time
             self.set_state("hab")
-            print(f"Iniciando habilidad: {self.habilidad}")
+            #print(f"Iniciando habilidad: {self.habilidad}")
         
         # Detener si pasa el tiempo máximo
         if self.ejecutando_habilidad:
@@ -266,7 +266,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
                 self.ejecutando_habilidad = False
                 self.can_always_move=False
                 self.set_state("idle")
-                print("Habilidad detenida por tiempo máximo")
+                #print("Habilidad detenida por tiempo máximo")
 
         if not self.ejecutando_habilidad:
             self.color_habilidad=self.color_subiendo
@@ -288,7 +288,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
 
                      matriz[fila][col] = 0 #if matriz[(self.y+24) // 48][(self.x+24) // 48] = *  
                      self.items["bombas"] -= 1
-                     print(f"Jugador en píxeles: ({self.x},{self.y})  →  celda: ({fila},{col})")
+                     #print(f"Jugador en píxeles: ({self.x},{self.y})  →  celda: ({fila},{col})")
                      self.ultima_bomba = tiempo_actual
 
 
@@ -1139,7 +1139,7 @@ def fade_in_from_white(duration_ms=1000):
             running = False
         else :
             alpha = 255-int(255 * progress)
-            print (alpha)
+            #print (alpha)
         
         overlay.set_alpha(alpha)
         screen.blit(overlay, (0, 0))
@@ -1392,7 +1392,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
                    matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
                    obstacles_R.remove(obsR)
                    obstacles.remove(obsR)
-                   print (puntaje_nivel)
+                   #print (puntaje_nivel)
          for enemies in Lista_Enemigos_1:
               if Explosion.colisiona_con(E_1, enemies):
                    enemies.animacion_muerte()
@@ -1500,7 +1500,6 @@ def boombox() :
      estado_anterior=estado
 while True:
 #cambiador de estado
-    print(estado)
     boombox()
     if estado == "juego":  # Si el estado es "juego", se muestra la pantalla de juego
         tiempo_juego.reanudar()
