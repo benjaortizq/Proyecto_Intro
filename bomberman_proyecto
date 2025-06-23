@@ -239,7 +239,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         self.barra_habilidad = 0  # Tiempo de recarga de la habilidad
         self.color_bajada=color_bajada
         self.powerups= {"dano" : 0 , "vida":0}
-        self.items = {"bombas":1000, "velocidad" : 8 ,"escudo":2 }
+        self.items = {"bombas":15, "velocidad" : 8 ,"escudo":2 }
         self.powerup_en_uso={"dano": False, "vida": False}
         self.item_en_uso={"bombas":False, "velocidad" : False ,"escudo":False }
         self.tiene_llave=False
@@ -258,7 +258,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         # Detener si pasa el tiempo máximo
         if self.ejecutando_habilidad:
             tiempo_transcurrido = current_time - self.tiempo_inicio_habilidad
-            self.barra_habilidad -=1 if self.barra_habilidad >= 1 else self.barra_habilidad==1
+            self.barra_habilidad -=0.75 if self.barra_habilidad >= 1 else self.barra_habilidad==1
             self.color_habilidad = self.color_bajada
             if self.habilidad=="Invencible" : 
                  self.can_always_move=True
@@ -653,6 +653,7 @@ fondos_p_op = [pg.image.load("assets/backgrounds/menu/layer3.png"),pg.image.load
 sps_habilidades= pg.image.load ("assets\Textures\habilities.png").convert_alpha()
 sps_items = pg.image.load("assets\Textures\items.png").convert_alpha()
 sps_powerups=pg.image.load("assets\Textures\powerups.png").convert_alpha()
+sps_nuke= pg.image.load("assets\Textures\\Nuke.png").convert_alpha() #sprite de la bomba nuclear
 
 #--- Intangible ----
 preview_intangible = pg.image.load("assets\sprites\players\Intangible\preview.png").convert_alpha() 
@@ -680,6 +681,7 @@ imp_sps_kam_death=pg.image.load("assets\sprites\players\Kamikaze\death.png").con
 spritesheet_habilidades_prev= SpriteSheet (sps_habilidades)
 spritecheet_items= SpriteSheet (sps_items)
 spritesheet_powerups=SpriteSheet(sps_powerups)
+spritesheet_nuke=SpriteSheet(sps_nuke) #spritesheet de la bomba nuclear
 
 #Invencible 
 spritesheet_idle_int = SpriteSheet(imp_sps_intangible_idle) #crea una instancia de la clase SpriteSheet con el sprite del jugador
@@ -1077,7 +1079,7 @@ init(nivel)
 Enemigo_perro = Enemigos(screen, (0), (0), 1.1, spritesheet_perro_cañon, spritesheet_perro_muerte, 3, 48, 48, 0, 'black', False, random.randint(0,3)) #enemigo fantasma para q no explote todo xd
 Lista_Enemigos_1 += [Enemigo_perro]
 B_1 = Bomba(game_surface, 0, 0, spritesheet_Bomba, 5, 64, 64, 0.75, 'black',False) #Para la habilidad del tactico
-E_1 = Explosion(game_surface, 0, 0, spritesheet_exp_c, 5, 64, 64, 0.75, 'black',False) #Para la habilidad del tactico
+E_1 = Explosion(game_surface, 0, 0, spritesheet_nuke, 20, 240, 150, 0.75, 'black',False) #Para la habilidad del tactico
 
 #!---------------------------------------------EFECTOS ESPECIALES :o --------------------------------
 def bg_men_parallax(): 
@@ -1224,14 +1226,15 @@ escojio = False #variable para controlar que pantalla de habilidad se muestra
 vidas_choice = 0 #vidas por bombas
 bombas_choice = 0 #bombas por vidas
 choice= 0
+
 def pantalla_habilidad_kam () : 
      global escojio, vidas_choice, bombas_choice, choice, prev_aceptar_trato
      #background = screen.copy()
      #screen.blit(background ,(0,0))
      surf = pg.Surface((816,200), pg.SRCALPHA)
-     surf.fill((24,24,24, ))
+     surf.fill((24,24,24, 200))  # Fondo semitransparente
      screen.blit(surf, (0,0))
-     titulo= font.render("Los espiritus te dan este trato :", False, "white")
+     titulo= font.render("Los espiritus te dan este trato :", False, (202, 28, 28))
      screen.blit(titulo,(240,5))
      if not escojio :
           choice= random.choice([0,1]) #para elegir cual pantalla mostrar 
