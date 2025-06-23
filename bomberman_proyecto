@@ -5,12 +5,12 @@
 #                     I SEMESTRE DE 2025
 
 
-import pygame as pg
 import time as t
 import threading as th
 import random 
 import sys 
 import json
+import pygame as pg
 #pinche benja
 #Aqui epiezan las clases del juego  
 #----------------------------------------------------------CLASES UTILES DE PYGAME---------------------------------------
@@ -229,7 +229,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
     def __init__(self, area_juego, pos_x, pos_y, velocidad,sps_idle,sps_mover,sps_hab,sps_muerte, frames_idle,frames_mover,frames_hab, frames_muerte, frame_w,frame_h, scale, colour,habilidad, cant_vidas,color_habilidad, color_bajada ):
         super().__init__( area_juego, pos_x, pos_y, velocidad, sps_idle,sps_mover,sps_hab,sps_muerte, frames_idle,frames_mover,frames_hab, frames_muerte, frame_w,frame_h, scale, colour)
         self.habilidad=habilidad
-        self.vida=97 #vida del jugador
+        self.vida=100 #vida del jugador
         self.ejecutando_habilidad = False
         self.tiempo_inicio_habilidad = 0
         self.max_tiempo_habilidad = 5  # 5 segundos máximo
@@ -247,6 +247,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
     def ejecutar_habilidad(self ) :
         keys = pg.key.get_pressed()
         current_time = t.time()
+        global escojio
         # Iniciar habilidad al presionar espacio
         if keys[pg.K_SPACE] and not self.ejecutando_habilidad and self.barra_habilidad >50:
             self.ejecutando_habilidad = True
@@ -261,22 +262,24 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
             self.color_habilidad = self.color_bajada
             if self.habilidad=="Invencible" : 
                  self.can_always_move=True
-            
+            elif self.habilidad=="Kamikaze" :
+                 pantalla_habilidad_kam()
             if tiempo_transcurrido > self.max_tiempo_habilidad or int(self.barra_habilidad)==0:
                 self.ejecutando_habilidad = False
                 self.can_always_move=False
+                escojio = False
                 self.set_state("idle")
                 #print("Habilidad detenida por tiempo máximo")
 
         if not self.ejecutando_habilidad:
             self.color_habilidad=self.color_subiendo
-            self.barra_habilidad = min(self.barra_habilidad + 1, 100)   #ni idea porque co 99 sirve pero con ese numero me deja la barra en 100 maximo xd  
+            self.barra_habilidad = min(self.barra_habilidad + 0.2, 100)   #ni idea porque co 99 sirve pero con ese numero me deja la barra en 100 maximo xd  
     def usar_bomba(self):
              global matriz
              tiempo_actual=t.time()
              if self.items.get("bombas") > 0:
                  keys = pg.key.get_pressed()
-                 if keys[pg.K_b] and tiempo_actual-self.ultima_bomba>=2:
+                 if keys[pg.K_b] and tiempo_actual-self.ultima_bomba>=1:
                      centro_x = self.x + 16
                      centro_y = self.y + 16
                      col = int(centro_x // 48)
@@ -1079,7 +1082,7 @@ E_1 = Explosion(game_surface, 0, 0, spritesheet_exp_c, 5, 64, 64, 0.75, 'black',
 #!---------------------------------------------EFECTOS ESPECIALES :o --------------------------------
 def bg_men_parallax(): 
     global fondo_p_men, pos_par_men
-    parallax_speeds = [0.05, 0.001, 0.1, 0.15, 0.2, 0.5 ]
+    parallax_speeds = [0.1, 0.002, 0.2, 0.3, 0.4, 1 ]
     
     # Dibujar capas desde la más lejana (0) a la más cercana (6)
     for i in range (len (fondo_p_men)) :
@@ -1213,7 +1216,45 @@ def star_wars_crawl(surface, text_lines, images, font, color, speed):
         img_x = (surface.get_width() // 2) + x_offset
         img_y = star_wars_crawl.offset_y + y_offset
         surface.blit(img_surf, (img_x, img_y))
-#!------------------------------------------------PANTALLAS-------------------------------------------------
+
+boton_aceptar_trato= Boton(300, 60, 150, 30, "Aceptar", "fonts/Pixeltype.ttf", 28, ("red"), ("green")) #crea un boton de aceptar trato
+prev_aceptar_trato = False #variable para controlar si se ha hecho clic en el botón de aceptar trato
+#!PANTALLAS DE HABILIDAD 
+escojio = False #variable para controlar que pantalla de habilidad se muestra
+vidas_choice = 0 #vidas por bombas
+bombas_choice = 0 #bombas por vidas
+choice= 0
+def pantalla_habilidad_kam () : 
+     global escojio, vidas_choice, bombas_choice, choice, prev_aceptar_trato
+     #background = screen.copy()
+     #screen.blit(background ,(0,0))
+     surf = pg.Surface((816,200), pg.SRCALPHA)
+     surf.fill((24,24,24, ))
+     screen.blit(surf, (0,0))
+     titulo= font.render("Los espiritus te dan este trato :", False, "white")
+     screen.blit(titulo,(240,5))
+     if not escojio :
+          choice= random.choice([0,1]) #para elegir cual pantalla mostrar 
+          vidas_choice= random.randint(1,3) #vidas por bombas
+          bombas_choice= random.randint(1,10)
+          escojio = True
+     texto_bombas= font0.render(f"-{vidas_choice if choice==0 else bombas_choice} {'vidas por ' if choice==0 else 'bombas por '} x {bombas_choice if choice==0 else vidas_choice} {'bombas' if choice==0 else 'vidas'}", False, "white")
+     screen.blit(texto_bombas,(270,30))
+
+     texto_aceptas = font.render("Aceptas el trato ?", False, "white")
+     screen.blit(texto_aceptas,(280,100))
+     boton_aceptar_trato.draw(screen)
+     if boton_aceptar_trato.check_click() and not prev_aceptar_trato:
+          if choice == 0:
+               Player_1.cant_vidas -= vidas_choice if Player_1.cant_vidas > vidas_choice else 0
+               Player_1.items["bombas"] = Player_1.items.get("bombas", 0) + bombas_choice
+          elif choice == 1:
+               Player_1.items["bombas"] = Player_1.items.get("bombas", 0) - bombas_choice
+               Player_1.cant_vidas += vidas_choice
+          escojio = False
+     prev_aceptar_trato = boton_aceptar_trato.check_click()
+
+#!------------------------------------------------PANTALLAS PRINCIPALES-------------------------------------------------
 def pantalla_titulo () :
      global global_fade, bara_texto, estado,prev_ing,prev_ing,prev_opc,prev_mejor_p
      bg_men_parallax()
@@ -1285,7 +1326,6 @@ def pantalla_puntajes() :
      max_display = min(len(mejores), 5)    #solo top5
      top_cinco = mejores[:max_display]
      dibujar_scoreboard(screen , top_cinco, font, x=100, y=150, line_height=40 )
-
 
 def dibujar_gui() :
     global tiempo_juego, puntaje_nivel, estado
