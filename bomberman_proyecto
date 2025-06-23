@@ -258,7 +258,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         # Detener si pasa el tiempo máximo
         if self.ejecutando_habilidad:
             tiempo_transcurrido = current_time - self.tiempo_inicio_habilidad
-            self.barra_habilidad -=0.75 if self.barra_habilidad >= 1 else self.barra_habilidad==1
+            self.barra_habilidad -=0.5 if self.barra_habilidad >= 1 else self.barra_habilidad==1
             self.color_habilidad = self.color_bajada
             if self.habilidad=="Invencible" : 
                  self.can_always_move=True
@@ -273,7 +273,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
 
         if not self.ejecutando_habilidad:
             self.color_habilidad=self.color_subiendo
-            self.barra_habilidad = min(self.barra_habilidad + 0.2, 100)   #ni idea porque co 99 sirve pero con ese numero me deja la barra en 100 maximo xd  
+            self.barra_habilidad = min(self.barra_habilidad + 0.1, 100)   #ni idea porque co 99 sirve pero con ese numero me deja la barra en 100 maximo xd  
     def usar_bomba(self):
              global matriz
              tiempo_actual=t.time()
@@ -1569,7 +1569,15 @@ while True:
                     if event.key == pg.K_BACKSPACE:
                          bara_texto = bara_texto[:-1]
                     else:
-                         bara_texto += event.unicode           
+                         bara_texto += event.unicode       
+        elif event.type == pg.MOUSEBUTTONDOWN:
+               mouse_pos = pg.mouse.get_pos()
+               if estado == "juego":
+                    if Player_1.ejecutando_habilidad:
+                         if Player_1.habilidad=="Tactico" : 
+                              if 0 < mouse_pos[0] < 816 and 100 < mouse_pos[1] < 628:
+                                   B_1 = Bomba(game_surface, mouse_pos[0]-32, mouse_pos[1]-132, spritesheet_Bomba, 5, 64, 64, 0.75, 'black',True)
+                                   E_1 = Explosion(game_surface, mouse_pos[0]-88, mouse_pos[1]-200, spritesheet_exp_c, 4, 64, 64, 3, 'black',False)    
     pg.display.flip()
     reloj.tick(60)
 
