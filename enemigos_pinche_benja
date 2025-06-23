@@ -455,8 +455,8 @@ def generate(screen):
                   if matriz[fil][col] == '#': 
                        texture = Obstaculo_I
                        obs = Obstaculo(screen, (col*48),(fil*48) , texture)
-                       
                        obs.draw()
+                       
                   if matriz[fil][col] == '*':
                        texture = Obstaculo_R
                        obs = Obstaculo(screen, (col*48),(fil*48) , texture)
