@@ -1580,6 +1580,7 @@ def boombox() :
      estado_anterior=estado
 
 tiempo_juego.start()
+
 while True:
 #cambiador de estado
     boombox()
