@@ -617,7 +617,7 @@ estado_anterior=""
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
-nivel = 1 #nivel inicial
+nivel = 0 #nivel inicial
 matriz = [] #la matriz extraida del nivel inicial
 Lista_Enemigos_1 = [] #la lista de los enemigos, esta solo posee los enemigos del nivel 1 o los mas sencillos
 Fuerza_exp = 4 #Esto dice la fuerza de la explosion, se va a expandir en casillas en forma de cruz, si es 1 es una casilla extra
@@ -1075,7 +1075,6 @@ def init (nivel):
         global matriz
         texto_nivel = f"Nivel_{nivel}.txt"
         matriz = eval(leer_archivo(texto_nivel))
-init(nivel)
 Enemigo_perro = Enemigos(screen, (0), (0), 1.1, spritesheet_perro_cañon, spritesheet_perro_muerte, 3, 48, 48, 0, 'black', False, random.randint(0,3)) #enemigo fantasma para q no explote todo xd
 Lista_Enemigos_1 += [Enemigo_perro]
 B_1 = Bomba(game_surface, 0, 0, spritesheet_Bomba, 5, 64, 64, 0.75, 'black',False) #Para la habilidad del tactico
@@ -1447,9 +1446,9 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     Player_1.ejecutar_habilidad()   
      
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
-
+start_time_pantalla=0
 def pantalla_seleccion_jugador () : 
-    global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion, estado, Player_1
+    global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion, estado, Player_1, start_time_pantalla
     screen.fill("black")
     # Obtener el estado ACTUAL de los botones
     nuevo_viendo_actual = boton_siguiente_opcion.check_click()
@@ -1496,7 +1495,8 @@ def pantalla_seleccion_jugador () :
             Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_walk_kam ,spritesheet_habilidad_kam,spritesheet_death_kam,4,7,12,8,48,32,1.35,"black","Kamikaze",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
         elif skin_seleccionada == 2 :
             Player_1= Jugador_1(game_surface,0,0,1.5,spritesheet_idle_tac,spritesheet_walk_tac ,spritesheet_habilidad_tac,spritesheet_death_tac,4,6,9,6,96,96,0.5,"black","Tactico",6,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
-        estado ="juego" #SIEMPRE BAMCIAR EL ESTADO AML SIGUIENTE ANTES DE JUEGO O NO SE 
+        estado ="cargar_nivel" #SIEMPRE BAMCIAR EL ESTADO AML SIGUIENTE ANTES DE JUEGO O NO SE 
+        start_time_pantalla = pg.time.get_ticks()
     prev_seleccion = nuevo_seleccion_actual  # Actualizar estado previo 
  
     screen.blit(Titulo_skin, (300, 50))
@@ -1525,7 +1525,17 @@ def pantalla_creditos() :
      prev_atras= click_atras
      boton_back.draw(screen)
      star_wars_crawl(screen,texto, imagenes,font,(255,255,255),0.5)
-tiempo_juego.start()
+
+
+def pantalla_cargar_lvl() : 
+     global estado, prev_atras, global_fade, nivel, start_time_pantalla
+     if not global_fade : 
+          fade_in_from_white()
+          global_fade = True
+     screen.fill("black")
+     titulo= font1.render(F"NIVEL {nivel+1}", True, (255, 255, 255))
+     screen.blit(titulo, (screen.get_width() // 2 - titulo.get_width() // 2, 100))
+
 
 def pantalla_g_o () : 
      global estado, puntaje_final, prev_atras, global_fade
@@ -1544,6 +1554,7 @@ def pantalla_g_o () :
           puntaje_final = 0
           global_fade = False
      prev_atras = click_atras
+
 def boombox() :
      global estado_anterior
      if estado!= estado_anterior : 
@@ -1559,9 +1570,12 @@ def boombox() :
                elif estado=="creditos" : 
                     musica_creditos.play(-1)
      estado_anterior=estado
+
+tiempo_juego.start()
 while True:
 #cambiador de estado
     boombox()
+    tiempo_Actual = pg.time.get_ticks()
     if estado == "juego":  # Si el estado es "juego", se muestra la pantalla de juego
         tiempo_juego.reanudar()
         pantalla_juego()
@@ -1579,6 +1593,19 @@ while True:
          pantalla_creditos()   
     elif estado == "GameOver":     
         pantalla_g_o()
+    elif estado == "cargar_nivel":
+         pantalla_cargar_lvl()
+         if tiempo_Actual - start_time_pantalla > 1000:
+             nivel += 1
+             init(nivel)
+             Player_1.x=0
+             Player_1.y=0
+             puntaje_final += puntaje_nivel
+             puntaje_nivel = 0
+             primera_vez = True
+             tiempo_juego.tiempo=300
+             tiempo_juego.reanudar()  # Reinicia el temporizador para el nuevo nivel
+             estado = "juego"
     for event in pg.event.get():
         if event.type == pg.QUIT:
             tiempo_juego.detener()
