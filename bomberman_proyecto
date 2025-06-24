@@ -173,8 +173,8 @@ class Jugador :
           now=t.time()
           global obstacles_R
           keys = pg.key.get_pressed()
-          dx = (keys[pg.K_RIGHT] - keys[pg.K_LEFT]) * self.velocidad
-          dy = (keys[pg.K_DOWN]  - keys[pg.K_UP])   * self.velocidad
+          dx = (keys[pg.K_d] - keys[pg.K_a]) * self.velocidad
+          dy = (keys[pg.K_s]  - keys[pg.K_w])   * self.velocidad
           if dx < 0 : 
                self.facing_left = True 
           else: 
