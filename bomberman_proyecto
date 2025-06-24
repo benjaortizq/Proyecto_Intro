@@ -734,6 +734,8 @@ prev_creditos=False
 musica_menu=pg.mixer.Sound("sounds\music\Main_menu.mp3")
 musica_puntajes=pg.mixer.Sound("sounds\music\puntajes.mp3")
 musica_creditos=pg.mixer.Sound("sounds\music\credits.mp3")
+musica_seleccion_personaje=pg.mixer.Sound("sounds\music\player_selection.mp3")
+musica_ending=pg.mixer.Sound("sounds\music\good_ending.mp3")
 #-----------------------SPRITES------------------------------
 #Obstaculos
 sps_obstacles = pg.image.load("assets\Textures\Bricks.png")
@@ -950,9 +952,10 @@ def bombastic_hitbox ():
                    obstacles.remove(obsR)
           for enemies in Lista_Enemigos_1:
               if Explosion_Matriz.colisiona_con(exp, enemies):
-                   puntaje_nivel+=1
+                   puntaje_nivel+=min(1, Fuerza_exp) #puntaje por matar enemigos
                    enemies.animacion_muerte()
-          
+          if Player_1.colisiona_con(exp):
+               Player_1.vida-=0.25
           
     
           x = exp.x // 48
@@ -1054,6 +1057,9 @@ def bombastic_hitbox ():
 
      for exp_l in lista_EL:
           exp_l.auto_animate()
+          if Player_1.colisiona_con(exp_l):
+               Player_1.vida-=0.25
+
           matriz[exp_l.y//48][exp_l.x//48] = 0
           for obsR in obstacles_R:
                if Explosion_Matriz_Lados.colisiona_con(exp_l, obsR):
@@ -1430,7 +1436,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     if E_1.bomba_animacion:
          E_1.auto_animate()
          for obsR in obstacles_R:
-              puntaje_nivel+=100
+              puntaje_nivel+=1
               if Explosion.colisiona_con(E_1, obsR):
                    matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
                    obstacles_R.remove(obsR)
@@ -1569,6 +1575,8 @@ def boombox() :
                     musica_puntajes.play(-1)
                elif estado=="creditos" : 
                     musica_creditos.play(-1)
+               elif estado=="seleccion_personaje" :
+                    musica_seleccion_personaje.play(-1)
      estado_anterior=estado
 
 tiempo_juego.start()
