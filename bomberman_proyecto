@@ -1269,7 +1269,7 @@ def pantalla_titulo () :
      screen.blit(titulo2,(120,90))
      
      if not global_fade :
-          fade_in_from_white() 
+          fade_in_from_white ()
           global_fade=True
      #dibujo botones 
      click_empezar=Boton_ingresar.check_click()
@@ -1277,6 +1277,7 @@ def pantalla_titulo () :
      click_opc=Boton_opciones.check_click()
      if click_empezar and not prev_ing :
           estado="seleccion_personaje"
+          global_fade=False
      if click_puntajes and not prev_mejor_p :
           animar_cuadro(screen,reset=True)
           estado= "puntajes"
@@ -1343,7 +1344,7 @@ def dibujar_gui() :
     default_pw = spritesheet_powerups.get_image(2, 64, 64, 1, "black")
     default_pw_p = spritesheet_powerups.get_image(2, 64, 64, 0.5, "black")
     if Player_1.muerto and Player_1.current_frame == Player_1.frames_muerte-1 : 
-        estado = "menu"
+        estado = "GameOver"
 
     powerup_sprites = {"vida": [spritesheet_powerups.get_image(0, 64, 64, 1, "black"),spritesheet_powerups.get_image(0, 64, 64, 0.5, "black")],"dano": [spritesheet_powerups.get_image(1, 64, 64, 1, "black"),spritesheet_powerups.get_image(1, 64, 64, 0.5, "black")]}
     pw_uso_1 = default_pw
@@ -1526,6 +1527,23 @@ def pantalla_creditos() :
      star_wars_crawl(screen,texto, imagenes,font,(255,255,255),0.5)
 tiempo_juego.start()
 
+def pantalla_g_o () : 
+     global estado, puntaje_final, prev_atras, global_fade
+     if not global_fade : 
+          fade_in_from_white()
+          global_fade = True
+     screen.fill("black")
+     titulo= font.render("GAME OVER", True, (255, 255, 255))
+     screen.blit(titulo, (screen.get_width() // 2 - titulo.get_width() // 2, 100))
+     texto_puntaje = font0.render(f"Puntaje final: {puntaje_final}", True, (255, 255, 255))
+     screen.blit(texto_puntaje, (screen.get_width() // 2 - texto_puntaje.get_width() // 2, 200))
+     click_atras = boton_back.check_click()
+     boton_back.draw(screen)
+     if click_atras and not prev_atras:
+          estado = "menu"
+          puntaje_final = 0
+          global_fade = False
+     prev_atras = click_atras
 def boombox() :
      global estado_anterior
      if estado!= estado_anterior : 
@@ -1559,6 +1577,8 @@ while True:
          pantalla_puntajes()
     elif estado=="creditos" : 
          pantalla_creditos()   
+    elif estado == "GameOver":     
+        pantalla_g_o()
     for event in pg.event.get():
         if event.type == pg.QUIT:
             tiempo_juego.detener()
