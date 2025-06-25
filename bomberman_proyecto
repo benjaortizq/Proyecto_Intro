@@ -550,7 +550,7 @@ class Enemigo2 (Enemigos):
 
      def animacion_hurt(self):
           self.cambiar_spritesheet(self.spritehurt)
-          self.velocidad = 2
+          self.velocidad = 1.5
           self.hurt = True
           self.animacion_skin()
 
@@ -593,6 +593,12 @@ class Enemigo3 (Enemigo2):
           super().__init__(screen, x, y, velocidad, spritesheet_walk, spritesheet_death, spritehurt, frame_count, frame_w, frame_h, scale, colour, muerte, dir, vida)
           self.sprite_attack = sprite_attack
           self.attack = False
+          self.attack_frame_inicial = False
+          self.original_velocidad = velocidad
+          self.laser = None
+          self.laser_dibujado = False
+          
+
      def move(self, cambio_prob=0.05):  # 0.5% probabilidad de cambio
           self.animacion_skin()
 
@@ -632,39 +638,137 @@ class Enemigo3 (Enemigo2):
                     self.y = new_y
 
           # Dibujo
-          self.screen.blit(self.current_skin, (self.x, self.y))
+          
 
-     def animacion_attack(self):
-          self.cambiar_spritesheet(self.sprite_attack)
-          self.attack = True
-          self.animacion_skin()
+     def animacion_attack(self, jugador_pos):
 
-     def animacion_skin(self) : 
-        current_time = t.time()
-        if self.muerte:
-             if current_time - self.last_update > 0.5 : # Cambio de frame cada 0.2 segundos
+          if not self.attack:
+               self.attack = True
+               self.attack_frame_inicial = True
+               self.cambiar_spritesheet(self.sprite_attack)
+               self.velocidad = 0
+
+               dx = jugador_pos[0] - self.x
+               dy = jugador_pos[1] - self.y
+
+               if abs(dx) > abs(dy):
+                    self.dir_ataque = 'izq' if dx < 0 else 'der'
+                    self.direccion_visual = self.dir_ataque
+               else:
+                    self.dir_ataque = 'arr' if dy < 0 else 'aba'
+                    self.direccion_visual = self.dir_ataque
+
+
+
+
+     def animacion_skin(self):
+          current_time = t.time()
+
+          if self.muerte:
+               self.frame_count = 7
+               if current_time - self.last_update > 0.5:
                     self.last_update = current_time
-                    self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
-             self.current_skin = self.current_spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
-             self.mask = pg.mask.from_surface(self.current_skin)
-             if self.current_frame == 7:
-                Lista_Enemigos_3.remove(self)
-        if self.attack:
-             if current_time - self.last_update > 0.3 : # Cambio de frame cada 0.2 segundos
+                    self.current_frame = (self.current_frame + 1) % self.frame_count
+               self.current_skin = self.current_spritesheet.get_image(
+                    self.current_frame, self.width_frame, self.height_frame, self.scale, self.colour)
+               self.mask = pg.mask.from_surface(self.current_skin)
+               if self.current_frame == 6:
+                    try:
+                         Lista_Enemigos_3.remove(self)
+                    except:
+                         pass
+               self.screen.blit(self.current_skin, (self.x+10, self.y+10))
+
+          elif self.attack:
+               
+
+               if self.current_frame == 2 and not self.laser_dibujado:
+                    # Centro del enemigo
+                    centro_x = self.x + self.current_skin.get_width() // 2 -10
+                    centro_y = self.y + self.current_skin.get_height() // 2 - 10
+
+                    if hasattr(self, 'dir_ataque'):
+                         dir_laser = self.dir_ataque
+                    else:
+                         dir_laser = 'der'  # por defecto
+
+                    if dir_laser == 'izq' or dir_laser == 'der':
+                         ancho = 150  # largo del láser
+                         alto = 15
+                    else:
+                         ancho = 15
+                         alto = 150
+
+                    self.laser = LaserEnemigo(centro_x, centro_y, ancho, alto, dir_laser)
+                    self.laser.update_pos(centro_x, centro_y)
+                    self.laser_dibujado = True
+               if self.attack_frame_inicial:
+                    self.current_frame = 0
+                    self.attack_frame_inicial = False
+
+               if current_time - self.last_update > 0.3:
                     self.last_update = current_time
-                    self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
-             self.current_skin = self.current_spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
-             self.mask = pg.mask.from_surface(self.current_skin)
-             if self.current_frame == 4:
-                self.attack = False
-                self.cambiar_spritesheet(self.spritesheet_walk)
-                
-        else:
-          if current_time - self.last_update > 0.1 : # Cambio de frame cada 0.2 segundos
-               self.last_update = current_time
-               self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
-          self.current_skin = self.current_spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
-          self.mask = pg.mask.from_surface(self.current_skin)
+                    self.current_frame += 1
+                    if self.current_frame >= self.frame_count:
+                         self.attack = False
+                         self.laser = None
+                         self.direccion_visual = None
+                         self.laser_dibujado = False
+                         self.cambiar_spritesheet(self.spritesheet_walk)
+                         self.velocidad = self.original_velocidad  # restaurar velocidad
+                         self.current_frame = 0
+
+               self.current_skin = self.current_spritesheet.get_image(
+                    self.current_frame, self.width_frame, self.height_frame, self.scale, self.colour)
+
+               if hasattr(self, 'direccion_visual'):
+                    if self.direccion_visual == 'izq':
+                         self.current_skin = pg.transform.flip(self.current_skin, True, False)
+                         self.current_skin.set_colorkey('black')
+                    elif self.direccion_visual == 'arr':
+                         self.current_skin = pg.transform.rotate(self.current_skin, 90)
+                         self.current_skin.set_colorkey('black')
+                    elif self.direccion_visual == 'aba':
+                         self.current_skin = pg.transform.rotate(self.current_skin, -90)
+                         self.current_skin.set_colorkey('black')
+
+                    
+               if self.attack and hasattr(self, 'pos_jugador'):
+                    centro_jugador_x = self.pos_jugador[0] + 36
+                    centro_jugador_y = self.pos_jugador[1] + 36  
+
+                    nuevo_x = centro_jugador_x - self.current_skin.get_width() // 2
+                    nuevo_y = centro_jugador_y - self.current_skin.get_height() // 2
+
+                    self.screen.blit(self.current_skin, (nuevo_x, nuevo_y))
+               else:
+                         self.screen.blit(self.current_skin, (self.x, self.y))
+
+               self.mask = pg.mask.from_surface(self.current_skin)
+               if self.laser:
+                    self.laser.draw(self.screen)
+
+
+               
+          
+               
+               
+
+          else:
+               if current_time - self.last_update > 0.1:
+                    self.last_update = current_time
+                    self.current_frame = (self.current_frame + 1) % self.frame_count
+
+               self.current_skin = self.current_spritesheet.get_image(
+                    self.current_frame, self.width_frame, self.height_frame, self.scale, self.colour)
+
+               if self.dir == 0:  # izquierda
+                    self.current_skin = pg.transform.flip(self.current_skin, True, False)
+                    self.current_skin.set_colorkey('black')
+               self.mask = pg.mask.from_surface(self.current_skin)
+               self.screen.blit(self.current_skin, (self.x, self.y))
+
+
 
      
      def puede_ver_jugador(self, jugador_pos, obstáculos=None, vision_radio=300):
@@ -685,6 +789,10 @@ class Enemigo3 (Enemigo2):
      def perseguir_jugador(self, jugador_pos):
           self.animacion_skin()
 
+          if self.attack:
+               self.screen.blit(self.current_skin, (self.x, self.y))
+               return  # no moverse durante ataque
+
           dx = jugador_pos[0] - self.x
           dy = jugador_pos[1] - self.y
           dist = math.hypot(dx, dy)
@@ -695,11 +803,42 @@ class Enemigo3 (Enemigo2):
           dx_unit = dx / dist
           dy_unit = dy / dist
 
-          # Movimiento directo sin verificar colisiones
           self.x += dx_unit * self.velocidad
           self.y += dy_unit * self.velocidad
 
           self.screen.blit(self.current_skin, (self.x, self.y))
+
+class LaserEnemigo:
+    def __init__(self, x, y, ancho, alto, direccion, color=(0, 255, 0)):
+        self.x = x
+        self.y = y
+        self.ancho = ancho
+        self.alto = alto
+        self.direccion = direccion  # 'izq', 'der', 'arr', 'aba'
+        self.color = color
+        self.image = pg.Surface((ancho, alto), pg.SRCALPHA)
+        self.image.fill(color)
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.mask = pg.mask.from_surface(self.image)
+
+    def draw(self, screen):
+        screen.blit(self.image, (self.x, self.y))
+
+    def update_pos(self, enemigo_x, enemigo_y):
+        if self.direccion == 'izq':
+            self.x = enemigo_x - self.ancho
+            self.y = enemigo_y
+        elif self.direccion == 'der':
+            self.x = enemigo_x
+            self.y = enemigo_y
+        elif self.direccion == 'arr':
+            self.x = enemigo_x
+            self.y = enemigo_y - self.alto
+        elif self.direccion == 'aba':
+            self.x = enemigo_x
+            self.y = enemigo_y
+        self.rect.topleft = (self.x, self.y)
+        self.mask = pg.mask.from_surface(self.image)
 
 
 
@@ -1180,7 +1319,7 @@ def save_positions(screen):
                        Lista_Enemigos_2 += [Enemigo_Moreno]
 
                   if matriz[fil][col] == 3:
-                       Enemigo_Volador = Enemigo3(screen, (col*48), (fil*48), 1.3, spritesheet_volador, spritesheet_volador_muerte,spritesheet_v_a, spritesheet_v_a,3, 72, 72, 1.5, 'black', False, random.randint(0,3),50) 
+                       Enemigo_Volador = Enemigo3(screen, (col*48), (fil*48), 1.3, spritesheet_volador, spritesheet_volador_muerte,spritesheet_v_a, spritesheet_v_a,3, 72, 72, 0.8, 'black', False, random.randint(0,3),50) 
                        Lista_Enemigos_3 += [Enemigo_Volador]
                
 def generar_powerups(screen, imagenes, map_cols, map_rows):
@@ -1326,6 +1465,13 @@ def bombastic_hitbox ():
                     else:
                          ene_2.vida -= 1
                          ene_2.animacion_hurt()
+          for ene_3 in Lista_Enemigos_3:
+               if Explosion_Matriz.colisiona_con(exp,ene_3):
+                    if ene_3.vida <= 0:
+                         ene_3.animacion_muerte()
+                    else:
+                         ene_3.vida -= 1
+                         ene_3.animacion_hurt()
           
           
           if Player_1.colisiona_con(exp):
@@ -1451,6 +1597,14 @@ def bombastic_hitbox ():
                     else:
                          ene_2.vida -= 1
                          ene_2.animacion_hurt()
+          for ene_3 in Lista_Enemigos_3:
+               if Explosion_Matriz.colisiona_con(exp_l,ene_3):
+                    if ene_3.vida <= 0:
+                         ene_3.animacion_muerte()
+                    else:
+                         ene_3.vida -= 1
+                         ene_3.animacion_hurt()
+
           limpiar()          
 #Funcion para leer la matriz de nivel
 def leer_archivo(path):
@@ -1805,7 +1959,13 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
               ene_3.perseguir_jugador(pos_jugador)
          if pos_jugador != None:
                if Enemigos.colisiona_con(ene_3, Player_1):
-                    ene_3.animacion_attack()
+                    ene_3.animacion_attack(pos_jugador)
+         if ene_3.laser is not None:
+              for obst in obstacles_R:
+                   if Enemigos.colisiona_con(ene_3.laser,obst):
+                        matriz[int(obst.y/48)][int(obst.x/48)] = 0
+                        obstacles_R.remove(obst)
+                        obstacles.remove(obst)
 
          ene_3.move()
     for ene_2 in Lista_Enemigos_2:
@@ -1848,6 +2008,9 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
          for ene in Lista_Enemigos_2:
               if Explosion.colisiona_con(E_1, ene):
                    ene.vida = ene.vida/2
+         for ene_3 in Lista_Enemigos_3:
+               if Explosion_Matriz.colisiona_con(E_1,ene_3):
+                    ene_3.vida = ene_3.vida/2
      
                    
     Player_1.mover(obstacles)
