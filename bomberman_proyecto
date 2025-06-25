@@ -546,7 +546,6 @@ class Explosion_Matriz(Explosion):
      
      def auto_animate(self):
                     self.animate_matriz()
-
      
 class Explosion_Matriz_Lados(Explosion_Matriz):
      def __init__(self, screen, x, y, spritesheet_exp, frame_count, frame_w, frame_h, scale, colour, explosion, direccion):
@@ -592,6 +591,15 @@ class Explosion_Matriz_Lados(Explosion_Matriz):
      def auto_animate(self):
                     self.animate_matriz()
 
+class Item  : 
+     def __init__ (self, screen, x, y, spritesheet, tipo):
+          self.screen = screen
+          self.x = x
+          self.y = y
+          self.tipo = tipo
+          self.spritesheet = spritesheet
+          self.mask= pg.mask.from_surface(self.spritesheet)
+
 
 #-----------------------pygame------------------------------
 
@@ -603,6 +611,7 @@ tiempo_juego= Reloj(300)
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 RUTA_PLAYS= "games\player_data\plays.json"
+
 
 #*!super importante, SI NO NO CARGA NADA (FUE UNA EPIFANIA QUE TUVE)
 perro= pg.image.load("assets\perro.png").convert_alpha()
@@ -619,6 +628,7 @@ obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
 nivel = 0 #nivel inicial
 matriz = [] #la matriz extraida del nivel inicial
+items_en_nivel=[]  #lista de objetos items . se renderizan en el inicio del juego pero aparecen ocultos hasta la puta 
 Lista_Enemigos_1 = [] #la lista de los enemigos, esta solo posee los enemigos del nivel 1 o los mas sencillos
 Fuerza_exp = 4 #Esto dice la fuerza de la explosion, se va a expandir en casillas en forma de cruz, si es 1 es una casilla extra
 lista_B = [] #lista de bombas, solo para multiples animaciones a la vez
@@ -843,7 +853,6 @@ def save_positions(screen):
                   if matriz[fil][col] == 1:
                        Enemigo_perro = Enemigos(screen, (col*48), (fil*48), 1.1, spritesheet_perro_cañon, spritesheet_perro_muerte, 3, 48, 48, 1, 'black', False, random.randint(0,3))
                        Lista_Enemigos_1 += [Enemigo_perro]
-
 #Este genera las texturas inamovibles, los enemigos se dibujan y se tratan dentro de su propia clase
 def generate(screen):
         global obstacles, matriz
