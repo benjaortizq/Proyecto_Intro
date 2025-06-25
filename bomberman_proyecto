@@ -1218,7 +1218,6 @@ def generate(screen):
             y = fil * 48
             celda = matriz[fil][col]
 
-            # Dibuja el piso
             if celda in (0,1,8,9,'u','d','l','r','w','a','s','f','c',2,3):
                 if fil == 0 and col == 0:
                     texture = Floor_corner0
@@ -1242,7 +1241,6 @@ def generate(screen):
                 obs = Obstaculo(screen, x, y, texture)
                 obs.draw()
 
-    # 🔥 DIBUJAR POWERUPS DESPUÉS DEL PISO, ANTES DE OBSTÁCULOS
     for item in powerups:
         screen.blit(item.spritesheet, (item.x, item.y))
         if Player_1.colisiona_con(item):
@@ -1252,7 +1250,7 @@ def generate(screen):
                 Player_1.items["escudo"] = Player_1.items.get("escudo", 0) + 1
             powerups.remove(item)
 
-    # 🔒 Luego dibujás los obstáculos ENCIMA de los powerups
+
     for fil in range(len(matriz)):
         for col in range(len(matriz[fil])):
             x = col * 48
