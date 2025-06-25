@@ -685,7 +685,11 @@ imp_sps_kam_hab= pg.image.load("assets\sprites\players\Kamikaze\especial.png").c
 imp_sps_kam_walk= pg.image.load("assets\sprites\players\Kamikaze\walk.png").convert_alpha() #placeholder para el sprite intangible de correr
 imp_sps_kam_death=pg.image.load("assets\sprites\players\Kamikaze\death.png").convert_alpha() #placeholder para el sprite intangible de correr
 
+#------POWERUPS-----------------
+Escudo= pg.image.load("assets\Textures\escudo.png").convert_alpha() #sprite del powerup escudo
+Velocidad= pg.image.load("assets\Textures\Bota.png").convert_alpha() #sprite del powerup velocidad
 
+powerups_img = {"escudo": Escudo,"velocidad": Velocidad }
 
 #-----------------------SPRITESHEET DE JUGADORES ------------------------------
 spritesheet_habilidades_prev= SpriteSheet (sps_habilidades)
@@ -940,6 +944,31 @@ def bombastic_pos (screen): #guarda posicion de manejo de bombas
                        lista_EL += [EXP_RL]              
      if lista_B == []:
           bomba_in_bounds = False
+
+def generar_powerups(screen, imagenes, map_cols, map_rows):
+    powerups = []
+    n_items = random.randint(1, 10)
+
+    for _ in range(n_items):
+        # Elegir tipo
+        tipo = random.choice(["velocidad", "escudo"])
+        sprite = imagenes[tipo]
+
+        # Elegir celda al azar
+        col = random.randrange(map_cols)
+        row = random.randrange(map_rows)
+
+        # Centro de la celda
+        x = col * CELL_SIZE + CELL_SIZE // 2
+        y = row * CELL_SIZE + CELL_SIZE // 2
+
+        # Crear y almacenar el power-up
+        item = Item(screen, x, y, sprite, tipo)
+        powerups.append(item)
+
+    return powerups
+
+powerups = generar_powerups(screen, powerups_img, map_cols=20, map_rows=15)
 
 def limpiar():
      global matriz
