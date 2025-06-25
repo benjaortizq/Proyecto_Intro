@@ -2125,7 +2125,6 @@ def pantalla_creditos() :
      boton_back.draw(screen)
      star_wars_crawl(screen,texto, imagenes,font,(255,255,255),0.5)
 
-
 def pantalla_cargar_lvl() : 
      global estado, prev_atras, global_fade, nivel, start_time_pantalla
      if not global_fade : 
@@ -2134,7 +2133,6 @@ def pantalla_cargar_lvl() :
      screen.fill("black")
      titulo= font_tit.render(F"NIVEL {nivel+1}", True, (255, 255, 255))
      screen.blit(titulo, (285, 230))
-
 
 def pantalla_g_o () : 
      global estado, puntaje_final, prev_atras, global_fade
@@ -2240,7 +2238,7 @@ while True:
 #PANTALLA DE WIN 
 #ARREGLAR PANTALLA DE GAME OVER
 
-#*!CADA 100 PUNTOS DA 1 PT DE MEJORA . USTED AL FINAL DEL NIVEL PUEDE MEJORAR SU JUGADOR PARA EL SIGUIENTE NIVEL *! PERMANENTE 
+#*!CADA 500 PUNTOS DA 1 PT DE MEJORA . USTED AL FINAL DEL NIVEL PUEDE MEJORAR SU JUGADOR PARA EL SIGUIENTE NIVEL *! PERMANENTE 
 
 #*!DOCUMENTACION 
 
