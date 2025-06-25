@@ -174,8 +174,8 @@ class Jugador :
           now=t.time()
           global obstacles_R
           keys = pg.key.get_pressed()
-          dx = (keys[pg.K_RIGHT] - keys[pg.K_LEFT]) * self.velocidad
-          dy = (keys[pg.K_DOWN]  - keys[pg.K_UP])   * self.velocidad
+          dx = (keys[pg.K_d] - keys[pg.K_a]) * self.velocidad
+          dy = (keys[pg.K_s]  - keys[pg.K_w])   * self.velocidad
           if dx < 0 : 
                self.facing_left = True 
           else: 
@@ -835,7 +835,6 @@ class Explosion_Matriz(Explosion):
      
      def auto_animate(self):
                     self.animate_matriz()
-
      
 class Explosion_Matriz_Lados(Explosion_Matriz):
      def __init__(self, screen, x, y, spritesheet_exp, frame_count, frame_w, frame_h, scale, colour, explosion, direccion):
@@ -881,6 +880,15 @@ class Explosion_Matriz_Lados(Explosion_Matriz):
      def auto_animate(self):
                     self.animate_matriz()
 
+class Item  : 
+     def __init__ (self, screen, x, y, spritesheet, tipo):
+          self.screen = screen
+          self.x = x
+          self.y = y
+          self.tipo = tipo
+          self.spritesheet = spritesheet
+          self.mask= pg.mask.from_surface(self.spritesheet)
+
 
 #-----------------------pygame------------------------------
 
@@ -892,6 +900,7 @@ tiempo_juego= Reloj(300)
 reloj = pg.time.Clock() #reloj comun para controlar FPS
 
 RUTA_PLAYS= "games\player_data\plays.json"
+
 
 #*!super importante, SI NO NO CARGA NADA (FUE UNA EPIFANIA QUE TUVE)
 perro= pg.image.load("assets\perro.png").convert_alpha()
@@ -907,8 +916,9 @@ estado_anterior=""
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
-nivel = 2 #nivel inicial
+nivel = 0 #nivel inicial
 matriz = [] #la matriz extraida del nivel inicial
+items_en_nivel=[]  #lista de objetos items . se renderizan en el inicio del juego pero aparecen ocultos hasta la puta 
 Lista_Enemigos_1 = [] #la lista de los enemigos, esta solo posee los enemigos del nivel 1 o los mas sencillos
 Fuerza_exp = 4 #Esto dice la fuerza de la explosion, se va a expandir en casillas en forma de cruz, si es 1 es una casilla extra
 lista_B = [] #lista de bombas, solo para multiples animaciones a la vez
@@ -1028,6 +1038,8 @@ prev_creditos=False
 musica_menu=pg.mixer.Sound("sounds\music\Main_menu.mp3")
 musica_puntajes=pg.mixer.Sound("sounds\music\puntajes.mp3")
 musica_creditos=pg.mixer.Sound("sounds\music\credits.mp3")
+musica_seleccion_personaje=pg.mixer.Sound("sounds\music\player_selection.mp3")
+musica_ending=pg.mixer.Sound("sounds\music\good_ending.mp3")
 #-----------------------SPRITES------------------------------
 #Obstaculos
 sps_obstacles = pg.image.load("assets\Textures\Bricks.png")
@@ -1274,7 +1286,7 @@ def bombastic_hitbox ():
                    obstacles.remove(obsR)
           for enemies in Lista_Enemigos_1:
               if Explosion_Matriz.colisiona_con(exp, enemies):
-                   puntaje_nivel+=1
+                   puntaje_nivel+=min(1, Fuerza_exp) #puntaje por matar enemigos
                    enemies.animacion_muerte()
           for ene_2 in Lista_Enemigos_2:
                if Explosion_Matriz.colisiona_con(exp,ene_2):
@@ -1285,6 +1297,8 @@ def bombastic_hitbox ():
                          ene_2.animacion_hurt()
           
           
+          if Player_1.colisiona_con(exp):
+               Player_1.vida-=0.25
           
     
           x = exp.x // 48
@@ -1386,6 +1400,9 @@ def bombastic_hitbox ():
 
      for exp_l in lista_EL:
           exp_l.auto_animate()
+          if Player_1.colisiona_con(exp_l):
+               Player_1.vida-=0.25
+
           matriz[exp_l.y//48][exp_l.x//48] = 0
           for obsR in obstacles_R:
                if Explosion_Matriz_Lados.colisiona_con(exp_l, obsR):
@@ -1414,7 +1431,6 @@ def init (nivel):
         global matriz
         texto_nivel = f"Nivel_{nivel}.txt"
         matriz = eval(leer_archivo(texto_nivel))
-init(nivel)
 Enemigo_perro = Enemigos(screen, (0), (0), 1.1, spritesheet_perro_cañon, spritesheet_perro_muerte, 3, 48, 48, 0, 'black', False, random.randint(0,3)) #enemigo fantasma para q no explote todo xd
 Lista_Enemigos_1 += [Enemigo_perro]
 B_1 = Bomba(game_surface, 0, 0, spritesheet_Bomba, 5, 64, 64, 0.75, 'black',False) #Para la habilidad del tactico
@@ -1608,7 +1624,7 @@ def pantalla_titulo () :
      screen.blit(titulo2,(120,90))
      
      if not global_fade :
-          fade_in_from_white() 
+          fade_in_from_white ()
           global_fade=True
      #dibujo botones 
      click_empezar=Boton_ingresar.check_click()
@@ -1616,6 +1632,7 @@ def pantalla_titulo () :
      click_opc=Boton_opciones.check_click()
      if click_empezar and not prev_ing :
           estado="seleccion_personaje"
+          global_fade=False
      if click_puntajes and not prev_mejor_p :
           animar_cuadro(screen,reset=True)
           estado= "puntajes"
@@ -1682,7 +1699,7 @@ def dibujar_gui() :
     default_pw = spritesheet_powerups.get_image(2, 64, 64, 1, "black")
     default_pw_p = spritesheet_powerups.get_image(2, 64, 64, 0.5, "black")
     if Player_1.muerto and Player_1.current_frame == Player_1.frames_muerte-1 : 
-        estado = "menu"
+        estado = "GameOver"
 
     powerup_sprites = {"vida": [spritesheet_powerups.get_image(0, 64, 64, 1, "black"),spritesheet_powerups.get_image(0, 64, 64, 0.5, "black")],"dano": [spritesheet_powerups.get_image(1, 64, 64, 1, "black"),spritesheet_powerups.get_image(1, 64, 64, 0.5, "black")]}
     pw_uso_1 = default_pw
@@ -1784,7 +1801,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     if E_1.bomba_animacion:
          E_1.auto_animate()
          for obsR in obstacles_R:
-              puntaje_nivel+=100
+              puntaje_nivel+=1
               if Explosion.colisiona_con(E_1, obsR):
                    matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
                    obstacles_R.remove(obsR)
@@ -1803,9 +1820,9 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     Player_1.ejecutar_habilidad()   
      
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
-
+start_time_pantalla=0
 def pantalla_seleccion_jugador () : 
-    global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion, estado, Player_1
+    global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion, estado, Player_1, start_time_pantalla
     screen.fill("black")
     # Obtener el estado ACTUAL de los botones
     nuevo_viendo_actual = boton_siguiente_opcion.check_click()
@@ -1852,7 +1869,8 @@ def pantalla_seleccion_jugador () :
             Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_walk_kam ,spritesheet_habilidad_kam,spritesheet_death_kam,4,7,12,8,48,32,1.35,"black","Kamikaze",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
         elif skin_seleccionada == 2 :
             Player_1= Jugador_1(game_surface,0,0,1.5,spritesheet_idle_tac,spritesheet_walk_tac ,spritesheet_habilidad_tac,spritesheet_death_tac,4,6,9,6,96,96,0.5,"black","Tactico",6,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
-        estado ="juego" #SIEMPRE BAMCIAR EL ESTADO AML SIGUIENTE ANTES DE JUEGO O NO SE 
+        estado ="cargar_nivel" #SIEMPRE BAMCIAR EL ESTADO AML SIGUIENTE ANTES DE JUEGO O NO SE 
+        start_time_pantalla = pg.time.get_ticks()
     prev_seleccion = nuevo_seleccion_actual  # Actualizar estado previo 
  
     screen.blit(Titulo_skin, (300, 50))
@@ -1881,7 +1899,35 @@ def pantalla_creditos() :
      prev_atras= click_atras
      boton_back.draw(screen)
      star_wars_crawl(screen,texto, imagenes,font,(255,255,255),0.5)
-tiempo_juego.start()
+
+
+def pantalla_cargar_lvl() : 
+     global estado, prev_atras, global_fade, nivel, start_time_pantalla
+     if not global_fade : 
+          fade_in_from_white()
+          global_fade = True
+     screen.fill("black")
+     titulo= font_tit.render(F"NIVEL {nivel+1}", True, (255, 255, 255))
+     screen.blit(titulo, (285, 230))
+
+
+def pantalla_g_o () : 
+     global estado, puntaje_final, prev_atras, global_fade
+     if not global_fade : 
+          fade_in_from_white()
+          global_fade = True
+     screen.fill("black")
+     titulo= font1.render("GAME OVER", True, (237, 22, 22))
+     screen.blit(titulo, (screen.get_width() // 2 - titulo.get_width() // 2, 100))
+     texto_puntaje = font0.render(f"Puntaje final: {puntaje_final}", True, (255, 255, 255))
+     screen.blit(texto_puntaje, (screen.get_width() // 2 - texto_puntaje.get_width() // 2, 200))
+     click_atras = boton_back.check_click()
+     boton_back.draw(screen)
+     if click_atras and not prev_atras:
+          estado = "menu"
+          puntaje_final = 0
+          global_fade = False
+     prev_atras = click_atras
 
 def boombox() :
      global estado_anterior
@@ -1897,11 +1943,16 @@ def boombox() :
                     musica_puntajes.play(-1)
                elif estado=="creditos" : 
                     musica_creditos.play(-1)
+               elif estado=="seleccion_personaje" :
+                    musica_seleccion_personaje.play(-1)
      estado_anterior=estado
+
+tiempo_juego.start()
 
 while True:
 #cambiador de estado
     boombox()
+    tiempo_Actual = pg.time.get_ticks()
     if estado == "juego":  # Si el estado es "juego", se muestra la pantalla de juego
         tiempo_juego.reanudar()
         pantalla_juego()
@@ -1917,6 +1968,21 @@ while True:
          pantalla_puntajes()
     elif estado=="creditos" : 
          pantalla_creditos()   
+    elif estado == "GameOver":     
+        pantalla_g_o()
+    elif estado == "cargar_nivel":
+         pantalla_cargar_lvl()
+         if tiempo_Actual - start_time_pantalla > 1000:
+             nivel += 1
+             init(nivel)
+             Player_1.x=0
+             Player_1.y=0
+             puntaje_final += puntaje_nivel
+             puntaje_nivel = 0
+             primera_vez = True
+             tiempo_juego.tiempo=300
+             tiempo_juego.reanudar()  # Reinicia el temporizador para el nuevo nivel
+             estado = "juego"
     for event in pg.event.get():
         if event.type == pg.QUIT:
             tiempo_juego.detener()
