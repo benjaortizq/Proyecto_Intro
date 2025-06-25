@@ -1823,6 +1823,15 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
                               ene_1.rebote()
                     
                   
+
+    for item in powerups:
+         game_surface.blit(item.spritesheet, (item.x, item.y))  # Dibuja el power-up en la superficie del juego
+         if Player_1.colisiona_con(item):
+              if item.tipo == "velocidad":
+                   Player_1.items["velocidad"] = Player_1.items.get("velocidad", 0) + 1
+              elif item.tipo == "escudo":
+                   Player_1.items["escudo"] = Player_1.items.get("escudo", 0) + 1
+              powerups.remove(item)
     
     
     if B_1.bomba_animacion:
@@ -2040,4 +2049,19 @@ while True:
 #cambiar powerups para aferctar varas del player
 #agregar healthbar de boss
 #agregar puntaje 
-#c
+#los stats del jugador en la pantalla de seleccion 
+#POWERUPS 
+#ITEMS 
+#PANTALLA DE WIN 
+#ARREGLAR PANTALLA DE GAME OVER
+
+#*!CADA 100 PUNTOS DA 1 PT DE MEJORA . USTED AL FINAL DEL NIVEL PUEDE MEJORAR SU JUGADOR PARA EL SIGUIENTE NIVEL *! PERMANENTE 
+
+#!DOCUMENTACION 
+
+#TODO : steadman
+#NIVELES
+
+
+#TODO : ambos
+#BOSS (DICE STEAMAN QUE LO HACE
