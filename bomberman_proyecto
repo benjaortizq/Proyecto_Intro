@@ -2048,6 +2048,8 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     Player_1.ejecutar_habilidad()   
      
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
+    if tiempo_juego.tiempo ==0 : 
+         Player_1.muerto=True
 start_time_pantalla=0
 def pantalla_seleccion_jugador () : 
     global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion, estado, Player_1, start_time_pantalla, global_fade
@@ -2135,6 +2137,15 @@ def pantalla_seleccion_jugador () :
 
     boton_siguiente_opcion.draw(screen)  # Dibuja el botón en la pantalla
     boton_seleccionar.draw(screen)  # Dibuja el botón en la pantalla
+
+def pantalla_upgrades() : 
+     global estado, prev_atras, global_fade, start_time_pantalla
+     if not global_fade : 
+          fade_in_from_white()
+          global_fade = True
+     screen.fill("black")
+     titulo= font1.render("UPGRADES", True, (255, 255, 255))
+     screen.blit(titulo, (screen.get_width() // 2 - titulo.get_width() // 2, 100))
 
 def pantalla_creditos() :
      global prev_atras,estado
