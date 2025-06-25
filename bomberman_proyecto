@@ -979,7 +979,10 @@ imp_sps_kam_death=pg.image.load("assets\sprites\players\Kamikaze\death.png").con
 
 #------POWERUPS-----------------
 Escudo= pg.image.load("assets\Textures\escudo.png").convert_alpha() #sprite del powerup escudo
+pg.transform.scale(Escudo, (32, 32)) #redimensiona el sprite del escudo a 42x42
+
 Velocidad= pg.image.load("assets\Textures\Bota.png").convert_alpha() #sprite del powerup velocidad
+pg.transform.scale(Velocidad, (32, 32)) #redimensiona el sprite de la velocidad a 42x42
 
 powerups_img = {"escudo": Escudo,"velocidad": Velocidad }
 
@@ -1180,66 +1183,91 @@ def save_positions(screen):
                        Enemigo_Volador = Enemigo3(screen, (col*48), (fil*48), 1.3, spritesheet_volador, spritesheet_volador_muerte,spritesheet_v_a, spritesheet_v_a,3, 72, 72, 1.5, 'black', False, random.randint(0,3),50) 
                        Lista_Enemigos_3 += [Enemigo_Volador]
                
+def generar_powerups(screen, imagenes, map_cols, map_rows):
+    powerups = []
+    n_items = random.randint(1, 10)
+
+    for _ in range(n_items):
+        # Elegir tipo
+        tipo = random.choice(["velocidad", "escudo"])
+        sprite = imagenes[tipo]
+
+        # Elegir celda al azar
+        col = random.randrange(map_cols)
+        row = random.randrange(map_rows)
+
+        # Centro de la celda
+        x = col * CELL_SIZE -6
+        y = row * CELL_SIZE -9
+
+        # Crear y almacenar el power-up
+        item = Item(screen, x, y, sprite, tipo)
+        powerups.append(item)
+
+    return powerups
+
+powerups = generar_powerups(screen, powerups_img, map_cols=11, map_rows=17)
 
 #Este genera las texturas inamovibles, los enemigos se dibujan y se tratan dentro de su propia clase
 def generate(screen):
-        global obstacles, matriz
-        for fil in range(len(matriz)):
-             for col in range(len(matriz[fil])):
-                  if matriz[fil][col] == '#': 
-                       texture = Obstaculo_I
-                       obs = Obstaculo(screen, (col*48),(fil*48) , texture)
-                       
-                       obs.draw()
-                  if matriz[fil][col] == '*':
-                       texture = Obstaculo_R
-                       obs = Obstaculo(screen, (col*48),(fil*48) , texture)
-                       obs.draw()
-     
-                  if matriz[fil][col] in (0,1,8,9,'u','d','l','r','w','a','s','f','c',2,3):
-                       if fil == 0 and col == 0:
-                            texture = Floor_corner0
-                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
-                            obs.draw()
-                       elif fil == 0 and col == 16:
-                            texture = Floor_corner3
-                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
-                            obs.draw()
-                       
-                       elif fil == 10 and col == 16:
-                            texture = Floor_corner2
-                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
-                            obs.draw()
-                        
-                       elif fil == 10 and col == 0:
-                            texture = Floor_corner1
-                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
-                            obs.draw()
+    global obstacles, matriz
 
-                       elif fil == 0:
-                            texture = Floor_up
-                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
-                            obs.draw()
+    for fil in range(len(matriz)):
+        for col in range(len(matriz[fil])):
+            x = col * 48
+            y = fil * 48
+            celda = matriz[fil][col]
 
-                       elif col == 0:
-                            texture = Floor_lside
-                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
-                            obs.draw()
-                        
-                       elif col == 16: 
-                            texture = Floor_rside
-                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
-                            obs.draw()
+            # Dibuja el piso
+            if celda in (0,1,8,9,'u','d','l','r','w','a','s','f','c',2,3):
+                if fil == 0 and col == 0:
+                    texture = Floor_corner0
+                elif fil == 0 and col == 16:
+                    texture = Floor_corner3
+                elif fil == 10 and col == 16:
+                    texture = Floor_corner2
+                elif fil == 10 and col == 0:
+                    texture = Floor_corner1
+                elif fil == 0:
+                    texture = Floor_up
+                elif col == 0:
+                    texture = Floor_lside
+                elif col == 16:
+                    texture = Floor_rside
+                elif fil == 10:
+                    texture = Floor_down
+                else:
+                    texture = Floor_nothing
 
-                       elif fil == 10:
-                            texture = Floor_down
-                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
-                            obs.draw()
-                        
-                       else:
-                            texture = Floor_nothing
-                            obs = Obstaculo(screen, (col*48),(fil*48) , texture)
-                            obs.draw()
+                obs = Obstaculo(screen, x, y, texture)
+                obs.draw()
+
+    # 🔥 DIBUJAR POWERUPS DESPUÉS DEL PISO, ANTES DE OBSTÁCULOS
+    for item in powerups:
+        screen.blit(item.spritesheet, (item.x, item.y))
+        if Player_1.colisiona_con(item):
+            if item.tipo == "velocidad":
+                Player_1.items["velocidad"] = Player_1.items.get("velocidad", 0) + 1
+            elif item.tipo == "escudo":
+                Player_1.items["escudo"] = Player_1.items.get("escudo", 0) + 1
+            powerups.remove(item)
+
+    # 🔒 Luego dibujás los obstáculos ENCIMA de los powerups
+    for fil in range(len(matriz)):
+        for col in range(len(matriz[fil])):
+            x = col * 48
+            y = fil * 48
+            celda = matriz[fil][col]
+
+            if celda == '#':
+                texture = Obstaculo_I
+                obs = Obstaculo(screen, x, y, texture)
+                obs.draw()
+
+            elif celda == '*':
+                texture = Obstaculo_R
+                obs = Obstaculo(screen, x, y, texture)
+                obs.draw()
 #funciones para la generacion y manejo de bombas
 def bombastic_pos (screen): #guarda posicion de manejo de bombas 
      global lista_B, lista_E, bomba_in_bounds, lista_EL
@@ -1269,30 +1297,7 @@ def bombastic_pos (screen): #guarda posicion de manejo de bombas
      if lista_B == []:
           bomba_in_bounds = False
 
-def generar_powerups(screen, imagenes, map_cols, map_rows):
-    powerups = []
-    n_items = random.randint(1, 10)
 
-    for _ in range(n_items):
-        # Elegir tipo
-        tipo = random.choice(["velocidad", "escudo"])
-        sprite = imagenes[tipo]
-
-        # Elegir celda al azar
-        col = random.randrange(map_cols)
-        row = random.randrange(map_rows)
-
-        # Centro de la celda
-        x = col * CELL_SIZE + CELL_SIZE // 2
-        y = row * CELL_SIZE + CELL_SIZE // 2
-
-        # Crear y almacenar el power-up
-        item = Item(screen, x, y, sprite, tipo)
-        powerups.append(item)
-
-    return powerups
-
-powerups = generar_powerups(screen, powerups_img, map_cols=20, map_rows=15)
 
 def limpiar():
      global matriz
@@ -1789,10 +1794,12 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
 
     if primera_vez:
         save_positions(game_surface)
-    
+
     generate(game_surface)
     bombastic_pos(game_surface)
     bombastic_hitbox()
+
+    
     
 
     for ene_3 in Lista_Enemigos_3:
@@ -1823,14 +1830,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
                     
                   
 
-    for item in powerups:
-         game_surface.blit(item.spritesheet, (item.x, item.y))  # Dibuja el power-up en la superficie del juego
-         if Player_1.colisiona_con(item):
-              if item.tipo == "velocidad":
-                   Player_1.items["velocidad"] = Player_1.items.get("velocidad", 0) + 1
-              elif item.tipo == "escudo":
-                   Player_1.items["escudo"] = Player_1.items.get("escudo", 0) + 1
-              powerups.remove(item)
+
     
     
     if B_1.bomba_animacion:
