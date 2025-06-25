@@ -1539,8 +1539,8 @@ def pantalla_cargar_lvl() :
           fade_in_from_white()
           global_fade = True
      screen.fill("black")
-     titulo= font1.render(F"NIVEL {nivel+1}", True, (255, 255, 255))
-     screen.blit(titulo, (screen.get_width() // 2 - titulo.get_width() // 2, 100))
+     titulo= font_tit.render(F"NIVEL {nivel+1}", True, (255, 255, 255))
+     screen.blit(titulo, (285, 230))
 
 
 def pantalla_g_o () : 
@@ -1549,7 +1549,7 @@ def pantalla_g_o () :
           fade_in_from_white()
           global_fade = True
      screen.fill("black")
-     titulo= font.render("GAME OVER", True, (255, 255, 255))
+     titulo= font1.render("GAME OVER", True, (237, 22, 22))
      screen.blit(titulo, (screen.get_width() // 2 - titulo.get_width() // 2, 100))
      texto_puntaje = font0.render(f"Puntaje final: {puntaje_final}", True, (255, 255, 255))
      screen.blit(texto_puntaje, (screen.get_width() // 2 - texto_puntaje.get_width() // 2, 200))
