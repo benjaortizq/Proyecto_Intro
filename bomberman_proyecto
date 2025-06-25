@@ -140,7 +140,6 @@ class Jugador :
         self.can_always_move=False
         self.facing_left = False 
         
-    
     def set_state(self, new_state):
         
         if new_state == self.state:
@@ -240,11 +239,15 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         self.barra_habilidad = 0  # Tiempo de recarga de la habilidad
         self.color_bajada=color_bajada
         self.powerups= {"dano" : 0 , "vida":0}
-        self.items = {"bombas":15, "velocidad" : 8 ,"escudo":2 }
+        self.items = {"bombas":30, "velocidad" : 10 ,"escudo":10 }
         self.powerup_en_uso={"dano": False, "vida": False}
         self.item_en_uso={"bombas":False, "velocidad" : False ,"escudo":False }
         self.tiene_llave=False
         self.ultima_bomba=0
+        self.base_speed = self.velocidad      # ejemplo
+        self.speed = self.base_speed
+        self.defensa_activa = False
+
     def ejecutar_habilidad(self ) :
         keys = pg.key.get_pressed()
         current_time = t.time()
@@ -255,6 +258,28 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
             self.tiempo_inicio_habilidad = current_time
             self.set_state("hab")
             #print(f"Iniciando habilidad: {self.habilidad}")
+        if keys[pg.K_n] and self.items["velocidad"] > 0 and not self.item_en_uso["velocidad"]:
+            self.item_en_uso["velocidad"] = True
+            self.ultimo_velocidad = current_time
+            self.items["velocidad"] -= 1
+            # Aumentá el atributo de velocidad (asumiendo que tenés self.speed y self.base_speed)
+            self.velocidad = self.base_speed * 1.5
+        if keys[pg.K_m] and self.items["escudo"] > 0 and not self.item_en_uso["escudo"]:
+            self.item_en_uso["escudo"] = True
+            self.ultimo_escudo = current_time
+            self.items["escudo"] -= 1
+            # Activás la bandera de defensa
+            self.defensa_activa = True
+        if self.item_en_uso["velocidad"]:
+            if current_time - self.ultimo_velocidad > 5:
+                self.item_en_uso["velocidad"] = False
+                self.velocidad = self.base_speed  # volvés a la velocidad normal
+
+        # Escudo: 3 segundos
+        if self.item_en_uso["escudo"]:
+            if current_time - self.ultimo_escudo > 3:
+                self.item_en_uso["escudo"] = False
+                self.defensa_activa = False  # desactivás la defensa
         
         # Detener si pasa el tiempo máximo
         if self.ejecutando_habilidad:
@@ -280,7 +305,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
              tiempo_actual=t.time()
              if self.items.get("bombas") > 0:
                  keys = pg.key.get_pressed()
-                 if keys[pg.K_b] and tiempo_actual-self.ultima_bomba>=1:
+                 if keys[pg.K_b] and tiempo_actual-self.ultima_bomba>=0.5:
                      centro_x = self.x + 16
                      centro_y = self.y + 16
                      col = int(centro_x // 48)
@@ -584,8 +609,6 @@ class Enemigo2 (Enemigos):
                self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
           self.current_skin = self.current_spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
           self.mask = pg.mask.from_surface(self.current_skin)
-
-
 
 #Enemigo 3
 class Enemigo3 (Enemigo2):
@@ -1027,7 +1050,6 @@ class Item  :
           self.spritesheet = spritesheet
           self.mask= pg.mask.from_surface(self.spritesheet)
 
-
 #-----------------------pygame------------------------------
 
 #commons de pygame (literalmente el inicio de pygame)
@@ -1049,7 +1071,7 @@ benja=pg.transform.scale(benja, (138, 184)) #redimensiona la imagen de Benja a 1
 
 #*!-----------------------GLOBALES------------------------------
 pos_jugador = None
-estado = "seleccion_personaje" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+estado = "menu" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 estado_anterior=""
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
@@ -1123,7 +1145,10 @@ pg.transform.scale(Escudo, (32, 32)) #redimensiona el sprite del escudo a 42x42
 Velocidad= pg.image.load("assets\Textures\Bota.png").convert_alpha() #sprite del powerup velocidad
 pg.transform.scale(Velocidad, (32, 32)) #redimensiona el sprite de la velocidad a 42x42
 
-powerups_img = {"escudo": Escudo,"velocidad": Velocidad }
+bombini= pg.image.load("assets\Textures\Bomba.png").convert_alpha() #sprite del powerup bombini
+pg.transform.scale(bombini, (32, 32)) #redimensiona el sprite
+
+powerups_img = {"escudo": Escudo,"velocidad": Velocidad, "bomba": bombini }
 
 #-----------------------SPRITESHEET DE JUGADORES ------------------------------
 spritesheet_habilidades_prev= SpriteSheet (sps_habilidades)
@@ -1324,11 +1349,11 @@ def save_positions(screen):
                
 def generar_powerups(screen, imagenes, map_cols, map_rows):
     powerups = []
-    n_items = random.randint(1, 10)
+    n_items = random.randint(1, 12)
 
     for _ in range(n_items):
         # Elegir tipo
-        tipo = random.choice(["velocidad", "escudo"])
+        tipo = random.choice(["velocidad", "escudo", "bomba"])
         sprite = imagenes[tipo]
 
         # Elegir celda al azar
@@ -1349,7 +1374,7 @@ powerups = generar_powerups(screen, powerups_img, map_cols=11, map_rows=17)
 
 #Este genera las texturas inamovibles, los enemigos se dibujan y se tratan dentro de su propia clase
 def generate(screen):
-    global obstacles, matriz
+    global obstacles, matriz, powerups
 
     for fil in range(len(matriz)):
         for col in range(len(matriz[fil])):
@@ -1387,6 +1412,8 @@ def generate(screen):
                 Player_1.items["velocidad"] = Player_1.items.get("velocidad", 0) + 1
             elif item.tipo == "escudo":
                 Player_1.items["escudo"] = Player_1.items.get("escudo", 0) + 1
+            elif item.tipo == "bomba":
+                Player_1.items["bombas"] = Player_1.items.get("bombas", 0) + 1
             powerups.remove(item)
 
 
@@ -1434,8 +1461,6 @@ def bombastic_pos (screen): #guarda posicion de manejo de bombas
      if lista_B == []:
           bomba_in_bounds = False
 
-
-
 def limpiar():
      global matriz
      for fil in range(len(matriz)):
@@ -1474,7 +1499,7 @@ def bombastic_hitbox ():
                          ene_3.animacion_hurt()
           
           
-          if Player_1.colisiona_con(exp):
+          if Player_1.colisiona_con(exp) and not Player_1.item_en_uso["escudo"]:
                Player_1.vida-=0.25
           
     
@@ -1577,7 +1602,7 @@ def bombastic_hitbox ():
 
      for exp_l in lista_EL:
           exp_l.auto_animate()
-          if Player_1.colisiona_con(exp_l):
+          if Player_1.colisiona_con(exp_l) and not Player_1.item_en_uso["escudo"]:
                Player_1.vida-=0.25
 
           matriz[exp_l.y//48][exp_l.x//48] = 0
@@ -1624,7 +1649,7 @@ E_1 = Explosion(game_surface, 0, 0, spritesheet_nuke, 20, 240, 150, 0.75, 'black
 #!---------------------------------------------EFECTOS ESPECIALES :o --------------------------------
 def bg_men_parallax(): 
     global fondo_p_men, pos_par_men
-    parallax_speeds = [0.1, 0.002, 0.2, 0.3, 0.4, 1 ]
+    parallax_speeds = [0.1, 0.002, 0.2, 0.3, 0.4, 1.5 ]
     
     # Dibujar capas desde la más lejana (0) a la más cercana (6)
     for i in range (len (fondo_p_men)) :
@@ -1644,7 +1669,6 @@ def bg_opc_parallax():
     factores = [0.1, 0.3, 0.5, 0.7]
 
     mouse_pos = pg.mouse.get_pos()   
-    """Dibuja el fondo con efecto parallax basado en la posición del mouse"""
     mouse_x, mouse_y = mouse_pos
     
     # Calcular desplazamiento relativo al centro
@@ -1950,6 +1974,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     generate(game_surface)
     bombastic_pos(game_surface)
     bombastic_hitbox()
+    pos_jugador = (Player_1.x,Player_1.y)
 
     
     
@@ -1977,7 +2002,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
          else:
                ene_2.move()
     for ene_1 in Lista_Enemigos_1:
-        if Player_1.colisiona_con(ene_1) :
+        if Player_1.colisiona_con(ene_1) and not Player_1.item_en_uso["escudo"]:
              Player_1.vida-=0.2
         ene_1.auto_move()
         #obstaculos funciona con la mascara de los obstaculos, asi pues para hacer colisiones solo ve si hay choque entre mascaras
@@ -1986,10 +2011,6 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
                               # aquí ya chocaron
                               ene_1.rebote()
                     
-                  
-
-
-    
     
     if B_1.bomba_animacion:
          B_1.auto_animate()
@@ -2020,8 +2041,11 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
 start_time_pantalla=0
 def pantalla_seleccion_jugador () : 
-    global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion, estado, Player_1, start_time_pantalla
+    global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion, estado, Player_1, start_time_pantalla, global_fade
+
     screen.fill("black")
+
+
     # Obtener el estado ACTUAL de los botones
     nuevo_viendo_actual = boton_siguiente_opcion.check_click()
     nuevo_seleccion_actual = boton_seleccionar.check_click()
@@ -2067,8 +2091,10 @@ def pantalla_seleccion_jugador () :
             Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_walk_kam ,spritesheet_habilidad_kam,spritesheet_death_kam,4,7,12,8,48,32,1.35,"black","Kamikaze",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
         elif skin_seleccionada == 2 :
             Player_1= Jugador_1(game_surface,0,0,1.5,spritesheet_idle_tac,spritesheet_walk_tac ,spritesheet_habilidad_tac,spritesheet_death_tac,4,6,9,6,96,96,0.5,"black","Tactico",6,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
+
         estado ="cargar_nivel" #SIEMPRE BAMCIAR EL ESTADO AML SIGUIENTE ANTES DE JUEGO O NO SE 
         start_time_pantalla = pg.time.get_ticks()
+        global_fade = False  # Reiniciar el fade global
     prev_seleccion = nuevo_seleccion_actual  # Actualizar estado previo 
  
     screen.blit(Titulo_skin, (300, 50))
@@ -2079,8 +2105,9 @@ def pantalla_seleccion_jugador () :
     screen.blit(desc_skin5, (190, 440))  # Dibuja la descripción de la skin en la pantalla
     screen.blit(preview, (290, 135))  # Dibuja el preview del jugador en la pantalla
 
-
-
+    if not global_fade : 
+        fade_in_from_white()
+        global_fade = True
 
     boton_siguiente_opcion.draw(screen)  # Dibuja el botón en la pantalla
     boton_seleccionar.draw(screen)  # Dibuja el botón en la pantalla
@@ -2170,7 +2197,7 @@ while True:
         pantalla_g_o()
     elif estado == "cargar_nivel":
          pantalla_cargar_lvl()
-         if tiempo_Actual - start_time_pantalla > 1000:
+         if tiempo_Actual - start_time_pantalla > 1900:
              nivel += 1
              init(nivel)
              Player_1.x=0
@@ -2200,8 +2227,6 @@ while True:
                               if 0 < mouse_pos[0] < 816 and 100 < mouse_pos[1] < 628:
                                    B_1 = Bomba(game_surface, mouse_pos[0]-32, mouse_pos[1]-132, spritesheet_Bomba, 5, 64, 64, 0.75, 'black',True)
                                    E_1 = Explosion(game_surface, mouse_pos[0]-88, mouse_pos[1]-200, spritesheet_exp_c, 4, 64, 64, 3, 'black',False)    
-    if estado == 'juego':
-          pos_jugador = (Player_1.x,Player_1.y)
     pg.display.flip()
     reloj.tick(60)
 
@@ -2217,7 +2242,7 @@ while True:
 
 #*!CADA 100 PUNTOS DA 1 PT DE MEJORA . USTED AL FINAL DEL NIVEL PUEDE MEJORAR SU JUGADOR PARA EL SIGUIENTE NIVEL *! PERMANENTE 
 
-#!DOCUMENTACION 
+#*!DOCUMENTACION 
 
 #TODO : steadman
 #NIVELES
