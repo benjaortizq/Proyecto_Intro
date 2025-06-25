@@ -1344,7 +1344,7 @@ def save_positions(screen):
                        Lista_Enemigos_2 += [Enemigo_Moreno]
 
                   if matriz[fil][col] == 3:
-                       Enemigo_Volador = Enemigo3(screen, (col*48), (fil*48), 1.3, spritesheet_volador, spritesheet_volador_muerte,spritesheet_v_a, spritesheet_v_a,3, 72, 72, 0.8, 'black', False, random.randint(0,3),50) 
+                       Enemigo_Volador = Enemigo3(screen, (col*48), (fil*48), 1.3, spritesheet_volador, spritesheet_volador_muerte,spritesheet_v_a, spritesheet_v_a,3, 72, 72, 0.8, 'black', False, random.randint(0,3),70) 
                        Lista_Enemigos_3 += [Enemigo_Volador]
                
 def generar_powerups(screen, imagenes, map_cols, map_rows):
