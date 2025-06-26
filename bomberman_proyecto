@@ -1191,6 +1191,14 @@ class Item  :
           self.spritesheet = spritesheet
           self.mask= pg.mask.from_surface(self.spritesheet)
 
+class llave_candado : 
+     def __init__(self, x,y,llave, candado):
+          self.x = x
+          self.y = y
+          self.llave = llave
+          self.candado = candado
+     
+
 #-----------------------pygame------------------------------
 
 #commons de pygame (literalmente el inicio de pygame)
@@ -1291,6 +1299,12 @@ bombini= pg.image.load("assets\Textures\Bomba.png").convert_alpha() #sprite del 
 pg.transform.scale(bombini, (32, 32)) #redimensiona el sprite
 
 powerups_img = {"escudo": Escudo,"velocidad": Velocidad, "bomba": bombini }
+
+
+#-----------------------llave y candado------------------------------
+llave_candado_sps= pg.image.load("assets\Textures\llave_candado.png").convert_alpha() #sprite de la llave
+spritesheet_llave_candad= SpriteSheet(llave_candado_sps) #crea una instancia de la clase SpriteSheet con el sprite de la llave
+llave= spritesheet_llave_candad.get_image(0, 64, 32, 1, (0, 0, 0)) #obtiene la imagen de la llave del spritesheet
 
 #-----------------------SPRITESHEET DE JUGADORES ------------------------------
 spritesheet_habilidades_prev= SpriteSheet (sps_habilidades)
