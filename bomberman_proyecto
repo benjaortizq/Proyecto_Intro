@@ -1193,11 +1193,13 @@ class Item  :
           self.mask= pg.mask.from_surface(self.spritesheet)
 
 class llave_candado : 
-     def __init__(self, x,y,llave, candado):
+     def __init__(self, x,y,llave, candado, img):
           self.x = x
           self.y = y
           self.llave = llave
           self.candado = candado
+          self.img= img
+          self.mask = pg.mask.from_surface(self.img)
      
 
 #-----------------------pygame------------------------------
@@ -1226,7 +1228,7 @@ estado_anterior=""
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
-nivel = 3 #nivel inicial
+nivel = 0 #nivel inicial
 matriz = [] #la matriz extraida del nivel inicial
 items_en_nivel=[]  #lista de objetos items . se renderizan en el inicio del juego pero aparecen ocultos hasta la puta 
 Lista_Enemigos_1 = [] #la lista de los enemigos, esta solo posee los enemigos del nivel 1 o los mas sencillos
@@ -1305,7 +1307,8 @@ powerups_img = {"escudo": Escudo,"velocidad": Velocidad, "bomba": bombini }
 #-----------------------llave y candado------------------------------
 llave_candado_sps= pg.image.load("assets\Textures\llave_candado.png").convert_alpha() #sprite de la llave
 spritesheet_llave_candad= SpriteSheet(llave_candado_sps) #crea una instancia de la clase SpriteSheet con el sprite de la llave
-llave= spritesheet_llave_candad.get_image(0, 64, 32, 1, (0, 0, 0)) #obtiene la imagen de la llave del spritesheet
+llave_img= spritesheet_llave_candad.get_image(0, 128, 192, 0.25, "black") #obtiene la imagen de la llave del spritesheet
+candado_img= spritesheet_llave_candad.get_image(1, 128, 192, 0.25, "black") #obtiene la imagen del candado del spritesheet
 
 #-----------------------SPRITESHEET DE JUGADORES ------------------------------
 spritesheet_habilidades_prev= SpriteSheet (sps_habilidades)
@@ -1569,9 +1572,32 @@ def generar_powerups(screen, imagenes, map_cols, map_rows):
 
 powerups = generar_powerups(screen, powerups_img, map_cols=11, map_rows=17)
 
+#llave y candado
+
+def encontrar_posiciones_llave(matriz, tile_width, tile_height):
+
+    posiciones = []
+    for fila_idx, fila in enumerate(matriz):
+        for col_idx, celda in enumerate(fila):
+            print(celda)
+            if celda == '*':
+                x = col_idx * tile_width
+                y = fila_idx * tile_height
+                posiciones.append((x, y))
+    return posiciones
+
+def ubicar_llave(matriz, tile_width, tile_height):
+    global llave_img
+    posiciones = encontrar_posiciones_llave(matriz, tile_width, tile_height)
+    if not posiciones:
+        raise ValueError("No hay ningún bloque '*' donde poner la llave.")
+    x, y = random.choice(posiciones)
+    return llave_candado(x, y, True, False, llave_img)
+
+
 #Este genera las texturas inamovibles, los enemigos se dibujan y se tratan dentro de su propia clase
 def generate(screen):
-    global obstacles, matriz, powerups
+    global obstacles, matriz, powerups, nivel
 
     for fil in range(len(matriz)):
         for col in range(len(matriz[fil])):
@@ -1629,6 +1655,8 @@ def generate(screen):
                 texture = Obstaculo_R
                 obs = Obstaculo(screen, x, y, texture)
                 obs.draw()
+
+
 #funciones para la generacion y manejo de bombas
 def bombastic_pos (screen): #guarda posicion de manejo de bombas 
      global lista_B, lista_E, bomba_in_bounds, lista_EL
@@ -2159,8 +2187,9 @@ def dibujar_gui() :
     screen.blit(texto_puntaje_nivel,(332,25))
     #screen.blit(texto_puntaje_nivel, (425,5))
 
+llave = None  # Variable global para la llave
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO  
-    global matriz, puntaje_nivel,puntaje_final, estado
+    global matriz, puntaje_nivel,puntaje_final, estado, llave
     screen.fill("white")        
     
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantallag
@@ -2168,6 +2197,10 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
 
     if primera_vez:
         save_positions(game_surface)
+        llave = ubicar_llave(matriz, 48, 48) if nivel<3 else None  #Ubica la llave en una posicion aleatoria de la matriz
+        print(f"llave: {llave.x}, {llave.y}") if llave else print("No hay llave en este nivel")
+        
+
 
     generate(game_surface)
     bombastic_pos(game_surface)
@@ -2237,15 +2270,19 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
                    
     Player_1.mover(obstacles)
     Player_1.usar_bomba()
-    Player_1.ejecutar_habilidad()   
+    Player_1.ejecutar_habilidad()
+    if llave:
+        game_surface.blit(llave_img, (llave.x+10, llave.y))
+    
+
      
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
+
 start_time_pantalla=0
 def pantalla_seleccion_jugador () : 
-    bg_men_parallax()
     global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion, estado, Player_1, start_time_pantalla, global_fade, Fuerza_exp
 
-    zscreen.fill("black")
+    screen.fill("black")
 
 
     # Obtener el estado ACTUAL de los botones
@@ -2285,7 +2322,7 @@ def pantalla_seleccion_jugador () :
         desc_skin4= font0.render("tocado por la guerra fue. Su habilidad le permite", True, (129, 133, 137))
         desc_skin5= font0.render("calcular un misil en donde sus enemigos estan ", True, (129, 133, 137))
         preview = pg.transform.scale(preview_tactico, (200, 200))
-        desc_stats= font0.render("Vida maxima : 250           Dano base : 3                 Velocidad : 4", True, (127,169,7)) #texto que muestra las estadisticas del jugador
+        desc_stats= font0.render("Vida maxima : 250           Dano base : 3                 Velocidad : 1.5", True, (127,169,7)) #texto que muestra las estadisticas del jugador
     #SELECCION DE JUGADOR 
     if nuevo_seleccion_actual and not prev_seleccion:  # Solo en el flanco de subida
         skin_seleccionada = prev_seleccion
@@ -2354,7 +2391,7 @@ def pantalla_g_o () :
           fade_in_from_white()
           global_fade = True
      screen.fill("black")
-     titulo= font1.render("GAME OVER", True, (237, 22, 22))
+     titulo= font_tit1.render("GAME OVER", True, (237, 22, 22))
      screen.blit(titulo, (screen.get_width() // 2 - titulo.get_width() // 2, 100))
      texto_puntaje = font0.render(f"Puntaje final: {puntaje_final}", True, (255, 255, 255))
      screen.blit(texto_puntaje, (screen.get_width() // 2 - texto_puntaje.get_width() // 2, 200))
@@ -2446,11 +2483,9 @@ while True:
 #cambiar powerups para aferctar varas del player
 #agregar healthbar de boss
 #agregar puntaje 
-#los stats del jugador en la pantalla de seleccion 
 #POWERUPS 
 #ITEMS 
 #PANTALLA DE WIN 
-#ARREGLAR PANTALLA DE GAME OVER
 
 #*!CADA 100 PUNTOS DA 1 PT DE MEJORA . USTED AL FINAL DEL NIVEL PUEDE MEJORAR SU JUGADOR PARA EL SIGUIENTE NIVEL *! PERMANENTE 
 
