@@ -239,7 +239,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         self.barra_habilidad = 0  # Tiempo de recarga de la habilidad
         self.color_bajada=color_bajada
         self.powerups= {"dano" : 0 , "vida":0}
-        self.items = {"bombas":30, "velocidad" : 0 ,"escudo":0 }
+        self.items = {"bombas":30, "velocidad" : 10 ,"escudo":10 }
         self.powerup_en_uso={"dano": False, "vida": False}
         self.item_en_uso={"bombas":False, "velocidad" : False ,"escudo":False }
         self.tiene_llave=False
@@ -772,11 +772,6 @@ class Enemigo3 (Enemigo2):
                     self.laser.draw(self.screen)
 
 
-               
-          
-               
-               
-
           else:
                if current_time - self.last_update > 0.1:
                     self.last_update = current_time
@@ -831,6 +826,8 @@ class Enemigo3 (Enemigo2):
 
           self.screen.blit(self.current_skin, (self.x, self.y))
 
+     
+
 class LaserEnemigo:
     def __init__(self, x, y, ancho, alto, direccion, color=(0, 255, 0)):
         self.x = x
@@ -862,6 +859,152 @@ class LaserEnemigo:
             self.y = enemigo_y
         self.rect.topleft = (self.x, self.y)
         self.mask = pg.mask.from_surface(self.image)
+
+
+class Boss(Enemigo3):
+     def __init__(self, screen, x, y, velocidad, spritesheet_walk, spritesheet_death, sprite_attack, spritehurt, frame_count, frame_w, frame_h, scale, colour, muerte, dir, vida, spritesheet_fly, spritesheet_walk_attack, spritesheet_idle):
+          super().__init__(screen, x, y, velocidad, spritesheet_walk, spritesheet_death, sprite_attack, spritehurt, frame_count, frame_w, frame_h, scale, colour, muerte, dir, vida)
+          self.spritesheet_fly = spritesheet_fly
+          self.spritesheet_walk_attack = spritesheet_walk_attack
+          self.spritesheet_idle = spritesheet_idle
+
+     def puede_ver_jugador(self, jugador_pos, obstáculos=None, vision_radio=1000000000000000):
+          
+          jugador_pos = tuple(jugador_pos)
+
+          enemigo_pos = (
+               self.x + self.current_skin.get_width() // 2,
+               self.y + self.current_skin.get_height() // 2
+          )
+
+          
+          
+          return distance(enemigo_pos, jugador_pos) <= vision_radio
+     
+     def animacion_skin(self):
+          current_time = t.time()
+
+          if self.muerte:
+               self.frame_count = 7
+               if current_time - self.last_update > 0.3:
+                    self.last_update = current_time
+                    self.current_frame = (self.current_frame + 1) % self.frame_count
+               self.current_skin = self.current_spritesheet.get_image(
+                    self.current_frame, self.width_frame, self.height_frame, self.scale, self.colour)
+               self.mask = pg.mask.from_surface(self.current_skin)
+               if self.current_frame == 6:
+                    try:
+                         Lista_Enemigos_3.remove(self)
+                    except:
+                         pass
+               self.screen.blit(self.current_skin, (self.x+10, self.y+10))
+
+          elif self.attack:
+               
+
+               if self.current_frame == 2 and not self.laser_dibujado:
+                    # Centro del enemigo
+                    centro_x = self.x + self.current_skin.get_width() // 2 
+                    centro_y = self.y + self.current_skin.get_height() // 2 
+
+                    if hasattr(self, 'dir_ataque'):
+                         dir_laser = self.dir_ataque
+                    else:
+                         dir_laser = 'der'  # por defecto
+
+                    if dir_laser == 'izq' or dir_laser == 'der':
+                         ancho = 150  # largo del láser
+                         alto = 15
+                    else:
+                         ancho = 15
+                         alto = 150
+
+                    self.laser = LaserEnemigo(centro_x, centro_y, ancho, alto, dir_laser)
+                    self.laser.update_pos(centro_x, centro_y)
+                    self.laser_dibujado = True
+               if self.attack_frame_inicial:
+                    self.current_frame = 0
+                    self.attack_frame_inicial = False
+
+               if current_time - self.last_update > 0.3:
+                    self.last_update = current_time
+                    self.current_frame += 1
+                    if self.current_frame >= self.frame_count:
+                         self.attack = False
+                         self.laser = None
+                         self.direccion_visual = None
+                         self.laser_dibujado = False
+                         self.cambiar_spritesheet(self.spritesheet_walk)
+                         self.velocidad = self.original_velocidad  # restaurar velocidad
+                         self.current_frame = 0
+
+               # 1. Obtener frame original SIN modificar
+               frame_sin_transformar = self.current_spritesheet.get_image(
+                    self.current_frame, self.width_frame, self.height_frame, self.scale, self.colour)
+
+               # 2. Aplicar transformación y asignar a current_skin
+               if hasattr(self, 'direccion_visual'):
+                    if self.direccion_visual == 'izq':
+                         self.current_skin = pg.transform.flip(frame_sin_transformar, True, False)
+                    elif self.direccion_visual == 'arr':
+                         self.current_skin = pg.transform.rotate(frame_sin_transformar, 90)
+                    elif self.direccion_visual == 'aba':
+                         self.current_skin = pg.transform.rotate(frame_sin_transformar, -90)
+                    else:
+                         self.current_skin = frame_sin_transformar
+               else:
+                    self.current_skin = frame_sin_transformar
+
+               self.current_skin.set_colorkey('black')
+
+                    
+               if self.attack and hasattr(self, 'pos_jugador'):
+                    centro_jugador_x = self.pos_jugador[0] + 36
+                    centro_jugador_y = self.pos_jugador[1] + 36  
+
+                    nuevo_x = centro_jugador_x - self.current_skin.get_width() // 2
+                    nuevo_y = centro_jugador_y - self.current_skin.get_height() // 2
+
+                    self.screen.blit(self.current_skin, (nuevo_x, nuevo_y))
+               else:
+                         self.screen.blit(self.current_skin, (self.x, self.y))
+
+               self.mask = pg.mask.from_surface(self.current_skin)
+               if self.laser:
+                    self.laser.draw(self.screen)
+
+
+          else:
+               if current_time - self.last_update > 0.1:
+                    self.last_update = current_time
+                    self.current_frame = (self.current_frame + 1) % self.frame_count
+
+               self.current_skin = self.current_spritesheet.get_image(
+                    self.current_frame, self.width_frame, self.height_frame, self.scale, self.colour)
+
+               if self.dir == 0:  # izquierda
+                    self.current_skin = pg.transform.flip(self.current_skin, True, False)
+                    self.current_skin.set_colorkey('black')
+               self.mask = pg.mask.from_surface(self.current_skin)
+               self.screen.blit(self.current_skin, (self.x, self.y))
+
+     def perseguir_jugador(self, pos_jugador): 
+          dx = pos_jugador[0] - self.x - 192
+          dy = pos_jugador[1] - self.y - 192
+          distancia = math.hypot(dx, dy)
+
+          if distancia == 0:
+               return
+
+          dx_norm = dx / distancia
+          dy_norm = dy / distancia
+
+          self.x += dx_norm * self.velocidad
+          self.y += dy_norm * self.velocidad
+
+          self.animacion_skin()  
+
+
 
 #Class Bomba_sprite
 class Bomba:
@@ -1074,17 +1217,18 @@ estado_anterior=""
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
-nivel = 1 #nivel inicial+1
+nivel = 3 #nivel inicial
 matriz = [] #la matriz extraida del nivel inicial
 items_en_nivel=[]  #lista de objetos items . se renderizan en el inicio del juego pero aparecen ocultos hasta la puta 
 Lista_Enemigos_1 = [] #la lista de los enemigos, esta solo posee los enemigos del nivel 1 o los mas sencillos
-Fuerza_exp = 10 #Esto dice la fuerza de la explosion, se va a expandir en casillas en forma de cruz, si es 1 es una casilla extra
+Fuerza_exp = 1 #Esto dice la fuerza de la explosion, se va a expandir en casillas en forma de cruz, si es 1 es una casilla extra
 lista_B = [] #lista de bombas, solo para multiples animaciones a la vez
 lista_E = [] #lista de explosiones, solo para multiples 
 lista_EL = [] #lista para las explosiones extra o de lado o de borde
 bomba_in_bounds = False
 Lista_Enemigos_2 = [] #para los enemigos morenos
 Lista_Enemigos_3 = []
+Lista_Boss = [] #solo boss
 
 #___________________Enemigos y Aparicion de obstaculos________________________
 CELL_SIZE = 48 #tamaño por celda para la aparicion de todo XDXDXDXDX
@@ -1255,6 +1399,42 @@ spritesheet_v_a = SpriteSheet(sps_v_a)
 sps_volador_muerte = pg.image.load("assets\sprites\enemies\Volador\BOOM_death.png")
 spritesheet_volador_muerte = SpriteSheet(sps_volador_muerte)
 
+#Kugel boss
+#_______________________________________________________________________
+#Attack
+sps_attack = pg.image.load("assets\sprites\enemies\Boss\Attack.png")
+spritesheet_boss_attack = SpriteSheet(sps_attack)
+
+#Bullet
+sps_bullet = pg.image.load("assets\sprites\enemies\Boss\Bullet.png")
+spritesheet_BB = SpriteSheet(sps_bullet)
+
+#Death 
+sps_boss_death = pg.image.load("assets\sprites\enemies\Boss\Death.png")
+spritesheet_boss_death = SpriteSheet(sps_boss_death)
+
+#Fly 
+sps_fly = pg.image.load("assets\sprites\enemies\Boss\Fly_up.png")
+spritesheet_boss_fly = SpriteSheet(sps_fly)
+
+#Hurt
+sps_boss_hurt = pg.image.load("assets\sprites\enemies\Boss\Hurt.png")
+spritesheet_boss_hurt = SpriteSheet(sps_boss_hurt)
+
+#Idle
+sps_boss_idle = pg.image.load("assets\sprites\enemies\Boss\Idle.png")
+spritesheet_boss_idle = SpriteSheet(sps_boss_idle)
+
+#Walk attack
+sps_walk_attack_boss = pg.image.load("assets\sprites\enemies\Boss\Walk_attack.png")
+spritesheet_walk_attack_boss = SpriteSheet(sps_walk_attack_boss)
+
+#walk boss
+sps_walk_boss = pg.image.load("assets\sprites\enemies\Boss\Walk.png")
+spritesheet_walk_boss = SpriteSheet(sps_walk_boss)
+
+#_________________________________________________________________________________
+
 #Bomba
 sps_bomba = pg.image.load("assets\Textures\Bomba\Bomba.png")
 spritesheet_Bomba = SpriteSheet(sps_bomba)
@@ -1319,7 +1499,7 @@ def dibujar_scoreboard(screen, partidas, font, x=50, y=50, line_height=35):
 #------------------------------------------------------FUNCIONES SECUNDARIAS PARA NIVEL---------------------------------------- 
 #Funcion que ha partir de la matriz lee las posiciones iniciales 
 def save_positions(screen):
-        global obstacles, matriz, Lista_Enemigos_1, obstacles_R, Lista_Enemigos_2, Lista_Enemigos_3
+        global obstacles, matriz, Lista_Enemigos_1, obstacles_R, Lista_Enemigos_2, Lista_Enemigos_3, Lista_Boss
         for fil in range(len(matriz)):
              for col in range(len(matriz[fil])):
                   if matriz[fil][col] == '#': 
@@ -1344,6 +1524,10 @@ def save_positions(screen):
                   if matriz[fil][col] == 3:
                        Enemigo_Volador = Enemigo3(screen, (col*48), (fil*48), 1.3, spritesheet_volador, spritesheet_volador_muerte,spritesheet_v_a, spritesheet_v_a,3, 72, 72, 0.8, 'black', False, random.randint(0,3),70) 
                        Lista_Enemigos_3 += [Enemigo_Volador]
+
+                  if matriz[fil][col] == 4:
+                       Enemigo_Boss = Boss(screen, (col*48), (fil*48), 2, spritesheet_walk_boss, spritesheet_boss_death,spritesheet_boss_attack, spritesheet_boss_hurt,3, 96, 96, 3, 'black', False, random.randint(0,3),1500,spritesheet_boss_fly,spritesheet_walk_attack_boss,spritesheet_boss_idle)
+                       Lista_Boss += [Enemigo_Boss]
                
 def generar_powerups(screen, imagenes, map_cols, map_rows):
     powerups = []
@@ -1380,7 +1564,7 @@ def generate(screen):
             y = fil * 48
             celda = matriz[fil][col]
 
-            if celda in (0,1,8,9,'u','d','l','r','w','a','s','f','c',2,3):
+            if celda in (0,1,8,9,'u','d','l','r','w','a','s','f','c',2,3,4):
                 if fil == 0 and col == 0:
                     texture = Floor_corner0
                 elif fil == 0 and col == 16:
@@ -1479,23 +1663,19 @@ def bombastic_hitbox ():
                    obstacles.remove(obsR)
           for enemies in Lista_Enemigos_1:
               if Explosion_Matriz.colisiona_con(exp, enemies):
-                   puntaje_nivel+=1 #puntaje por matar enemigos
+                   puntaje_nivel+=min(1, Fuerza_exp) #puntaje por matar enemigos
                    enemies.animacion_muerte()
           for ene_2 in Lista_Enemigos_2:
                if Explosion_Matriz.colisiona_con(exp,ene_2):
                     if ene_2.vida <= 0:
-                         puntaje_nivel+=2 #puntaje por matar enemigos
                          ene_2.animacion_muerte()
-                         
                     else:
                          ene_2.vida -= 1
                          ene_2.animacion_hurt()
           for ene_3 in Lista_Enemigos_3:
                if Explosion_Matriz.colisiona_con(exp,ene_3):
                     if ene_3.vida <= 0:
-                         puntaje_nivel+=3 #puntaje por matar enemigos
                          ene_3.animacion_muerte()
-                         
                     else:
                          ene_3.vida -= 1
                          ene_3.animacion_hurt()
@@ -1617,11 +1797,9 @@ def bombastic_hitbox ():
               if Explosion_Matriz_Lados.colisiona_con(exp_l, enemies):
                    puntaje_nivel+=1
                    enemies.animacion_muerte()
-
           for ene_2 in Lista_Enemigos_2:
                if Explosion_Matriz.colisiona_con(exp_l,ene_2):
                     if ene_2.vida <= 0:
-                         puntaje_nivel+=2
                          ene_2.animacion_muerte()
                     else:
                          ene_2.vida -= 1
@@ -1629,7 +1807,6 @@ def bombastic_hitbox ():
           for ene_3 in Lista_Enemigos_3:
                if Explosion_Matriz.colisiona_con(exp_l,ene_3):
                     if ene_3.vida <= 0:
-                         puntaje_nivel+=3
                          ene_3.animacion_muerte()
                     else:
                          ene_3.vida -= 1
@@ -1642,9 +1819,10 @@ def leer_archivo(path):
         contenido = archivo.read()
         archivo.close()
         return contenido
+
 def init (nivel):
         global matriz
-        texto_nivel = f"games/levels/Nivel_{nivel}.txt"
+        texto_nivel = fr"games\\levels\\Nivel_{nivel}.txt"
         matriz = eval(leer_archivo(texto_nivel))
 Enemigo_perro = Enemigos(screen, (0), (0), 1.1, spritesheet_perro_cañon, spritesheet_perro_muerte, 3, 48, 48, 0, 'black', False, random.randint(0,3)) #enemigo fantasma para q no explote todo xd
 Lista_Enemigos_1 += [Enemigo_perro]
@@ -1982,7 +2160,10 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     pos_jugador = (Player_1.x,Player_1.y)
 
     
-    
+    for boss in Lista_Boss:
+         if boss.puede_ver_jugador(pos_jugador,obstacles):
+              boss.perseguir_jugador(pos_jugador)
+         boss.move()
 
     for ene_3 in Lista_Enemigos_3:
          if ene_3.puede_ver_jugador(pos_jugador,obstacles):
@@ -1991,8 +2172,6 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
                if Enemigos.colisiona_con(ene_3, Player_1):
                     ene_3.animacion_attack(pos_jugador)
          if ene_3.laser is not None:
-              if Player_1.colisiona_con(ene_3) and not Player_1.item_en_uso["escudo"]:
-                    Player_1.vida-=0.05
               for obst in obstacles_R:
                    if Enemigos.colisiona_con(ene_3.laser,obst):
                         matriz[int(obst.y/48)][int(obst.x/48)] = 0
@@ -2001,8 +2180,6 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
 
          ene_3.move()
     for ene_2 in Lista_Enemigos_2:
-         if Player_1.colisiona_con(ene_2) and not Player_1.item_en_uso["escudo"]:
-              Player_1.vida-=0.1
          for obst in obstacles:
               if Enemigos.colisiona_con(ene_2,obst):
                    ene_2.rebote()
@@ -2048,12 +2225,10 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     Player_1.ejecutar_habilidad()   
      
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
-    if tiempo_juego.tiempo ==0 : 
-         Player_1.muerto=True
 start_time_pantalla=0
 def pantalla_seleccion_jugador () : 
     global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion, estado, Player_1, start_time_pantalla, global_fade
-    global Fuerza_exp
+
     screen.fill("black")
 
 
@@ -2076,9 +2251,6 @@ def pantalla_seleccion_jugador () :
         desc_skin4= font0.render("Su habilidad especial es que puede atravesar ", True, (129, 133, 137))
         desc_skin5= font0.render("           Paredes y enemigos con facilidad ", True, (129, 133, 137))
         preview= pg.transform.scale(preview_intangible, (200, 200)) #escala el preview del jugador intangible
-        stats_vida= font0.render("Vida maxima : 150", True, (198, 28, 232)) #texto que muestra la vida del jugador
-        stats_dano= font0.render("Dano Base : 2", True, (198, 28, 232)) #texto que muestra el dano del jugador
-        stats_velo= font0.render("Velocidad : 3", True, (198, 28, 232)) #texto que muestra la velocidad del jugador
     elif skin_viendo == 1:
         Titulo_skin= font1.render ("   Kamikaze", True, (248, 147, 18)) #texto que muestra el nombre de la skin")
         desc_skin = font0.render("      ' Un alma por una bomba '", True, (255, 255, 255)) #texto que muestra la descripcion de la skin
@@ -2087,9 +2259,6 @@ def pantalla_seleccion_jugador () :
         desc_skin4= font0.render("      Intercambia con los espiritus almas por ", True, (129, 133, 137))
         desc_skin5= font0.render("                       bombas y viceversa.", True, (129, 133, 137))
         preview = pg.transform.scale(preview_kamikaze, (200, 200)) #escala el preview del jugador kamikaze
-        stats_vida= font0.render("Vida maxima: 200", True, (248, 147, 18)) #texto que muestra la vida del jugador
-        stats_dano= font0.render("Dano Base : 1", True, (248, 147, 18)) #texto que muestra el dano del jugador
-        stats_velo= font0.render("Velocidad : 4", True, (248, 147, 18)) #texto que muestra la velocidad del jugador
     elif skin_viendo == 2:
         Titulo_skin= font1.render ("    Tactico", True, (127,169,7)) #texto que muestra el nombre de la skin")
         desc_skin = font0.render("    '   El hombre que calcula  '", True, (255, 255, 255)) #texto que muestra la descripcion de la skin
@@ -2098,22 +2267,16 @@ def pantalla_seleccion_jugador () :
         desc_skin4= font0.render("tocado por la guerra fue. Su habilidad le permite", True, (129, 133, 137))
         desc_skin5= font0.render("calcular un misil en donde sus enemigos estan ", True, (129, 133, 137))
         preview = pg.transform.scale(preview_tactico, (200, 200))
-        stats_vida= font0.render("Vida maxima : 250", True, (127,169,7)) #texto que muestra la vida del jugador
-        stats_dano= font0.render("Dano Base : 3", True, (127,169,7)) #texto que muestra el dano del jugador
-        stats_velo= font0.render("Velocidad : 1.5", True, (127,169,7)) #texto que muestra la velocidad del jugador
     #SELECCION DE JUGADOR 
     if nuevo_seleccion_actual and not prev_seleccion:  # Solo en el flanco de subida
         skin_seleccionada = prev_seleccion
         skin_seleccionada = skin_viendo
         if skin_seleccionada == 0 : 
-            Player_1= Jugador_1(game_surface,0,0,3,spritesheet_idle_int,spritesheet_walk_int,spritesheet_habilidad_int,spritesheet_death_int,9,8,8,8,32,32,1.5,"black","Invencible",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
-            Fuerza_exp=2
+            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_int,spritesheet_walk_int,spritesheet_habilidad_int,spritesheet_death_int,9,8,8,8,32,32,1.5,"black","Invencible",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
         elif skin_seleccionada == 1 : 
             Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_walk_kam ,spritesheet_habilidad_kam,spritesheet_death_kam,4,7,12,8,48,32,1.35,"black","Kamikaze",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
-            Fuerza_exp=1
         elif skin_seleccionada == 2 :
             Player_1= Jugador_1(game_surface,0,0,1.5,spritesheet_idle_tac,spritesheet_walk_tac ,spritesheet_habilidad_tac,spritesheet_death_tac,4,6,9,6,96,96,0.5,"black","Tactico",6,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
-            Fuerza_exp=3
 
         estado ="cargar_nivel" #SIEMPRE BAMCIAR EL ESTADO AML SIGUIENTE ANTES DE JUEGO O NO SE 
         start_time_pantalla = pg.time.get_ticks()
@@ -2121,9 +2284,6 @@ def pantalla_seleccion_jugador () :
     prev_seleccion = nuevo_seleccion_actual  # Actualizar estado previo 
  
     screen.blit(Titulo_skin, (300, 50))
-    screen.blit(stats_vida, (150, 470))  # Dibuja la vida del jugador en la pantalla
-    screen.blit(stats_dano, (340, 470))  # Dibuja el    
-    screen.blit(stats_velo, (500, 470))  # Dibuja la velocidad del jugador en la pantalla
     screen.blit(desc_skin, (257, 100))  # Dibuja la descripción de la skin en la pantalla
     screen.blit(desc_skin2, (235, 360))  # Dibuja la descripción de la skin en la pantalla
     screen.blit(desc_skin3, (200, 400))  # Dibuja la descripción de la skin en la pantalla
@@ -2138,15 +2298,6 @@ def pantalla_seleccion_jugador () :
     boton_siguiente_opcion.draw(screen)  # Dibuja el botón en la pantalla
     boton_seleccionar.draw(screen)  # Dibuja el botón en la pantalla
 
-def pantalla_upgrades() : 
-     global estado, prev_atras, global_fade, start_time_pantalla
-     if not global_fade : 
-          fade_in_from_white()
-          global_fade = True
-     screen.fill("black")
-     titulo= font1.render("UPGRADES", True, (255, 255, 255))
-     screen.blit(titulo, (screen.get_width() // 2 - titulo.get_width() // 2, 100))
-
 def pantalla_creditos() :
      global prev_atras,estado
      bg_men_parallax()
@@ -2160,6 +2311,7 @@ def pantalla_creditos() :
      boton_back.draw(screen)
      star_wars_crawl(screen,texto, imagenes,font,(255,255,255),0.5)
 
+
 def pantalla_cargar_lvl() : 
      global estado, prev_atras, global_fade, nivel, start_time_pantalla
      if not global_fade : 
@@ -2168,6 +2320,7 @@ def pantalla_cargar_lvl() :
      screen.fill("black")
      titulo= font_tit.render(F"NIVEL {nivel+1}", True, (255, 255, 255))
      screen.blit(titulo, (285, 230))
+
 
 def pantalla_g_o () : 
      global estado, puntaje_final, prev_atras, global_fade
@@ -2273,7 +2426,7 @@ while True:
 #PANTALLA DE WIN 
 #ARREGLAR PANTALLA DE GAME OVER
 
-#*!CADA 500 PUNTOS DA 1 PT DE MEJORA . USTED AL FINAL DEL NIVEL PUEDE MEJORAR SU JUGADOR PARA EL SIGUIENTE NIVEL *! PERMANENTE 
+#*!CADA 100 PUNTOS DA 1 PT DE MEJORA . USTED AL FINAL DEL NIVEL PUEDE MEJORAR SU JUGADOR PARA EL SIGUIENTE NIVEL *! PERMANENTE 
 
 #*!DOCUMENTACION 
 
@@ -2283,4 +2436,3 @@ while True:
 
 #TODO : ambos
 #BOSS (DICE STEAMAN QUE LO HACE
-#*!2286 lineas :O LA PUTA MADREEEEEEEEEEEEEEEEEE
