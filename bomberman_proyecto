@@ -1868,6 +1868,7 @@ def bombastic_pos (screen): #guarda posicion de manejo de bombas
                   if matriz[fil][col] == 9:
                        Exp_R = Explosion_Matriz(screen, (col*48), (fil*48), spritesheet_exp_c, 5, 64, 64, 0.75, 'black',True)
                        lista_E += [Exp_R]
+                       matriz[fil][col] = 0
                        
 
                   if matriz[fil][col] in ('u','l','d','r'):
@@ -1891,7 +1892,7 @@ def bombastic_pos (screen): #guarda posicion de manejo de bombas
                   if matriz[fil][col] == 7:
                        Exp_R = Explosion_Matriz_boss(screen, (col*48), (fil*48), spritesheet_exp_c_boss, 5, 64, 64, 0.75, 'black',True)
                        lista_E_Boss += [Exp_R]
-                       
+                       matriz[fil][col] = 0
 
                   if matriz[fil][col] in ('U','L','D','R'):
                        EXP_RL = Explosion_Matriz_Lados_Boss(screen, (col*48), (fil*48), spritesheet_exp_l_boss, 5, 64, 64, 0.75, 'black',True,matriz[fil][col])
