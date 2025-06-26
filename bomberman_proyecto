@@ -2242,9 +2242,10 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
 start_time_pantalla=0
 def pantalla_seleccion_jugador () : 
+    bg_men_parallax()
     global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion, estado, Player_1, start_time_pantalla, global_fade, Fuerza_exp
 
-    screen.fill("black")
+    zscreen.fill("black")
 
 
     # Obtener el estado ACTUAL de los botones
