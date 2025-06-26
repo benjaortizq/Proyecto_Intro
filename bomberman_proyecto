@@ -230,6 +230,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         super().__init__( area_juego, pos_x, pos_y, velocidad, sps_idle,sps_mover,sps_hab,sps_muerte, frames_idle,frames_mover,frames_hab, frames_muerte, frame_w,frame_h, scale, colour)
         self.habilidad=habilidad
         self.vida=100 #vida del jugador
+        self.vida_maxima=200 if habilidad=="Kamikaze" else 150 if habilidad=="Invencible" else 250 if habilidad=="Tactico" else 100
         self.ejecutando_habilidad = False
         self.tiempo_inicio_habilidad = 0
         self.max_tiempo_habilidad = 5  # 5 segundos máximo
@@ -2241,7 +2242,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
 start_time_pantalla=0
 def pantalla_seleccion_jugador () : 
-    global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion, estado, Player_1, start_time_pantalla, global_fade
+    global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion, estado, Player_1, start_time_pantalla, global_fade, Fuerza_exp
 
     screen.fill("black")
 
@@ -2265,6 +2266,7 @@ def pantalla_seleccion_jugador () :
         desc_skin4= font0.render("Su habilidad especial es que puede atravesar ", True, (129, 133, 137))
         desc_skin5= font0.render("           Paredes y enemigos con facilidad ", True, (129, 133, 137))
         preview= pg.transform.scale(preview_intangible, (200, 200)) #escala el preview del jugador intangible
+        desc_stats= font0.render("Vida maxima : 150           Dano base : 2                 Velocidad : 3", True, (198, 28, 232)) #texto que muestra las estadisticas del jugador
     elif skin_viendo == 1:
         Titulo_skin= font1.render ("   Kamikaze", True, (248, 147, 18)) #texto que muestra el nombre de la skin")
         desc_skin = font0.render("      ' Un alma por una bomba '", True, (255, 255, 255)) #texto que muestra la descripcion de la skin
@@ -2273,6 +2275,7 @@ def pantalla_seleccion_jugador () :
         desc_skin4= font0.render("      Intercambia con los espiritus almas por ", True, (129, 133, 137))
         desc_skin5= font0.render("                       bombas y viceversa.", True, (129, 133, 137))
         preview = pg.transform.scale(preview_kamikaze, (200, 200)) #escala el preview del jugador kamikaze
+        desc_stats= font0.render("Vida maxima : 200           Dano base : 1                 Velocidad : 4", True, (248, 147, 18)) #texto que muestra las estadisticas del jugador
     elif skin_viendo == 2:
         Titulo_skin= font1.render ("    Tactico", True, (127,169,7)) #texto que muestra el nombre de la skin")
         desc_skin = font0.render("    '   El hombre que calcula  '", True, (255, 255, 255)) #texto que muestra la descripcion de la skin
@@ -2281,16 +2284,23 @@ def pantalla_seleccion_jugador () :
         desc_skin4= font0.render("tocado por la guerra fue. Su habilidad le permite", True, (129, 133, 137))
         desc_skin5= font0.render("calcular un misil en donde sus enemigos estan ", True, (129, 133, 137))
         preview = pg.transform.scale(preview_tactico, (200, 200))
+        desc_stats= font0.render("Vida maxima : 250           Dano base : 3                 Velocidad : 4", True, (127,169,7)) #texto que muestra las estadisticas del jugador
     #SELECCION DE JUGADOR 
     if nuevo_seleccion_actual and not prev_seleccion:  # Solo en el flanco de subida
         skin_seleccionada = prev_seleccion
         skin_seleccionada = skin_viendo
         if skin_seleccionada == 0 : 
             Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_int,spritesheet_walk_int,spritesheet_habilidad_int,spritesheet_death_int,9,8,8,8,32,32,1.5,"black","Invencible",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
+            Player_1.vida_maxima=150
+            Fuerza_exp= 2
         elif skin_seleccionada == 1 : 
             Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_walk_kam ,spritesheet_habilidad_kam,spritesheet_death_kam,4,7,12,8,48,32,1.35,"black","Kamikaze",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
+            Player_1.vida_maxima=200
+            Fuerza_exp= 1
         elif skin_seleccionada == 2 :
             Player_1= Jugador_1(game_surface,0,0,1.5,spritesheet_idle_tac,spritesheet_walk_tac ,spritesheet_habilidad_tac,spritesheet_death_tac,4,6,9,6,96,96,0.5,"black","Tactico",6,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
+            Player_1.vida_maxima = 250
+            Fuerza_exp= 3
 
         estado ="cargar_nivel" #SIEMPRE BAMCIAR EL ESTADO AML SIGUIENTE ANTES DE JUEGO O NO SE 
         start_time_pantalla = pg.time.get_ticks()
@@ -2304,6 +2314,7 @@ def pantalla_seleccion_jugador () :
     screen.blit(desc_skin4, (175, 420))  # Dibuja la descripción de la skin en la pantalla
     screen.blit(desc_skin5, (190, 440))  # Dibuja la descripción de la skin en la pantalla
     screen.blit(preview, (290, 135))  # Dibuja el preview del jugador en la pantalla
+    screen.blit(desc_stats, (130, 470))  # Dibuja las estadisticas del jugador en la pantalla
 
     if not global_fade : 
         fade_in_from_white()
