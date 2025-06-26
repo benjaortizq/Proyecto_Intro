@@ -1644,7 +1644,7 @@ def leer_archivo(path):
         return contenido
 def init (nivel):
         global matriz
-        texto_nivel = f"Nivel_{nivel}.txt"
+        texto_nivel = f"games/levels/Nivel_{nivel}.txt"
         matriz = eval(leer_archivo(texto_nivel))
 Enemigo_perro = Enemigos(screen, (0), (0), 1.1, spritesheet_perro_cañon, spritesheet_perro_muerte, 3, 48, 48, 0, 'black', False, random.randint(0,3)) #enemigo fantasma para q no explote todo xd
 Lista_Enemigos_1 += [Enemigo_perro]
