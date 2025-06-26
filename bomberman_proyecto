@@ -108,7 +108,6 @@ class Healthbar_Player (HealthBar) :
         vidas=self.font.render (f"x {self.cant_vidas}", True, (255, 255, 255)) # Renderiza la cantidad de vidas del jugador
         surface.blit(vidas, (self.x - heart_texture.get_width()-32, self.y+5))  # Dibuja la cantidad de vidas en la barra de salud
 
-
 # -------------------------------------------------------CLASES DEL JUEGO-------------------------------------------
 # Clase Jugador: Representa al jugador en el juego.
 
@@ -162,7 +161,6 @@ class Jugador :
       self.current_skin = img
       self.mask = pg.mask.from_surface(self.current_skin)
           
-
     def colisiona_con(self, otro_objeto):
         # Calcular diferencia de posiciones (offset)
         offset_x = int(otro_objeto.x) - int(self.x)
@@ -230,6 +228,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         super().__init__( area_juego, pos_x, pos_y, velocidad, sps_idle,sps_mover,sps_hab,sps_muerte, frames_idle,frames_mover,frames_hab, frames_muerte, frame_w,frame_h, scale, colour)
         self.habilidad=habilidad
         self.vida=100 #vida del jugador
+        self.vida_max_actual=100
         self.vida_maxima=200 if habilidad=="Kamikaze" else 150 if habilidad=="Invencible" else 250 if habilidad=="Tactico" else 100
         self.ejecutando_habilidad = False
         self.tiempo_inicio_habilidad = 0
@@ -320,7 +319,6 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
                      self.items["bombas"] -= 1
                      #print(f"Jugador en píxeles: ({self.x},{self.y})  →  celda: ({fila},{col})")
                      self.ultima_bomba = tiempo_actual
-
 
 #ocupo tipo scar tiempo. si en 0,5s no se presiona ninguna tecla entonces el sprote es el statico, si en n se presiona deacruerdo al movimiento cambia el sprite. sis e presiona el de habiliad, entones se muestra el speiret habilidad.
 #_____________________________________________________________________________________________________
@@ -1244,7 +1242,6 @@ class Bomba_boss:
         offset_y = int(otro_objeto.y) - int(self.y)
         return self.mask.overlap(otro_objeto.mask, (offset_x, offset_y)) is not None
 
-
 class Bomba_Matriz_boss(Bomba_boss):
      def __init__(self, screen, x, y, spritesheet_bomba, frame_count, frame_w, frame_h, scale, colour, explosion):
           super().__init__(screen, x, y, spritesheet_bomba, frame_count, frame_w, frame_h, scale, colour, explosion)
@@ -1760,14 +1757,12 @@ def generar_powerups(screen, imagenes, map_cols, map_rows):
 
     return powerups
 
-powerups = generar_powerups(screen, powerups_img, map_cols=11, map_rows=17)
 
 def encontrar_posiciones_llave(matriz, tile_width, tile_height):
 
     posiciones = []
     for fila_idx, fila in enumerate(matriz):
         for col_idx, celda in enumerate(fila):
-            print(celda)
             if celda == '*':
                 x = col_idx * tile_width
                 y = fila_idx * tile_height
@@ -1782,6 +1777,7 @@ def ubicar_llave(matriz, tile_width, tile_height):
     x, y = random.choice(posiciones)
     return llave_candado(x, y, True, False, llave_img)
 
+powerups=None
 #Este genera las texturas inamovibles, los enemigos se dibujan y se tratan dentro de su propia clase
 def generate(screen):
     global obstacles, matriz, powerups, nivel, llave, candado, estado, start_time_pantalla, global_fade
@@ -1815,16 +1811,17 @@ def generate(screen):
                 obs = Obstaculo(screen, x, y, texture)
                 obs.draw()
 
-    for item in powerups:
-        screen.blit(item.spritesheet, (item.x, item.y))
-        if Player_1.colisiona_con(item):
-            if item.tipo == "velocidad":
-                Player_1.items["velocidad"] = Player_1.items.get("velocidad", 0) + 1
-            elif item.tipo == "escudo":
-                Player_1.items["escudo"] = Player_1.items.get("escudo", 0) + 1
-            elif item.tipo == "bomba":
-                Player_1.items["bombas"] = Player_1.items.get("bombas", 0) + 1
-            powerups.remove(item)
+    if powerups is not None:
+          for item in powerups:
+               screen.blit(item.spritesheet, (item.x, item.y))
+               if Player_1.colisiona_con(item):
+                    if item.tipo == "velocidad":
+                         Player_1.items["velocidad"] = Player_1.items.get("velocidad", 0) + 1
+                    elif item.tipo == "escudo":
+                         Player_1.items["escudo"] = Player_1.items.get("escudo", 0) + 1
+                    elif item.tipo == "bomba":
+                         Player_1.items["bombas"] = Player_1.items.get("bombas", 0) + 1
+                    powerups.remove(item)
     if llave:
         game_surface.blit(llave_img, (llave.x+10, llave.y))
         if Player_1.colisiona_con(llave):
@@ -2532,12 +2529,12 @@ def dibujar_gui() :
 llave = None  # Variable global para la llave
 candado= None
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO  
-    global matriz, puntaje_nivel,puntaje_final, estado, llave, candado
+    global matriz, puntaje_nivel,puntaje_final, estado, llave, candado, powerups
     screen.fill("white")        
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantallag
     dibujar_gui()      
-    print(matriz[1][0])
     if primera_vez:
+        powerups = generar_powerups(screen, powerups_img, map_cols=11, map_rows=17)
         save_positions(game_surface)
         llave = ubicar_llave(matriz, 48, 48) if nivel<3 else None  #Ubica la llave en una posicion aleatoria de la matriz
         print(f"llave: {llave.x}, {llave.y}") if llave else print("No hay llave en este nivel")
@@ -2716,9 +2713,9 @@ def pantalla_creditos() :
      boton_back.draw(screen)
      star_wars_crawl(screen,texto, imagenes,font,(255,255,255),0.5)
 
-
 def pantalla_cargar_lvl() : 
-     global estado, prev_atras, global_fade, nivel, start_time_pantalla
+     global estado, prev_atras, global_fade, nivel, start_time_pantalla, matriz
+
      if not global_fade : 
           fade_in_from_white()
           global_fade = True
@@ -2726,9 +2723,9 @@ def pantalla_cargar_lvl() :
      titulo= font_tit.render(F"NIVEL {nivel+1}", True, (255, 255, 255))
      screen.blit(titulo, (285, 230))
 
-
 def pantalla_g_o () : 
-     global estado, puntaje_final, prev_atras, global_fade
+     global estado, puntaje_final, prev_atras, global_fade, nivel, powerups, primera_vez, matriz
+     global Lista_Enemigos_1 , Lista_Enemigos_2, Lista_Enemigos_3, obstacles, obstacles_R, lista_B , lista_E , lista_EL
      if not global_fade : 
           fade_in_from_white()
           global_fade = True
@@ -2740,10 +2737,29 @@ def pantalla_g_o () :
      click_atras = boton_back.check_click()
      boton_back.draw(screen)
      if click_atras and not prev_atras:
-          estado = "menu"
           puntaje_final = 0
           global_fade = False
+          powerups = None
+          nivel=0
+          primera_vez= False
+          matriz=[]
+          Lista_Enemigos_1=[]
+          Lista_Enemigos_2=[]
+          Lista_Enemigos_3=[] 
+          lista_B = []
+          lista_E = []
+          lista_EL = []
+          obstacles = []
+          obstacles_R = []
+
+          estado = "menu"
      prev_atras = click_atras
+
+def pantalla_compra_powerups() : 
+     screen.fill("black")
+     titulo= font_tit1.render("COMPRA DE POWERUPS", True, (255, 255, 255))
+     screen.blit(titulo, (screen.get_width() // 2 - titulo.get_width() // 2, 100))
+     return
 
 def boombox() :
      global estado_anterior
@@ -2799,6 +2815,7 @@ while True:
              tiempo_juego.tiempo=300
              tiempo_juego.reanudar()  # Reinicia el temporizador para el nuevo nivel
              estado = "juego"
+     
     for event in pg.event.get():
         if event.type == pg.QUIT:
             tiempo_juego.detener()
@@ -2824,9 +2841,6 @@ while True:
 #TODO : benja
 #cambiar powerups para aferctar varas del player
 #agregar healthbar de boss
-#agregar puntaje 
-#POWERUPS 
-#ITEMS 
 #PANTALLA DE WIN 
 
 #*!CADA 100 PUNTOS DA 1 PT DE MEJORA . USTED AL FINAL DEL NIVEL PUEDE MEJORAR SU JUGADOR PARA EL SIGUIENTE NIVEL *! PERMANENTE 
