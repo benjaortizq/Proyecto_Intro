@@ -1565,8 +1565,6 @@ def generar_powerups(screen, imagenes, map_cols, map_rows):
 
 powerups = generar_powerups(screen, powerups_img, map_cols=11, map_rows=17)
 
-#llave y candado
-
 def encontrar_posiciones_llave(matriz, tile_width, tile_height):
 
     posiciones = []
@@ -1587,10 +1585,9 @@ def ubicar_llave(matriz, tile_width, tile_height):
     x, y = random.choice(posiciones)
     return llave_candado(x, y, True, False, llave_img)
 
-
 #Este genera las texturas inamovibles, los enemigos se dibujan y se tratan dentro de su propia clase
 def generate(screen):
-    global obstacles, matriz, powerups, nivel
+    global obstacles, matriz, powerups, nivel, llave, candado, estado, start_time_pantalla, global_fade
 
     for fil in range(len(matriz)):
         for col in range(len(matriz[fil])):
@@ -1631,6 +1628,19 @@ def generate(screen):
             elif item.tipo == "bomba":
                 Player_1.items["bombas"] = Player_1.items.get("bombas", 0) + 1
             powerups.remove(item)
+    if llave:
+        game_surface.blit(llave_img, (llave.x+10, llave.y))
+        if Player_1.colisiona_con(llave):
+            Player_1.tiene_llave = True
+            llave=None #remueve la llave de la pantalla una vez que el jugador la recoge
+    if candado:
+        game_surface.blit(candado_img, (candado.x+10, candado.y))
+        if Player_1.colisiona_con(candado) and Player_1.tiene_llave:
+            candado = None
+            estado ="cargar_nivel" #SIEMPRE BAMCIAR EL ESTADO AML SIGUIENTE ANTES DE JUEGO O NO SE 
+            start_time_pantalla = pg.time.get_ticks()
+            global_fade = False  # Reiniciar el fade global
+
 
 
     for fil in range(len(matriz)):
@@ -1648,7 +1658,6 @@ def generate(screen):
                 texture = Obstaculo_R
                 obs = Obstaculo(screen, x, y, texture)
                 obs.draw()
-
 
 #funciones para la generacion y manejo de bombas
 def bombastic_pos (screen): #guarda posicion de manejo de bombas 
@@ -2181,10 +2190,10 @@ def dibujar_gui() :
     #screen.blit(texto_puntaje_nivel, (425,5))
 
 llave = None  # Variable global para la llave
+candado= None
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO  
-    global matriz, puntaje_nivel,puntaje_final, estado, llave
+    global matriz, puntaje_nivel,puntaje_final, estado, llave, candado
     screen.fill("white")        
-    
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantallag
     dibujar_gui()      
 
@@ -2192,6 +2201,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
         save_positions(game_surface)
         llave = ubicar_llave(matriz, 48, 48) if nivel<3 else None  #Ubica la llave en una posicion aleatoria de la matriz
         print(f"llave: {llave.x}, {llave.y}") if llave else print("No hay llave en este nivel")
+        candado= llave_candado (100, 100, False , True ,candado_img) if nivel<3 else None #Ubica el candado en la posicion del candado
         
 
 
@@ -2264,8 +2274,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     Player_1.mover(obstacles)
     Player_1.usar_bomba()
     Player_1.ejecutar_habilidad()
-    if llave:
-        game_surface.blit(llave_img, (llave.x+10, llave.y))
+
     
 
      
