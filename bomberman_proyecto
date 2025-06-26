@@ -827,8 +827,6 @@ class Enemigo3 (Enemigo2):
 
           self.screen.blit(self.current_skin, (self.x, self.y))
 
-     
-
 class LaserEnemigo:
     def __init__(self, x, y, ancho, alto, direccion, color=(0, 255, 0)):
         self.x = x
@@ -860,7 +858,6 @@ class LaserEnemigo:
             self.y = enemigo_y
         self.rect.topleft = (self.x, self.y)
         self.mask = pg.mask.from_surface(self.image)
-
 
 class Boss(Enemigo3):
      def __init__(self, screen, x, y, velocidad, spritesheet_walk, spritesheet_death, sprite_attack, spritehurt, frame_count, frame_w, frame_h, scale, colour, muerte, dir, vida, spritesheet_fly, spritesheet_walk_attack, spritesheet_idle):
@@ -1004,9 +1001,6 @@ class Boss(Enemigo3):
           self.y += dy_norm * self.velocidad
 
           self.animacion_skin()  
-
-
-
 #Class Bomba_sprite
 class Bomba:
     
@@ -1201,7 +1195,6 @@ class llave_candado :
           self.img= img
           self.mask = pg.mask.from_surface(self.img)
      
-
 #-----------------------pygame------------------------------
 
 #commons de pygame (literalmente el inicio de pygame)
