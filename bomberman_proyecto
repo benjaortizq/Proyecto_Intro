@@ -3244,8 +3244,8 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
 
     if nivel==4 : 
          if len(Lista_Boss) == 0:
-              llave = ubicar_llave(matriz, 48, 48) if llave is None else None #Ubica la llave en una posicion aleatoria de la matriz
-              candado= llave_candado (100, 100, False , True ,candado_img) if candado is None else None #Ubica el candado en la posicion del candado
+              llave = llave_candado(200,200, True, False ,candado_img) if llave is None else llave #Ubica la llave en una posicion aleatoria de la matriz
+              candado= llave_candado (100, 100, False , True ,candado_img) if candado is None else candado #Ubica el candado en la posicion del candado
               
               
      
@@ -3270,10 +3270,15 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
          
     for trampa in traps:
          trampa.animation()
+         if trampa.activo and Player_1.colisiona_con(trampa) and not Player_1.item_en_uso["escudo"]:
+              Player_1.vida -= 0.5
     for boss in Lista_Boss:
          if boss.puede_ver_jugador(pos_jugador,obstacles):
               boss.perseguir_jugador(pos_jugador)
          boss.move()
+         if boss.habilidad_actual=="El_turing_bus" or boss.habilidad_actual=="El_Bombazo":
+              if Player_1.colisiona_con(boss) and not Player_1.item_en_uso["escudo"]:
+                   Player_1.vida -= 1
          for bala in boss.lista_balas_enemigas : 
               if Player_1.colisiona_con(bala) and not Player_1.item_en_uso["escudo"]:
                    Player_1.vida -= 0.7
