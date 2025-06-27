@@ -2595,29 +2595,36 @@ def bombastic_hitbox ():
                    obstacles.remove(obsR)
           for enemies in Lista_Enemigos_1:
               if Explosion_Matriz.colisiona_con(exp, enemies):
-                   puntaje_nivel+=min(1, Fuerza_exp) #puntaje por matar enemigos
+                   puntaje_nivel+=1
                    enemies.animacion_muerte()
           for ene_2 in Lista_Enemigos_2:
                if Explosion_Matriz.colisiona_con(exp,ene_2):
                     if ene_2.vida <= 0:
+                         
                          ene_2.animacion_muerte()
                     else:
                          ene_2.vida -= 1
+                         puntaje_nivel+=1
                          ene_2.animacion_hurt()
           for ene_3 in Lista_Enemigos_3:
                if Explosion_Matriz.colisiona_con(exp,ene_3):
                     if ene_3.vida <= 0:
+                         puntaje_nivel+=3
                          ene_3.animacion_muerte()
+                         
                     else:
                          ene_3.vida -= 1
+                         puntaje_nivel+=1
                          ene_3.animacion_hurt()
           for boss in Lista_Boss:
                if Explosion_Matriz.colisiona_con(exp,boss):
                     if boss.vida <= 0:
                          boss.animacion_muerte()
+                         puntaje_nivel+=10
                          boss.calculo_renal()
                     else:
                          boss.vida -= 5 #daño al boss
+                         puntaje_nivel+=5
                          boss.time = pg.time.get_ticks()
                          boss.animacion_hurt()
 
@@ -2742,26 +2749,32 @@ def bombastic_hitbox ():
           for ene_2 in Lista_Enemigos_2:
                if Explosion_Matriz.colisiona_con(exp_l,ene_2):
                     if ene_2.vida <= 0:
+                         puntaje_nivel+=2
                          ene_2.animacion_muerte()
                     else:
                          ene_2.vida -= 1
+                         puntaje_nivel+=1
                          ene_2.animacion_hurt()
           for ene_3 in Lista_Enemigos_3:
                if Explosion_Matriz.colisiona_con(exp_l,ene_3):
                     if ene_3.vida <= 0:
+                         puntaje_nivel+=3
                          ene_3.animacion_muerte()
                     else:
                          ene_3.vida -= 1
+                         puntaje_nivel+=1
                          ene_3.animacion_hurt()
 
           for boss in Lista_Boss:
                if Explosion_Matriz.colisiona_con(exp_l,boss):
                     if boss.vida <= 0:
                          boss.animacion_muerte()
+                         puntaje_nivel+=10
                          boss.calculo_renal()
                     else:
                          
                          boss.vida -= 1
+                         puntaje_nivel+=5
                          print(boss.vida)
                          boss.time = pg.time.get_ticks()
                          boss.animacion_hurt()
