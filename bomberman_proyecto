@@ -1785,7 +1785,7 @@ def ubicar_llave(matriz, tile_width, tile_height):
 powerups=None
 #Este genera las texturas inamovibles, los enemigos se dibujan y se tratan dentro de su propia clase
 def generate(screen):
-    global obstacles, matriz, powerups, nivel, llave, candado, estado, start_time_pantalla, global_fade
+    global obstacles, matriz, powerups, nivel, llave, candado, estado, start_time_pantalla, global_fade, puntaje_final, puntaje_nivel
 
     for fil in range(len(matriz)):
         for col in range(len(matriz[fil])):
@@ -1836,6 +1836,7 @@ def generate(screen):
         game_surface.blit(candado_img, (candado.x+10, candado.y))
         if Player_1.colisiona_con(candado) and Player_1.tiene_llave:
             candado = None
+            puntaje_final= puntaje_nivel + 500 #puntaje por abrir el candado
             estado ="comprar_powerups" #SIEMPRE BAMCIAR EL ESTADO AML SIGUIENTE ANTES DE JUEGO O NO SE 
             start_time_pantalla = pg.time.get_ticks()
             global_fade = False  # Reiniciar el fade global
@@ -2742,7 +2743,6 @@ def pantalla_cargar_lvl() :
      Player_1.tiene_llave = False
      primera_vez=True
      tiempo_juego.tiempo=300
-
 
 def pantalla_g_o () : 
      global estado, puntaje_final, prev_atras, global_fade, nivel, powerups, primera_vez, matriz
