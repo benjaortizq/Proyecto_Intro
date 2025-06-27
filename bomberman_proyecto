@@ -3503,7 +3503,7 @@ def pantalla_guardar_partida() :
      top_cinco = mejores[:max_display]
      dibujar_scoreboard(screen , top_cinco, font, x=100, y=150, line_height=40 )
 
-     guardar_partida
+     guardar_partida ()
 
      return
 
