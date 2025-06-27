@@ -534,8 +534,39 @@ class Enemigos:
 
      def auto_move(self):
                     self.move()
-                    
-                 
+     
+     def move_darkness(self):
+        self.animacion_skin()
+        # HORIZONTAL: dir 0 ← , dir 1 →
+        if self.dir in (0, 1):
+            
+            dx = -self.velocidad if self.dir == 0 else self.velocidad
+            new_x = self.x + dx
+            if dx < 0:
+                 self.current_skin = pg.transform.flip(self.current_skin, True, False)
+                 self.current_skin.set_colorkey('black')
+
+            if new_x <= 0:
+                 self.dir = 1
+            if new_x >= 770:
+                 self.dir = 0
+            # límites de pantalla
+            if 0 < new_x < 770:
+                self.x = new_x
+        # VERTICAL: dir 2 ↑ , dir 3 ↓
+        elif self.dir in (2, 3):
+            dy = -self.velocidad if self.dir == 2 else self.velocidad
+            new_y = self.y + dy
+            if new_y <= 0:
+                 self.dir = 3
+            if new_y >= 480:
+                 self.dir = 2
+            if 0 < new_y < 480:
+                self.y = new_y
+
+     def draw(self):
+          self.screen.blit(self.current_skin, (self.x, self.y))
+
      def rebote(self):
           #solo rebota su hay una pared
           self.dir ^= 1          
@@ -1910,7 +1941,7 @@ start_time_pantalla=0
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
-nivel = 2 #nivel inicial-1
+nivel = 0 #nivel inicial-1
 matriz = [] #la matriz extraida del nivel inicial
 items_en_nivel=[]  #lista de objetos items . se renderizan en el inicio del juego pero aparecen ocultos hasta la puta 
 Lista_Enemigos_1 = [] #la lista de los enemigos, esta solo posee los enemigos del nivel 1 o los mas sencillos
@@ -2339,8 +2370,8 @@ def ubicar_llave(matriz, tile_width, tile_height):
 
 #Este genera las texturas inamovibles, los enemigos se dibujan y se tratan dentro de su propia clase
 def generate(screen):
-    global obstacles, matriz, powerups, nivel, llave, candado, estado, start_time_pantalla, global_fade, puntaje_final, puntaje_nivel
-
+    global obstacles, matriz, powerups, nivel, llave, candado, estado, start_time_pantalla, global_fade, puntaje_final, puntaje_nivel, nivel, pos_jugador, FOV_RADIUS
+    
     for fil in range(len(matriz)):
         for col in range(len(matriz[fil])):
             x = col * 48
@@ -2368,11 +2399,27 @@ def generate(screen):
                     texture = Floor_nothing
 
                 obs = Obstaculo(screen, x, y, texture)
-                obs.draw()
+                if nivel != 1:
+                    obs.draw()
+                if nivel == 1:
+                    try:
+                         if is_in_fov_circle(pos_jugador,(obs.x,obs.y),FOV_RADIUS):
+                              obs.draw()
+                    except:
+                         pass
+                     
 
     if powerups is not None:
           for item in powerups:
-               screen.blit(item.spritesheet, (item.x, item.y))
+               if nivel != 1:
+                    screen.blit(item.spritesheet, (item.x, item.y))
+               if nivel == 1:
+                    try:
+                         if is_in_fov_circle(pos_jugador,(item.x, item.y),FOV_RADIUS):
+                              screen.blit(item.spritesheet, (item.x, item.y))
+                    except:
+                         pass
+               
                if Player_1.colisiona_con(item):
                     if item.tipo == "velocidad":
                          Player_1.items["velocidad"] = Player_1.items.get("velocidad", 0) + 1
@@ -2382,12 +2429,28 @@ def generate(screen):
                          Player_1.items["bombas"] = Player_1.items.get("bombas", 0) + 1
                     powerups.remove(item)
     if llave:
-        game_surface.blit(llave_img, (llave.x+10, llave.y))
+        if nivel != 1:
+                    game_surface.blit(llave_img, (llave.x+10, llave.y))
+        if nivel == 1:
+                    try:
+                         if is_in_fov_circle(pos_jugador,(llave.x+10, llave.y),FOV_RADIUS):
+                              game_surface.blit(llave_img, (llave.x+10, llave.y))
+                    except:
+                         pass
+        
         if Player_1.colisiona_con(llave):
             Player_1.tiene_llave = True
             llave=None #remueve la llave de la pantalla una vez que el jugador la recoge
     if candado:
-        game_surface.blit(candado_img, (candado.x+10, candado.y))
+        if nivel != 1:
+                    game_surface.blit(candado_img, (candado.x+10, candado.y))
+        if nivel == 1:
+                    try:
+                         if is_in_fov_circle(pos_jugador,(candado.x+10, candado.y),FOV_RADIUS):
+                              game_surface.blit(candado_img, (candado.x+10, candado.y))
+                    except:
+                         pass
+        
         if Player_1.colisiona_con(candado) and Player_1.tiene_llave:
             candado = None
             puntaje_final= puntaje_nivel + 500 #puntaje por abrir el candado
@@ -2406,12 +2469,27 @@ def generate(screen):
             if celda == '#':
                 texture = Obstaculo_I
                 obs = Obstaculo(screen, x, y, texture)
-                obs.draw()
+                if nivel != 1:
+                    obs.draw()
+                if nivel == 1:
+                    try:
+                         if is_in_fov_circle(pos_jugador,(obs.x,obs.y),FOV_RADIUS):
+                              obs.draw()
+                    except:
+                         pass
+                
 
             elif celda == '*':
                 texture = Obstaculo_R
                 obs = Obstaculo(screen, x, y, texture)
-                obs.draw()
+                if nivel != 1:
+                    obs.draw()
+                if nivel == 1:
+                    try:
+                         if is_in_fov_circle(pos_jugador,(obs.x,obs.y),FOV_RADIUS):
+                              obs.draw()
+                    except:
+                         pass
 
             if celda == 'H':
                        texture = Hielo_xd
@@ -3138,10 +3216,20 @@ def dibujar_gui() :
     screen.blit(texto_puntaje_nivel,(332,25))
     #screen.blit(texto_puntaje_nivel, (425,5))
 
+#________________Auxiliar para pantalla_juego___________
+#para el FOV lo pongo aca por mientras
+FOV_RADIUS = 100
+def is_in_fov_circle(player_pos, obj_pos, radius):
+    dx = player_pos[0] - obj_pos[0]
+    dy = player_pos[1] - obj_pos[1]
+    return dx*dx + dy*dy <= radius * radius
+
+
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO  
     global matriz, puntaje_nivel,puntaje_final, estado, llave, candado, powerups, pos_jugador,traps
     screen.fill("white")        
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantallag
+
     dibujar_gui()      
     if primera_vez:
         powerups = generar_powerups(screen, powerups_img, map_cols=11, map_rows=17)
@@ -3149,15 +3237,26 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
         llave = ubicar_llave(matriz, 48, 48) if nivel<3 else None  #Ubica la llave en una posicion aleatoria de la matriz
        # print(f"llave: {llave.x}, {llave.y}") if llave else print("No hay llave en este nivel")
         candado= llave_candado (100, 100, False , True ,candado_img) if nivel<3 else None #Ubica el candado en la posicion del candado
-        
-
+     
+    pos_jugador = (Player_1.x,Player_1.y)
+    if nivel == 1:
+          pg.draw.circle(
+               game_surface,
+               (255, 255, 255),  # color blanco
+               (int(Player_1.x)+24, int(Player_1.y+24)),  # posición del jugador
+               FOV_RADIUS, 1
+               
+          )
 
     generate(game_surface)
+    
     bombastic_pos(game_surface)
     bombastic_hitbox()
-    pos_jugador = (Player_1.x,Player_1.y)
+    
+    
     
 
+         
     for trampa in traps:
          trampa.animation()
     for boss in Lista_Boss:
@@ -3183,6 +3282,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
                         obstacles_R.remove(obst)
                         obstacles.remove(obst)
          ene_3.move()
+
     for ene_2 in Lista_Enemigos_2:
          if Player_1.colisiona_con(ene_2) and not Player_1.item_en_uso["escudo"]:
               Player_1.vida-=0.25
@@ -3193,15 +3293,30 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
               ene_2.perseguir_jugador(pos_jugador,obstacles)
          else:
                ene_2.move()
+
     for ene_1 in Lista_Enemigos_1:
         if Player_1.colisiona_con(ene_1) and not Player_1.item_en_uso["escudo"]:
              Player_1.vida-=0.2
-        ene_1.auto_move()
-        #obstaculos funciona con la mascara de los obstaculos, asi pues para hacer colisiones solo ve si hay choque entre mascaras
-        for obst in obstacles:
-               if Enemigos.colisiona_con(ene_1, obst):
-                              # aquí ya chocaron
-                              ene_1.rebote()
+        if nivel != 1:
+          ene_1.auto_move()
+          #obstaculos funciona con la mascara de los obstaculos, asi pues para hacer colisiones solo ve si hay choque entre mascaras
+          for obst in obstacles:
+                    if Enemigos.colisiona_con(ene_1, obst):
+                                   # aquí ya chocaron
+                                   ene_1.rebote()
+        else:
+             centro = (ene_1.x + 24, ene_1.y + 24)
+             ene_1.move_darkness()
+             if is_in_fov_circle(pos_jugador,centro,FOV_RADIUS):
+                   ene_1.draw()
+             for obst in obstacles:
+                    centro = (obst.x + 24, obst.y + 24)
+                    if Enemigos.colisiona_con(ene_1, obst):
+                                   # aquí ya chocaron
+                                   ene_1.rebote()
+                    if is_in_fov_circle(pos_jugador,centro,FOV_RADIUS):
+                         obst.draw()
+        
                     
     
     if B_1.bomba_animacion:
@@ -3610,5 +3725,4 @@ while True:
 #NIVELES
 
 
-#TODO : ambos
-#BOSS (DICE STEAMAN QUE LO HACE
+
