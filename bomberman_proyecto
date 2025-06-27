@@ -1367,10 +1367,6 @@ class Boss(Enemigo3):
                for fila in range(0, 11):
                     self.pyline_pendiente.append((fila, col))
                     
-
-
-
-
 def limpiar_enemigos():
      global matriz
      for fil in range(len(matriz)):
@@ -2980,6 +2976,9 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
          if boss.puede_ver_jugador(pos_jugador,obstacles):
               boss.perseguir_jugador(pos_jugador)
          boss.move()
+         for bala in boss.lista_balas_enemigas : 
+              if Player_1.colisiona_con(bala) and not Player_1.item_en_uso["escudo"]:
+                   Player_1.vida -= 0.7
 
     for ene_3 in Lista_Enemigos_3:
          if ene_3.puede_ver_jugador(pos_jugador,obstacles):
@@ -2988,14 +2987,19 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
                if Enemigos.colisiona_con(ene_3, Player_1):
                     ene_3.animacion_attack(pos_jugador)
          if ene_3.laser is not None:
+              if Player_1.colisiona_con(ene_3.laser) and not Player_1.item_en_uso["escudo"]:
+                   Player_1.vida -= 0.5
               for obst in obstacles_R:
                    if Enemigos.colisiona_con(ene_3.laser,obst):
                         matriz[int(obst.y/48)][int(obst.x/48)] = 0
                         obstacles_R.remove(obst)
                         obstacles.remove(obst)
 
+
          ene_3.move()
     for ene_2 in Lista_Enemigos_2:
+         if Player_1.colisiona_con(ene_2) and not Player_1.item_en_uso["escudo"]:
+              Player_1.vida-=0.25
          for obst in obstacles:
               if Enemigos.colisiona_con(ene_2,obst):
                    ene_2.rebote()
