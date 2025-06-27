@@ -1061,10 +1061,12 @@ class Bomba_Matriz(Bomba):
           self.animacion_skin()
           if self.current_frame == 4:
                matriz[int(self.y//48)][int(self.x//48)] = 9
+               sfx_bomba.play()
                lista_B.remove(self)
           self.screen.blit(self.current_skin, (self.x, self.y))
 
      def auto_animate(self):
+                    
                     self.animate_matriz()
 
 class Explosion:
@@ -1254,6 +1256,7 @@ class Bomba_Matriz_boss(Bomba_boss):
           self.animacion_skin()
           if self.current_frame == 4:
                matriz[int(self.y//48)][int(self.x//48)] = 7
+               sfx_bomba.play()
                lista_B_Boss.remove(self)
           self.screen.blit(self.current_skin, (self.x, self.y))
 
@@ -1544,6 +1547,9 @@ musica_creditos=pg.mixer.Sound("sounds\music\credits.mp3")
 musica_seleccion_personaje=pg.mixer.Sound("sounds\music\player_selection.mp3")
 musica_ending=pg.mixer.Sound("sounds\music\good_ending.mp3")
 musica_compra=pg.mixer.Sound("sounds\music\compra.mp3")
+
+#----------------------------SFX------------------------------
+sfx_bomba= pg.mixer.Sound("sounds\sfx\Bomba.mp3") #sonido de la bomba
 #-----------------------SPRITES------------------------------
 #Obstaculos
 sps_obstacles = pg.image.load("assets\Textures\Bricks.png")
@@ -2044,6 +2050,7 @@ def bombastic_hitbox ():
           bomba.auto_animate()
      for exp in lista_E:
           exp.auto_animate()
+
           for obsR in obstacles_R:
                if Explosion_Matriz.colisiona_con(exp, obsR):
                    matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
