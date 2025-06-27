@@ -2929,7 +2929,6 @@ while True:
     reloj.tick(60)
 
 #TODO : benja
-#cambiar powerups para aferctar varas del player
 #agregar healthbar de boss
 #PANTALLA DE WIN 
 
