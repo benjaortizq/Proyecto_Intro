@@ -5,7 +5,6 @@
       "puntaje": 5000,
       "nivel": 4,
       "personaje": "Invencible"
-      
     },
     {
       "usuario": "Steadman",
@@ -18,21 +17,36 @@
       "puntaje": 5616,
       "nivel": 4,
       "personaje": "Tactico"
-      
     },
     {
       "usuario": "Kira",
       "puntaje": 3102,
       "nivel": 3,
       "personaje": "Invencible"
-      
     },
     {
       "usuario": "Juan",
       "puntaje": 6969,
       "nivel": 4,
       "personaje": "Kamikaze"
-      
+    },
+    {
+      "usuario": "Benjamin",
+      "puntaje": 0,
+      "personaje": "Kamikaze",
+      "nivel": 1
+    },
+    {
+      "usuario": "Benjamin",
+      "puntaje": 0,
+      "personaje": "Kamikaze",
+      "nivel": 1
+    },
+    {
+      "usuario": "Basdas",
+      "puntaje": 0,
+      "personaje": "Kamikaze",
+      "nivel": 1
     }
   ]
 }

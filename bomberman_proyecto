@@ -2252,7 +2252,7 @@ def guardar_partida(data) :
 
 def nueva_partida( usuario, puntaje, personaje, nivel):
     global RUTA_PLAYS
-    data = cargar_partidas(RUTA_PLAYS)
+    data = cargar_partidas()
     partida = {
         "usuario": usuario,
         "puntaje": puntaje,
@@ -3594,9 +3594,10 @@ def pantalla_win() :
 
      boton_guardar_puntaje.draw(screen)  # Dibuja el botón en la pantalla
 
-
+boton_scoreboard_puntaje= Boton(300, 510, 210, 30, "Guardar", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de gaurdar_puntaje_en el json
+Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_walk_kam ,spritesheet_habilidad_kam,spritesheet_death_kam,4,7,12,8,48,32,1.35,"black","Kamikaze",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
 def pantalla_guardar_partida() : 
-     global global_cuadrado, bara_texto
+     global global_cuadrado, bara_texto, anterior_puntaje_guardar, estado, puntaje_final, nivel, Player_1, estado_anterior
      bg_men_parallax()
      if not global_cuadrado :
           animar_cuadro(screen)
@@ -3618,9 +3619,17 @@ def pantalla_guardar_partida() :
      top_cinco = mejores[:max_display]
      dibujar_scoreboard(screen , top_cinco, font, x=100, y=150, line_height=40 )
 
-     guardar_partida ()
+     boton_scoreboard_puntaje.draw(screen)  # Dibuja el botón en la pantalla
+     if boton_scoreboard_puntaje.check_click() and not anterior_puntaje_guardar:
+          nueva_partida(bara_texto, puntaje_final, Player_1.habilidad,nivel+1)  # Guarda la partida con el nombre ingresado
+          puntaje_final = 0  # Reinicia el puntaje final después de guardar
+          global_cuadrado = False  # Reiniciar el estado del cuadrado
+          bara_texto = ""  # Reinicia
+          Player_1=None
+          estado="menu"
 
-     return
+     anterior_puntaje_guardar = boton_scoreboard_puntaje.check_click()
+
 
 
 def boombox() :
