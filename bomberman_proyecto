@@ -279,6 +279,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
 
         # Escudo: 3 segundos
         if self.item_en_uso["escudo"]:
+            self.vida = min(self.vida + 0.025, self.vida_max_actual)  # Recuperás vida al usar el escudo
             if current_time - self.ultimo_escudo > 3:
                 self.item_en_uso["escudo"] = False
                 self.defensa_activa = False  # desactivás la defensa
@@ -1390,7 +1391,7 @@ benja=pg.transform.scale(benja, (138, 184)) #redimensiona la imagen de Benja a 1
 
 #*!-----------------------GLOBALES------------------------------
 pos_jugador = None
-estado = "comprar_powerups" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+estado = "menu" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 estado_anterior=""
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
@@ -1506,7 +1507,7 @@ spritesheet_walk_kam = SpriteSheet(imp_sps_kam_walk) #crea una instancia de la c
 spritesheet_death_kam = SpriteSheet(imp_sps_kam_death) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
 
 
-Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_int,spritesheet_walk_int,spritesheet_habilidad_int,spritesheet_death_int,9,8,8,8,32,32,1.5,"black","Invencible",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
+Player_1= None
 
 #ds
 font_tit= pg.font.Font("fonts\\Upheavt.ttf",60)
@@ -2718,7 +2719,7 @@ def pantalla_creditos() :
      star_wars_crawl(screen,texto, imagenes,font,(255,255,255),0.5)
 
 def pantalla_cargar_lvl() : 
-     global estado, prev_atras, global_fade, nivel, start_time_pantalla, matriz
+     global estado, prev_atras, global_fade, nivel, start_time_pantalla, matriz, lista_B, lista_E, lista_EL, Lista_Enemigos_1, Lista_Enemigos_2, Lista_Enemigos_3, obstacles, obstacles_R, primera_vez
 
      if not global_fade : 
           fade_in_from_white()
@@ -2726,6 +2727,22 @@ def pantalla_cargar_lvl() :
      screen.fill("black")
      titulo= font_tit.render(F"NIVEL {nivel+1}", True, (255, 255, 255))
      screen.blit(titulo, (285, 230))
+     matriz=[]
+     Lista_Enemigos_1=[]
+     Lista_Enemigos_2=[]
+     Lista_Enemigos_3=[] 
+     lista_B = []
+     lista_E = []
+     lista_EL = []
+     obstacles = []
+     obstacles_R = []
+     Player_1.x=0
+     Player_1.y=0
+     Player_1.vida= Player_1.vida_max_actual
+     Player_1.tiene_llave = False
+     primera_vez=True
+     tiempo_juego.tiempo=300
+
 
 def pantalla_g_o () : 
      global estado, puntaje_final, prev_atras, global_fade, nivel, powerups, primera_vez, matriz
@@ -2755,6 +2772,9 @@ def pantalla_g_o () :
           lista_EL = []
           obstacles = []
           obstacles_R = []
+          Player_1.tiene_llave = False
+          Player_1.puntos_compra = 0
+          Player_1.cant_vidas = 3
 
           estado = "menu"
      prev_atras = click_atras
@@ -2763,13 +2783,14 @@ def pantalla_g_o () :
 boton_comprar_vidas= Boton(300, 420, 210, 30, "+25 Vida (2 creditos)", "fonts/Pixeltype.ttf", 28, ("gray"), ("green")) #crea un boton de comprar vidas
 boton_comprar_dano= Boton(300, 370, 210, 30, "+1 Dano (3 creditos)", "fonts/Pixeltype.ttf", 28, ("gray"), ("green")) #crea un boton de comprar dano
 boton_comprar_pts= Boton(300, 320, 210, 30, "+1 credito (500 puntos)", "fonts/Pixeltype.ttf", 28, ("gray"), ("green")) #crea un boton de comprar puntos
+boton_continuar_nivel= Boton(300, 470, 210, 30, "Siguiente nivel", "fonts/Pixeltype.ttf", 28, ("red"), ("green")) #crea un boton de continuar
 
 prev_comprar_vidas = False
 prev_comprar_dano = False
 prev_comprar_pts = False
-
+prev_siguiente_nivel = False
 def pantalla_compra_powerups() : 
-     global  global_fade, estado, prev_atras, estado_anterior, prev_comprar_vidas, prev_comprar_dano, prev_comprar_pts, puntaje_final, Fuerza_exp
+     global  global_fade, estado, prev_atras, estado_anterior, prev_comprar_vidas, prev_comprar_dano, prev_comprar_pts, puntaje_final, Fuerza_exp, prev_siguiente_nivel, start_time_pantalla
      if not global_fade :     
           fade_in_from_white()
           global_fade = True
@@ -2796,8 +2817,9 @@ def pantalla_compra_powerups() :
      dano_maximo_actual.draw(screen)  # Dibuja la barra de salud en la superficie del juego
 
      boton_comprar_dano.draw(screen)  # Dibuja el botón en la pantalla
-     boton_comprar_vidas.draw(screen)  # Dibuja el botón en la   
+     boton_comprar_vidas.draw(screen)  # Dibuja el botón en la pantalla
      boton_comprar_pts.draw(screen)  # Dibuja el botón en la pantalla
+     boton_continuar_nivel.draw(screen)  # Dibuja el botón en la pantalla
 
      if prev_comprar_pts and not boton_comprar_pts.check_click():
           if puntaje_final >= 500:
@@ -2816,6 +2838,12 @@ def pantalla_compra_powerups() :
                Fuerza_exp += 1
                Player_1.puntos_compra -= 3
      prev_comprar_dano = boton_comprar_dano.check_click()
+
+     if prev_siguiente_nivel and not boton_continuar_nivel.check_click():
+          estado= "cargar_nivel"
+          start_time_pantalla = pg.time.get_ticks()
+     prev_siguiente_nivel = boton_continuar_nivel.check_click()
+
 
      return
 
