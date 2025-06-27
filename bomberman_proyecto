@@ -381,7 +381,7 @@ class Trampa:
                self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
         self.current_skin = self.current_spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
         self.mask = pg.mask.from_surface(self.current_skin)
-        if self.frame_count in (8,9,10,11):
+        if self.current_frame in (8,9,10,11):
              self.activo = True
         else:
              self.activo = False
@@ -1941,7 +1941,7 @@ start_time_pantalla=0
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
-nivel = 3 #nivel inicial-1
+nivel = 1 #nivel inicial-1
 matriz = [] #la matriz extraida del nivel inicial
 items_en_nivel=[]  #lista de objetos items . se renderizan en el inicio del juego pero aparecen ocultos hasta la puta 
 Lista_Enemigos_1 = [] #la lista de los enemigos, esta solo posee los enemigos del nivel 1 o los mas sencillos
@@ -2083,6 +2083,10 @@ boton_comprar_vidas= Boton(300, 420, 210, 30, "+25 Vida (2 creditos)", "fonts/Pi
 boton_comprar_dano= Boton(300, 370, 210, 30, "+1 Dano (3 creditos)", "fonts/Pixeltype.ttf", 28, ("gray"), ("green")) #crea un boton de comprar dano
 boton_comprar_pts= Boton(300, 320, 210, 30, "+1 credito (500 puntos)", "fonts/Pixeltype.ttf", 28, ("gray"), ("green")) #crea un boton de comprar puntos
 boton_continuar_nivel= Boton(300, 470, 210, 30, "Siguiente nivel", "fonts/Pixeltype.ttf", 28, ("red"), ("green")) #crea un boton de continuar
+boton_scoreboard_puntaje= Boton(300, 510, 210, 30, "Guardar", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de gaurdar_puntaje_en el json
+boton_scoreboard_puntaje= Boton(300, 510, 210, 30, "Ver Scoreboard", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de gaurdar_puntaje_en el json
+boton_guardar_puntaje= Boton(300, 470, 210, 30, "Guardar Puntaje", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de continuar
+anterior_puntaje_guardar=False
 prev_siguiente = False #variable para controlar si se ha hecho clic en el botón de siguiente opción
 prev_seleccion = False  #variable para controlar si se ha hecho clic en el botón de seleccionar
 prev_ing=False
@@ -2499,6 +2503,8 @@ def generate(screen):
     for hielos in hielo : 
          if Player_1.colisiona_con(hielos):
               Player_1.velocidad=0.5
+         else : 
+              Player_1.velocidad=Player_1.base_speed
 
 #funciones para la generacion y manejo de bombas
 def bombastic_pos (screen): #guarda posicion de manejo de bombas 
@@ -3106,13 +3112,29 @@ def pantalla_titulo () :
      Boton_opciones.draw(screen)
      screen.blit(credit,(5,605))
      screen.blit(titulo3,(200,150))
-
+volumen = 1.0  # variable global
 def pantalla_opciones() : 
-     global global_cuadrado, prev_atras, estado, estado_anterior
+     global global_cuadrado, prev_atras, estado, estado_anterior, volumen
      bg_men_parallax()
      if not global_cuadrado : 
           animar_cuadro(screen)
      click_back= boton_back.check_click() 
+
+     slider_rect = pg.Rect(100, 450, 300, 8)         # posición y tamaño de la barra
+     pg.draw.rect(screen, (180, 180, 180), slider_rect)  # barra
+
+     # dibuja el “handle” según el nivel actual
+     handle_x = slider_rect.x + int(volumen * slider_rect.width)
+     handle_rect = pg.Rect(handle_x - 6, slider_rect.y - 6, 12, slider_rect.height + 12)
+     pg.draw.rect(screen, (220, 220, 220), handle_rect)
+
+     # detectar click y mover handle (sin usar eventos dentro):
+     if pg.mouse.get_pressed()[0]:
+          mx, my = pg.mouse.get_pos()
+          if slider_rect.collidepoint(mx, my):
+               volumen = (mx - slider_rect.x) / slider_rect.width
+               # actualiza volumen en el mixer de forma inmediata:
+               pg.mixer.music.set_volume(volumen)
      if click_back and not prev_atras : 
           estado= "menu"
           global_cuadrado= False
@@ -3162,8 +3184,15 @@ def dibujar_gui() :
     default_pw = spritesheet_powerups.get_image(2, 64, 64, 1, "black")
     default_pw_p = spritesheet_powerups.get_image(2, 64, 64, 0.5, "black")
     if Player_1.muerto and Player_1.current_frame == Player_1.frames_muerte-1 : 
-        puntaje_final= puntaje_nivel 
-        estado = "GameOver"
+        if Player_1.cant_vidas <= 0:
+          puntaje_final= puntaje_nivel 
+          estado = "GameOver"
+        else : 
+             Player_1.cant_vidas-=1
+             Player_1.vida= Player_1.vida_max_actual
+             Player_1.muerto=False
+             Player_1.x= 0
+             Player_1.y= 0
 
     powerup_sprites = {"vida": [spritesheet_powerups.get_image(0, 64, 64, 1, "black"),spritesheet_powerups.get_image(0, 64, 64, 0.5, "black")],"dano": [spritesheet_powerups.get_image(1, 64, 64, 1, "black"),spritesheet_powerups.get_image(1, 64, 64, 0.5, "black")]}
     pw_uso_1 = default_pw
@@ -3189,7 +3218,7 @@ def dibujar_gui() :
     habilidad_jugador.draw(screen)  # Dibuja la barra de habilidad en la superficie del juego
     vida_boss.draw(screen) if vida_boss else None  # Dibuja la barra de habilidad del boss si existe
     icono_habilidad= spritesheet_habilidades_prev.get_image(skin_seleccionada, 128,128,0.5,"black")
-    texto_boss= font0.render("Maquiavelo", False, (69, 229, 222)) if len(Lista_Boss) == 1 else None
+    texto_boss= font0.render("La maquina de Turing", False, (69, 229, 222)) if len(Lista_Boss) == 1 else None
     screen.blit(texto_boss, (330, 50)) if texto_boss else None
     bombas_img=spritecheet_items.get_image(0,64,64,1.5,"black")
     velocidad_img=spritecheet_items.get_image(1,64,64,1.5,"black")
@@ -3223,11 +3252,11 @@ def dibujar_gui() :
 #________________Auxiliar para pantalla_juego___________
 #para el FOV lo pongo aca por mientras
 FOV_RADIUS = 100
+
 def is_in_fov_circle(player_pos, obj_pos, radius):
     dx = player_pos[0] - obj_pos[0]
     dy = player_pos[1] - obj_pos[1]
     return dx*dx + dy*dy <= radius * radius
-
 
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO  
     global matriz, puntaje_nivel,puntaje_final, estado, llave, candado, powerups, pos_jugador,traps,Lista_Boss
@@ -3423,7 +3452,7 @@ def pantalla_seleccion_jugador () :
             Player_1.vida_maxima=200
             Fuerza_exp= 1
         elif skin_seleccionada == 2 :
-            Player_1= Jugador_1(game_surface,0,0,1.5,spritesheet_idle_tac,spritesheet_walk_tac ,spritesheet_habilidad_tac,spritesheet_death_tac,4,6,9,6,96,96,0.5,"black","Tactico",6,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
+            Player_1= Jugador_1(game_surface,0,0,1.5,spritesheet_idle_tac,spritesheet_walk_tac ,spritesheet_habilidad_tac,spritesheet_death_tac,4,6,9,6,96,96,0.45,"black","Tactico",6,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
             Player_1.vida_maxima = 250
             Fuerza_exp= 3
 
@@ -3462,7 +3491,7 @@ def pantalla_creditos() :
      star_wars_crawl(screen,texto, imagenes,font,(255,255,255),0.5)
 
 def pantalla_cargar_lvl() : 
-     global estado, prev_atras, global_fade, nivel, start_time_pantalla, matriz, lista_B, lista_E, lista_EL, Lista_Enemigos_1, Lista_Enemigos_2, Lista_Enemigos_3, obstacles, obstacles_R, primera_vez
+     global estado, prev_atras, global_fade, nivel, start_time_pantalla, matriz, lista_B, lista_E, lista_EL, Lista_Enemigos_1, Lista_Enemigos_2, Lista_Enemigos_3, obstacles, obstacles_R, primera_vez, hielo, traps,Fuerza_exp
 
      if not global_fade : 
           fade_in_from_white()
@@ -3479,10 +3508,14 @@ def pantalla_cargar_lvl() :
      lista_EL = []
      obstacles = []
      obstacles_R = []
+     hielo = []
+     traps=[]
      Player_1.x=0
      Player_1.y=0
      Player_1.vida= Player_1.vida_max_actual
      Player_1.tiene_llave = False
+
+
      primera_vez=True
      tiempo_juego.tiempo=300
 
@@ -3583,11 +3616,6 @@ def pantalla_compra_powerups() :
 
      return
 
-boton_guardar_puntaje= Boton(300, 470, 210, 30, "Guardar Puntaje", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de continuar
-anterior_puntaje_guardar=False
-
-boton_scoreboard_puntaje= Boton(300, 510, 210, 30, "Ver Scoreboard", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de gaurdar_puntaje_en el json
-
 def pantalla_win() : 
      bg_men_parallax()
      global estado, nivel, start_time_pantalla, global_fade, primera_vez, puntaje_final, estado, anterior_puntaje_guardar, global_cuadrado
@@ -3612,7 +3640,6 @@ def pantalla_win() :
 
      boton_guardar_puntaje.draw(screen)  # Dibuja el botón en la pantalla
 
-boton_scoreboard_puntaje= Boton(300, 510, 210, 30, "Guardar", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de gaurdar_puntaje_en el json
 def pantalla_guardar_partida() : 
      global global_cuadrado, bara_texto, anterior_puntaje_guardar, estado, puntaje_final, nivel, Player_1, estado_anterior
      bg_men_parallax()
@@ -3657,8 +3684,6 @@ def pantalla_guardar_partida() :
 
      anterior_puntaje_guardar = boton_scoreboard_puntaje.check_click()
 
-
-
 def boombox() :
      global estado_anterior
      if estado!= estado_anterior : 
@@ -3667,24 +3692,29 @@ def boombox() :
           elif (estado == 'good_ending' or estado == 'guardar_puntaje') and (estado_anterior == 'good_ending' or estado_anterior == 'guardar_puntaje'):
                pass  # No se detiene ni se reinicia la música
           else : 
-               pg.mixer.stop()
-               if estado== 'menu': 
-                    musica_menu.play(-1)  
-               elif estado=="puntajes" : 
-                    musica_puntajes.play(-1)
-               elif estado=="creditos" : 
-                    musica_creditos.play(-1)
-               elif estado=="cargar_nivel" :
-                    musica_cambio_nivel.play(-1)
-               elif estado=="seleccion_personaje" :
-                    musica_seleccion_personaje.play(-1)
-               elif estado=="comprar_powerups" :
-                    musica_compra.play(-1)
-               elif estado=="good_ending" :
-                    musica_ending.play(-1)
-               elif estado=="guardar_puntaje" :
-                    musica_name_selection.play(-1)
-     estado_anterior=estado
+            pg.mixer.music.stop()
+            if estado == 'menu':
+                pg.mixer.music.load("sounds/music/Main_menu.mp3")
+            elif estado == "puntajes":
+                pg.mixer.music.load("sounds/music/puntajes.mp3")
+            elif estado == "creditos":
+                pg.mixer.music.load("sounds/music/credits.mp3")
+            elif estado == "cargar_nivel":
+                pg.mixer.music.load("sounds/sfx/cambio_lvl.mp3")
+            elif estado == "seleccion_personaje":
+                pg.mixer.music.load("sounds/music/player_selection.mp3")
+            elif estado == "comprar_powerups":
+                pg.mixer.music.load("sounds/music/compra.mp3")
+            elif estado == "good_ending":
+                pg.mixer.music.load("sounds/music/good_ending.mp3")
+            elif estado == "guardar_puntaje":
+                pg.mixer.music.load("sounds/music/name_selection.mp3")
+            else:
+                return  # ningún cambio de música
+
+            pg.mixer.music.set_volume(volumen)
+            pg.mixer.music.play(-1)
+     estado_anterior = estado
 
 tiempo_juego.start()
 
@@ -3752,15 +3782,11 @@ while True:
     reloj.tick(60)
 
 #TODO : benja
-#agregar healthbar de boss
-#PANTALLA DE WIN 
-
-#*!CADA 500 PUNTOS DA 1 PT DE MEJORA . USTED AL FINAL DEL NIVEL PUEDE MEJORAR SU JUGADOR PARA EL SIGUIENTE NIVEL *! PERMANENTE 
-
+#opciones volumen
 #*!DOCUMENTACION 
 
 #TODO : steadman
-#NIVELES
+
 
 
 

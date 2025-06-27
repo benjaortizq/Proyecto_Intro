@@ -89,6 +89,18 @@
       "puntaje": 9869,
       "personaje": "Invencible",
       "nivel": 4
+    },
+    {
+      "usuario": "Conoutlet",
+      "puntaje": 13450,
+      "personaje": "Invencible",
+      "nivel": 4
+    },
+    {
+      "usuario": "Juan",
+      "puntaje": 11458,
+      "personaje": "Tactico",
+      "nivel": 4
     }
   ]
 }
