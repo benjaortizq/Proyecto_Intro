@@ -1904,7 +1904,7 @@ benja=pg.transform.scale(benja, (138, 184)) #redimensiona la imagen de Benja a 1
 
 #*!-----------------------GLOBALES------------------------------
 pos_jugador = None
-estado = "menu" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+estado = "good_ending" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 estado_anterior=""
 start_time_pantalla=0
 #Globales Steadman
@@ -2077,7 +2077,7 @@ musica_creditos=pg.mixer.Sound("sounds\music\credits.mp3")
 musica_seleccion_personaje=pg.mixer.Sound("sounds\music\player_selection.mp3")
 musica_ending=pg.mixer.Sound("sounds\music\good_ending.mp3")
 musica_compra=pg.mixer.Sound("sounds\music\compra.mp3")
-
+musica_name_selection=pg.mixer.Sound("sounds\music\\name_selection.mp3")
 #----------------------------SFX------------------------------
 sfx_bomba= pg.mixer.Sound("sounds\sfx\Bomba.mp3") #sonido de la bomba
 #-----------------------SPRITES------------------------------
@@ -3038,9 +3038,10 @@ def pantalla_opciones() :
      boton_back.draw(screen)
 
 def pantalla_puntajes() : 
-     global prev_atras, estado, prev_creditos
+     global prev_atras, estado, prev_creditos, global_cuadrado
      bg_opc_parallax() 
-     animar_cuadro(screen)
+     if not global_cuadrado :
+          animar_cuadro(screen)
 
      
 
@@ -3048,8 +3049,10 @@ def pantalla_puntajes() :
      click_creditos =Boton_creditos.check_click()
      if click_atras and not prev_atras : 
           estado= "menu"
+          global_cuadrado= False
      if click_creditos and not prev_creditos : 
           estado="creditos"
+          global_cuadrado= False
      prev_atras= click_atras
      prev_creditos=click_creditos
 
@@ -3231,7 +3234,6 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
 
      
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
-
 
 def pantalla_seleccion_jugador () : 
     global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion, estado, Player_1, start_time_pantalla, global_fade, Fuerza_exp
@@ -3448,11 +3450,60 @@ def pantalla_compra_powerups() :
 
      return
 
+
+boton_guardar_puntaje= Boton(300, 470, 210, 30, "Guardar Puntaje", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de continuar
+anterior_puntaje_guardar=False
+
+boton_scoreboard_puntaje= Boton(300, 510, 210, 30, "Ver Scoreboard", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de gaurdar_puntaje_en el json
+
+def pantalla_win() : 
+     bg_men_parallax()
+     global estado, nivel, start_time_pantalla, global_fade, primera_vez, puntaje_final, estado, anterior_puntaje_guardar, global_cuadrado
+     if not global_fade :
+          fade_in_from_white()
+          global_fade = True
+     texto_good_ending= font_tit.render("GOOD ENDING", True, (255,255,255))
+     screen.blit(texto_good_ending, (screen.get_width() // 2 - texto_good_ending.get_width() // 2, 30))
+     texto_puntaje = font.render(f"Puntaje final: {puntaje_final}", True, "green")
+     screen.blit(texto_puntaje, (screen.get_width() // 2 - texto_puntaje.get_width() // 2, 100))
+     texto_final = font0.render("Felicidades, Has completado el juego.", True, (255, 255, 255))
+     screen.blit(texto_final, (screen.get_width() // 2 - texto_final.get_width() // 2, 300))
+     texto_final2 = font0.render("Gracias por jugar.", True, (255, 255, 255))
+     screen.blit(texto_final2, (screen.get_width() // 2 - texto_final2.get_width() // 2, 350))
+     texto_final3 = font0.render("Steadman Murillo, Benjamin Ortiz  2025", True, (255, 255, 255))
+     screen.blit(texto_final3, (screen.get_width() // 2 - texto_final3.get_width() // 2, 400))
+
+     if not anterior_puntaje_guardar and boton_guardar_puntaje.check_click():
+          estado = "guardar_puntaje"
+          global_cuadrado = False  # Reiniciar el estado del cuadrado
+     anterior_puntaje_guardar = boton_guardar_puntaje.check_click()
+
+     boton_guardar_puntaje.draw(screen)  # Dibuja el botón en la pantalla
+
+
+def pantalla_guardar_partida() : 
+     global global_cuadrado, bara_texto
+     bg_men_parallax()
+     if not global_cuadrado :
+          animar_cuadro(screen)
+     
+     rectangulo_entrada= pg.Rect (340, 480, 135, 30)    
+     pg.draw.rect(screen, "white", rectangulo_entrada, 0, 4)  
+     pg.draw.rect(screen, "black", rectangulo_entrada, 2, 4)  
+     texto_entrada = font.render(bara_texto, False, "black")
+     screen.blit(texto_entrada, (rectangulo_entrada.x + 5, rectangulo_entrada.y + 5))
+     texto_ingrese_Tu_nombre = font0.render("Ingrese su nombre:", False, "white")
+     screen.blit(texto_ingrese_Tu_nombre, (rectangulo_entrada.x -25, rectangulo_entrada.y +30))
+
+     return
+
+
 def boombox() :
      global estado_anterior
      if estado!= estado_anterior : 
-          if (estado == 'menu' or estado == 'opciones') and \
-               (estado_anterior == 'menu' or estado_anterior == 'opciones'):
+          if (estado == 'menu' or estado == 'opciones') and (estado_anterior == 'menu' or estado_anterior == 'opciones'):
+               pass  # No se detiene ni se reinicia la música
+          elif (estado == 'good_ending' or estado == 'guardar_puntaje') and (estado_anterior == 'good_ending' or estado_anterior == 'guardar_puntaje'):
                pass  # No se detiene ni se reinicia la música
           else : 
                pg.mixer.stop()
@@ -3466,6 +3517,10 @@ def boombox() :
                     musica_seleccion_personaje.play(-1)
                elif estado=="comprar_powerups" :
                     musica_compra.play(-1)
+               elif estado=="good_ending" :
+                    musica_ending.play(-1)
+               elif estado=="guardar_puntaje" :
+                    musica_name_selection.play(-1)
      estado_anterior=estado
 
 tiempo_juego.start()
@@ -3493,6 +3548,10 @@ while True:
         pantalla_g_o()
     elif estado == "comprar_powerups":
         pantalla_compra_powerups()
+    elif estado == "good_ending":
+        pantalla_win() 
+    elif estado == "guardar_puntaje":
+         pantalla_guardar_partida()
     elif estado == "cargar_nivel":
          pantalla_cargar_lvl()
          if tiempo_Actual - start_time_pantalla > 1900:
@@ -3513,11 +3572,11 @@ while True:
             pg.quit()
             sys.exit()
         elif event.type == pg.KEYDOWN : 
-              if estado== "menu" : 
+              if estado== "guardar_puntaje" : 
                     if event.key == pg.K_BACKSPACE:
                          bara_texto = bara_texto[:-1]
                     else:
-                         bara_texto += event.unicode       
+                         bara_texto += event.unicode if len(bara_texto) < 10 else ""   
         elif event.type == pg.MOUSEBUTTONDOWN:
                mouse_pos = pg.mouse.get_pos()
                if estado == "juego":
