@@ -84,22 +84,23 @@ class Boton :
         surface.blit(text_surface, text_rect)  # Dibuja el texto en la superficie
 
 class HealthBar:
-    def __init__(self, x, y, width, height, hp,color_f,color_h):
+    def __init__(self, x, y, width, height, hp, max_hp, color_f,color_h):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
         self.hp = hp  # Salud actual del jugador
+        self.max_hp = max_hp  # Salud máxima del jugador
         self.color_f = color_f
         self.color_h = color_h  # Color de la barra de salud    
     def draw(self, surface):
-        ratio= self.hp / 100 # Calcula la proporción de salud actual respecto a la máxima
-        pg.draw.rect(surface, self.color_f, (self.x, self.y, self.width, self.height))  # Dibuja el fondo de la barra de salud   
+        ratio = self.hp / self.max_hp  # Calcula la proporción de salud actual respecto a la máxima
+        pg.draw.rect(surface, self.color_f, (self.x, self.y, self.width, self.height))  # Dibuja el fondo de la barra de salud
         pg.draw.rect(surface, self.color_h, (self.x, self.y, self.width * ratio, self.height))
 
 class Healthbar_Player (HealthBar) :
-    def __init__(self, x, y, width, height, hp, heart_texture, cant_vidas, font):
-        super().__init__(x, y, width, height, hp, (255, 0, 0), (0, 255, 0))  # Llama al constructor de HealthBar con colores por defecto
+    def __init__(self, x, y, width, height, hp, max_hp, heart_texture, cant_vidas, font):
+        super().__init__(x, y, width, height, hp, max_hp, (255, 0, 0), (0, 255, 0))  # Llama al constructor de HealthBar con colores por defecto
         self.heart_texture = heart_texture  # Textura del corazón para la barra de salud
         self.cant_vidas = cant_vidas  # Cantidad de vidas del jugador
         self.font = font  # Fuente para mostrar la cantidad de vidas
@@ -107,7 +108,6 @@ class Healthbar_Player (HealthBar) :
         surface.blit(self.heart_texture, (self.x - heart_texture.get_width()-3, self.y-5))  # Dibuja el corazón en la barra de salud
         vidas=self.font.render (f"x {self.cant_vidas}", True, (255, 255, 255)) # Renderiza la cantidad de vidas del jugador
         surface.blit(vidas, (self.x - heart_texture.get_width()-32, self.y+5))  # Dibuja la cantidad de vidas en la barra de salud
-
 
 # -------------------------------------------------------CLASES DEL JUEGO-------------------------------------------
 # Clase Jugador: Representa al jugador en el juego.
@@ -162,7 +162,6 @@ class Jugador :
       self.current_skin = img
       self.mask = pg.mask.from_surface(self.current_skin)
           
-
     def colisiona_con(self, otro_objeto):
         # Calcular diferencia de posiciones (offset)
         offset_x = int(otro_objeto.x) - int(self.x)
@@ -230,7 +229,9 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         super().__init__( area_juego, pos_x, pos_y, velocidad, sps_idle,sps_mover,sps_hab,sps_muerte, frames_idle,frames_mover,frames_hab, frames_muerte, frame_w,frame_h, scale, colour)
         self.habilidad=habilidad
         self.vida=100 #vida del jugador
+        self.vida_max_actual=100
         self.vida_maxima=200 if habilidad=="Kamikaze" else 150 if habilidad=="Invencible" else 250 if habilidad=="Tactico" else 100
+        self.puntos_compra=0
         self.ejecutando_habilidad = False
         self.tiempo_inicio_habilidad = 0
         self.max_tiempo_habilidad = 5  # 5 segundos máximo
@@ -278,6 +279,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
 
         # Escudo: 3 segundos
         if self.item_en_uso["escudo"]:
+            self.vida = min(self.vida + 0.025, self.vida_max_actual)  # Recuperás vida al usar el escudo
             if current_time - self.ultimo_escudo > 3:
                 self.item_en_uso["escudo"] = False
                 self.defensa_activa = False  # desactivás la defensa
@@ -320,7 +322,6 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
                      self.items["bombas"] -= 1
                      #print(f"Jugador en píxeles: ({self.x},{self.y})  →  celda: ({fila},{col})")
                      self.ultima_bomba = tiempo_actual
-
 
 #ocupo tipo scar tiempo. si en 0,5s no se presiona ninguna tecla entonces el sprote es el statico, si en n se presiona deacruerdo al movimiento cambia el sprite. sis e presiona el de habiliad, entones se muestra el speiret habilidad.
 #_____________________________________________________________________________________________________
@@ -1410,10 +1411,12 @@ class Bomba_Matriz(Bomba):
           self.animacion_skin()
           if self.current_frame == 4:
                matriz[int(self.y//48)][int(self.x//48)] = 9
+               sfx_bomba.play()
                lista_B.remove(self)
           self.screen.blit(self.current_skin, (self.x, self.y))
 
      def auto_animate(self):
+                    
                     self.animate_matriz()
 
 class Explosion:
@@ -1594,7 +1597,6 @@ class Bomba_boss:
         offset_y = int(otro_objeto.y) - int(self.y)
         return self.mask.overlap(otro_objeto.mask, (offset_x, offset_y)) is not None
 
-
 class Bomba_Matriz_boss(Bomba_boss):
      def __init__(self, screen, x, y, spritesheet_bomba, frame_count, frame_w, frame_h, scale, colour, explosion):
           super().__init__(screen, x, y, spritesheet_bomba, frame_count, frame_w, frame_h, scale, colour, explosion)
@@ -1604,6 +1606,7 @@ class Bomba_Matriz_boss(Bomba_boss):
           self.animacion_skin()
           if self.current_frame == 4:
                matriz[int(self.y//48)][int(self.x//48)] = 7
+               sfx_bomba.play()
                lista_B_Boss.remove(self)
           self.screen.blit(self.current_skin, (self.x, self.y))
 
@@ -1787,6 +1790,7 @@ heart_texture = pg.image.load("assets/textures/heart.png").convert_alpha() #carg
 pos_par_men= [0] * 7
 fondo_p_men=[ pg.image.load("assets\Backgrounds\opciones\layer5.png").convert_alpha() ,pg.image.load("assets\Backgrounds\opciones\layer4.png").convert_alpha() ,pg.image.load("assets\Backgrounds\opciones\layer3.png").convert_alpha() ,pg.image.load("assets\Backgrounds\opciones\layer2.png").convert_alpha() ,pg.image.load("assets\Backgrounds\opciones\layer1.png").convert_alpha() ,pg.image.load("assets\Backgrounds\opciones\layer0.png").convert_alpha() ]
 fondos_p_op = [pg.image.load("assets/backgrounds/menu/layer3.png"),pg.image.load("assets/backgrounds/menu/layer2.png"),pg.image.load("assets/backgrounds/menu/layer1.png"),pg.image.load("assets/backgrounds/menu/layer0.png")]
+fondo_compra= pg.image.load("assets\Backgrounds\compra.png") #fondo de la pantalla de compra de powerups
 #------------------------SPRITES DE JUGADORES------------------------------
 sps_habilidades= pg.image.load ("assets\Textures\habilities.png").convert_alpha()
 sps_items = pg.image.load("assets\Textures\items.png").convert_alpha()
@@ -1856,7 +1860,7 @@ spritesheet_walk_kam = SpriteSheet(imp_sps_kam_walk) #crea una instancia de la c
 spritesheet_death_kam = SpriteSheet(imp_sps_kam_death) #crea una instancia de la clase SpriteSheet con el sprite de correr del jugador
 
 
-Player_1 = None
+Player_1= None
 
 #ds
 font_tit= pg.font.Font("fonts\\Upheavt.ttf",60)
@@ -1892,6 +1896,10 @@ musica_puntajes=pg.mixer.Sound("sounds\music\puntajes.mp3")
 musica_creditos=pg.mixer.Sound("sounds\music\credits.mp3")
 musica_seleccion_personaje=pg.mixer.Sound("sounds\music\player_selection.mp3")
 musica_ending=pg.mixer.Sound("sounds\music\good_ending.mp3")
+musica_compra=pg.mixer.Sound("sounds\music\compra.mp3")
+
+#----------------------------SFX------------------------------
+sfx_bomba= pg.mixer.Sound("sounds\sfx\Bomba.mp3") #sonido de la bomba
 #-----------------------SPRITES------------------------------
 #Obstaculos
 sps_obstacles = pg.image.load("assets\Textures\Bricks.png")
@@ -2110,14 +2118,12 @@ def generar_powerups(screen, imagenes, map_cols, map_rows):
 
     return powerups
 
-powerups = generar_powerups(screen, powerups_img, map_cols=11, map_rows=17)
 
 def encontrar_posiciones_llave(matriz, tile_width, tile_height):
 
     posiciones = []
     for fila_idx, fila in enumerate(matriz):
         for col_idx, celda in enumerate(fila):
-            
             if celda == '*':
                 x = col_idx * tile_width
                 y = fila_idx * tile_height
@@ -2132,9 +2138,10 @@ def ubicar_llave(matriz, tile_width, tile_height):
     x, y = random.choice(posiciones)
     return llave_candado(x, y, True, False, llave_img)
 
+powerups=None
 #Este genera las texturas inamovibles, los enemigos se dibujan y se tratan dentro de su propia clase
 def generate(screen):
-    global obstacles, matriz, powerups, nivel, llave, candado, estado, start_time_pantalla, global_fade
+    global obstacles, matriz, powerups, nivel, llave, candado, estado, start_time_pantalla, global_fade, puntaje_final, puntaje_nivel
 
     for fil in range(len(matriz)):
         for col in range(len(matriz[fil])):
@@ -2165,16 +2172,17 @@ def generate(screen):
                 obs = Obstaculo(screen, x, y, texture)
                 obs.draw()
 
-    for item in powerups:
-        screen.blit(item.spritesheet, (item.x, item.y))
-        if Player_1.colisiona_con(item):
-            if item.tipo == "velocidad":
-                Player_1.items["velocidad"] = Player_1.items.get("velocidad", 0) + 1
-            elif item.tipo == "escudo":
-                Player_1.items["escudo"] = Player_1.items.get("escudo", 0) + 1
-            elif item.tipo == "bomba":
-                Player_1.items["bombas"] = Player_1.items.get("bombas", 0) + 1
-            powerups.remove(item)
+    if powerups is not None:
+          for item in powerups:
+               screen.blit(item.spritesheet, (item.x, item.y))
+               if Player_1.colisiona_con(item):
+                    if item.tipo == "velocidad":
+                         Player_1.items["velocidad"] = Player_1.items.get("velocidad", 0) + 1
+                    elif item.tipo == "escudo":
+                         Player_1.items["escudo"] = Player_1.items.get("escudo", 0) + 1
+                    elif item.tipo == "bomba":
+                         Player_1.items["bombas"] = Player_1.items.get("bombas", 0) + 1
+                    powerups.remove(item)
     if llave:
         game_surface.blit(llave_img, (llave.x+10, llave.y))
         if Player_1.colisiona_con(llave):
@@ -2184,7 +2192,8 @@ def generate(screen):
         game_surface.blit(candado_img, (candado.x+10, candado.y))
         if Player_1.colisiona_con(candado) and Player_1.tiene_llave:
             candado = None
-            estado ="cargar_nivel" #SIEMPRE BAMCIAR EL ESTADO AML SIGUIENTE ANTES DE JUEGO O NO SE 
+            puntaje_final= puntaje_nivel + 500 #puntaje por abrir el candado
+            estado ="comprar_powerups" #SIEMPRE BAMCIAR EL ESTADO AML SIGUIENTE ANTES DE JUEGO O NO SE 
             start_time_pantalla = pg.time.get_ticks()
             global_fade = False  # Reiniciar el fade global
 
@@ -2391,6 +2400,7 @@ def bombastic_hitbox ():
           bomba.auto_animate()
      for exp in lista_E:
           exp.auto_animate()
+
           for obsR in obstacles_R:
                if Explosion_Matriz.colisiona_con(exp, obsR):
                    matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
@@ -2844,10 +2854,10 @@ def dibujar_gui() :
                 pw_uso_2 = sprites2[1]
 
     # Ahora dibuja pw_uso_1 y pw_uso_2 donde corresponda en tu GUI
-    vida_jugador=Healthbar_Player (73, 15, 110, 20, Player_1.vida, heart_texture,Player_1.cant_vidas,font0)  # Dibuja la barra de salud del jugador
+    vida_jugador=Healthbar_Player (73, 15, 110, 20, Player_1.vida,Player_1.vida_max_actual, heart_texture,Player_1.cant_vidas,font0)  # Dibuja la barra de salud del jugador
     vida_jugador.draw(screen)  # Dibuja la barra de salud en la superficie del juego
     vida_jugador.draw_atributes(screen)  # Dibuja los atributos de la barra de salud en la superficie del juego
-    habilidad_jugador= HealthBar(73, 55, 110, 20, Player_1.barra_habilidad, (129, 133, 137), Player_1.color_habilidad)  # Dibuja la barra de habilidad del jugador
+    habilidad_jugador= HealthBar(73, 55, 110, 20, Player_1.barra_habilidad,100, (129, 133, 137), Player_1.color_habilidad)  # Dibuja la barra de habilidad del jugador
     habilidad_jugador.draw(screen)  # Dibuja la barra de habilidad en la superficie del juego
     icono_habilidad= spritesheet_habilidades_prev.get_image(skin_seleccionada, 128,128,0.5,"black")
     bombas_img=spritecheet_items.get_image(0,64,64,1.5,"black")
@@ -2882,12 +2892,12 @@ def dibujar_gui() :
 llave = None  # Variable global para la llave
 candado= None
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO  
-    global matriz, puntaje_nivel,puntaje_final, estado, llave, candado, pos_jugador
+    global matriz, puntaje_nivel,puntaje_final, estado, llave, candado, powerups, pos_jugador
     screen.fill("white")        
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantallag
     dibujar_gui()      
-    #print(matriz[1][0])
     if primera_vez:
+        powerups = generar_powerups(screen, powerups_img, map_cols=11, map_rows=17)
         save_positions(game_surface)
         llave = ubicar_llave(matriz, 48, 48) if nivel<3 else None  #Ubica la llave en una posicion aleatoria de la matriz
        # print(f"llave: {llave.x}, {llave.y}") if llave else print("No hay llave en este nivel")
@@ -3067,19 +3077,34 @@ def pantalla_creditos() :
      boton_back.draw(screen)
      star_wars_crawl(screen,texto, imagenes,font,(255,255,255),0.5)
 
-
 def pantalla_cargar_lvl() : 
-     global estado, prev_atras, global_fade, nivel, start_time_pantalla
+     global estado, prev_atras, global_fade, nivel, start_time_pantalla, matriz, lista_B, lista_E, lista_EL, Lista_Enemigos_1, Lista_Enemigos_2, Lista_Enemigos_3, obstacles, obstacles_R, primera_vez
+
      if not global_fade : 
           fade_in_from_white()
           global_fade = True
      screen.fill("black")
      titulo= font_tit.render(F"NIVEL {nivel+1}", True, (255, 255, 255))
      screen.blit(titulo, (285, 230))
-
+     matriz=[]
+     Lista_Enemigos_1=[]
+     Lista_Enemigos_2=[]
+     Lista_Enemigos_3=[] 
+     lista_B = []
+     lista_E = []
+     lista_EL = []
+     obstacles = []
+     obstacles_R = []
+     Player_1.x=0
+     Player_1.y=0
+     Player_1.vida= Player_1.vida_max_actual
+     Player_1.tiene_llave = False
+     primera_vez=True
+     tiempo_juego.tiempo=300
 
 def pantalla_g_o () : 
-     global estado, puntaje_final, prev_atras, global_fade
+     global estado, puntaje_final, prev_atras, global_fade, nivel, powerups, primera_vez, matriz
+     global Lista_Enemigos_1 , Lista_Enemigos_2, Lista_Enemigos_3, obstacles, obstacles_R, lista_B , lista_E , lista_EL
      if not global_fade : 
           fade_in_from_white()
           global_fade = True
@@ -3091,10 +3116,94 @@ def pantalla_g_o () :
      click_atras = boton_back.check_click()
      boton_back.draw(screen)
      if click_atras and not prev_atras:
-          estado = "menu"
           puntaje_final = 0
           global_fade = False
+          powerups = None
+          nivel=0
+          primera_vez= False
+          matriz=[]
+          Lista_Enemigos_1=[]
+          Lista_Enemigos_2=[]
+          Lista_Enemigos_3=[] 
+          lista_B = []
+          lista_E = []
+          lista_EL = []
+          obstacles = []
+          obstacles_R = []
+          Player_1.tiene_llave = False
+          Player_1.puntos_compra = 0
+          Player_1.cant_vidas = 3
+
+          estado = "menu"
      prev_atras = click_atras
+
+
+boton_comprar_vidas= Boton(300, 420, 210, 30, "+25 Vida (2 creditos)", "fonts/Pixeltype.ttf", 28, ("gray"), ("green")) #crea un boton de comprar vidas
+boton_comprar_dano= Boton(300, 370, 210, 30, "+1 Dano (3 creditos)", "fonts/Pixeltype.ttf", 28, ("gray"), ("green")) #crea un boton de comprar dano
+boton_comprar_pts= Boton(300, 320, 210, 30, "+1 credito (500 puntos)", "fonts/Pixeltype.ttf", 28, ("gray"), ("green")) #crea un boton de comprar puntos
+boton_continuar_nivel= Boton(300, 470, 210, 30, "Siguiente nivel", "fonts/Pixeltype.ttf", 28, ("red"), ("green")) #crea un boton de continuar
+
+prev_comprar_vidas = False
+prev_comprar_dano = False
+prev_comprar_pts = False
+prev_siguiente_nivel = False
+def pantalla_compra_powerups() : 
+     global  global_fade, estado, prev_atras, estado_anterior, prev_comprar_vidas, prev_comprar_dano, prev_comprar_pts, puntaje_final, Fuerza_exp, prev_siguiente_nivel, start_time_pantalla
+     if not global_fade :     
+          fade_in_from_white()
+          global_fade = True
+     screen.blit(fondo_compra,(0,0))
+     titulo= font_tit1.render("COMPRA DE POWERUPS", True, (255, 255, 255))
+     screen.blit(titulo, (screen.get_width() // 2 - titulo.get_width() // 2, 50))
+
+     texto_puntaje = font0.render(f"Puntaje actual: {puntaje_final}", True, (113, 113, 150))
+     screen.blit(texto_puntaje, (screen.get_width() // 2 - texto_puntaje.get_width() // 2, 100))
+
+     texto_puntos_pw= font0.render(f"Puntos disponibles para comprar powerups: {Player_1.puntos_compra}", True, (113, 113, 150))
+     screen.blit(texto_puntos_pw, (screen.get_width() // 2 - texto_puntos_pw.get_width() // 2, 125))
+
+     texto_vida= font0.render(f"Vida maxima actual : {Player_1.vida_max_actual}/ {Player_1.vida_maxima}", True, (252, 118, 109))
+     screen.blit(texto_vida, (screen.get_width() // 2 - texto_vida.get_width() // 2, 160))     
+
+     texto_dano= font0.render(f"Dano actual : {Fuerza_exp}", True, (196, 116, 4))
+     screen.blit(texto_dano, (screen.get_width() // 2 - texto_dano.get_width() // 2, 230))
+
+     vida_max_actual_healtbbar= HealthBar(310, 190, 200, 20, Player_1.vida_max_actual, Player_1.vida_maxima, (129, 133, 137), "red")  # Dibuja la barra de salud del jugador
+     vida_max_actual_healtbbar.draw(screen)  # Dibuja la barra de salud en la superficie del jueg
+
+     dano_maximo_actual= HealthBar(310, 260, 200, 20, Fuerza_exp, 6, (129, 133, 137), "orange")  # Dibuja la barra de salud del jugador
+     dano_maximo_actual.draw(screen)  # Dibuja la barra de salud en la superficie del juego
+
+     boton_comprar_dano.draw(screen)  # Dibuja el botón en la pantalla
+     boton_comprar_vidas.draw(screen)  # Dibuja el botón en la pantalla
+     boton_comprar_pts.draw(screen)  # Dibuja el botón en la pantalla
+     boton_continuar_nivel.draw(screen)  # Dibuja el botón en la pantalla
+
+     if prev_comprar_pts and not boton_comprar_pts.check_click():
+          if puntaje_final >= 500:
+               Player_1.puntos_compra += 1
+               puntaje_final -= 500
+     prev_comprar_pts = boton_comprar_pts.check_click()
+
+     if prev_comprar_vidas and not boton_comprar_vidas.check_click():
+          if Player_1.puntos_compra >= 2:
+               Player_1.vida_max_actual += 25
+               Player_1.puntos_compra -= 2
+     prev_comprar_vidas = boton_comprar_vidas.check_click()
+
+     if prev_comprar_dano and not boton_comprar_dano.check_click():
+          if Player_1.puntos_compra >= 3:
+               Fuerza_exp += 1
+               Player_1.puntos_compra -= 3
+     prev_comprar_dano = boton_comprar_dano.check_click()
+
+     if prev_siguiente_nivel and not boton_continuar_nivel.check_click():
+          estado= "cargar_nivel"
+          start_time_pantalla = pg.time.get_ticks()
+     prev_siguiente_nivel = boton_continuar_nivel.check_click()
+
+
+     return
 
 def boombox() :
      global estado_anterior
@@ -3112,6 +3221,8 @@ def boombox() :
                     musica_creditos.play(-1)
                elif estado=="seleccion_personaje" :
                     musica_seleccion_personaje.play(-1)
+               elif estado=="comprar_powerups" :
+                    musica_compra.play(-1)
      estado_anterior=estado
 
 tiempo_juego.start()
@@ -3137,6 +3248,8 @@ while True:
          pantalla_creditos()   
     elif estado == "GameOver":     
         pantalla_g_o()
+    elif estado == "comprar_powerups":
+        pantalla_compra_powerups()
     elif estado == "cargar_nivel":
          pantalla_cargar_lvl()
          if tiempo_Actual - start_time_pantalla > 1900:
@@ -3150,6 +3263,7 @@ while True:
              tiempo_juego.tiempo=300
              tiempo_juego.reanudar()  # Reinicia el temporizador para el nuevo nivel
              estado = "juego"
+     
     for event in pg.event.get():
         if event.type == pg.QUIT:
             tiempo_juego.detener()
@@ -3173,11 +3287,7 @@ while True:
     reloj.tick(60)
 
 #TODO : benja
-#cambiar powerups para aferctar varas del player
 #agregar healthbar de boss
-#agregar puntaje 
-#POWERUPS 
-#ITEMS 
 #PANTALLA DE WIN 
 
 #*!CADA 100 PUNTOS DA 1 PT DE MEJORA . USTED AL FINAL DEL NIVEL PUEDE MEJORAR SU JUGADOR PARA EL SIGUIENTE NIVEL *! PERMANENTE 
