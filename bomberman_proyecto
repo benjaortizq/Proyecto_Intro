@@ -1542,6 +1542,7 @@ musica_puntajes=pg.mixer.Sound("sounds\music\puntajes.mp3")
 musica_creditos=pg.mixer.Sound("sounds\music\credits.mp3")
 musica_seleccion_personaje=pg.mixer.Sound("sounds\music\player_selection.mp3")
 musica_ending=pg.mixer.Sound("sounds\music\good_ending.mp3")
+musica_compra=pg.mixer.Sound("sounds\music\compra.mp3")
 #-----------------------SPRITES------------------------------
 #Obstaculos
 sps_obstacles = pg.image.load("assets\Textures\Bricks.png")
@@ -2834,6 +2835,8 @@ def boombox() :
                     musica_creditos.play(-1)
                elif estado=="seleccion_personaje" :
                     musica_seleccion_personaje.play(-1)
+               elif estado=="comprar_powerups" :
+                    musica_compra.play(-1)
      estado_anterior=estado
 
 tiempo_juego.start()
