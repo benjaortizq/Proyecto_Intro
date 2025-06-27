@@ -724,7 +724,7 @@ class Enemigo3 (Enemigo2):
                          ancho = 15
                          alto = 150
 
-                    self.laser = LaserEnemigo(centro_x, centro_y, ancho, alto, dir_laser)
+                    self.laser = LaserEnemigo(centro_x, centro_y, ancho, alto, dir_laser, ((0,255,0)))
                     self.laser.update_pos(centro_x, centro_y)
                     self.laser_dibujado = True
                if self.attack_frame_inicial:
@@ -829,13 +829,14 @@ class Enemigo3 (Enemigo2):
           self.screen.blit(self.current_skin, (self.x, self.y))
 
 class LaserEnemigo:
-    def __init__(self, x, y, ancho, alto, direccion, color=(0, 255, 0)):
+    def __init__(self, x, y, ancho, alto, direccion, color):
         self.x = x
         self.y = y
         self.ancho = ancho
         self.alto = alto
         self.direccion = direccion  # 'izq', 'der', 'arr', 'aba'
         self.color = color
+        self.color_carga = (255,50,50)
         self.image = pg.Surface((ancho, alto), pg.SRCALPHA)
         self.image.fill(color)
         self.rect = self.image.get_rect(topleft=(x, y))
@@ -860,12 +861,128 @@ class LaserEnemigo:
         self.rect.topleft = (self.x, self.y)
         self.mask = pg.mask.from_surface(self.image)
 
+    
+
+    
+
+    
+
+class BalaKugel:
+    def __init__(self, x, y, vel_x, vel_y, sprite_sheet, frame_count, frame_w,frame_h, scale, colour):
+        self.x = x
+        self.y = y
+        self.vel_x = vel_x
+        self.vel_y = vel_y
+        self.current_spritesheet = sprite_sheet
+        self.frame_count = frame_count          #CAANTIDAD DE FRAMES DE LA SKIN DEL JUGAODR
+        self.width_frame = frame_w
+        self.height_frame = frame_h   #esto siempre es estatico. como las spritesheets son horizontales entonces esto que qeuda asi . 
+        self.scale = scale                              #multiplicador de escala para el sprite
+        self.colour = colour                  #color de fondo del sprite que se va a eliminar
+        self.last_update = t.time()     #tiempo de la ultima actualizacion del frame
+        self.current_frame = 0        #numero de frame que esta actualmente dibujandose.
+        self.current_skin = self.current_spritesheet.get_image(0, 48, 48, self.scale, self.colour)
+        self.mask= pg.mask.from_surface(self.current_skin)
+        self.viva = True
+        self.rect = self.current_skin.get_rect(center=(x, y))
+
+    def update(self):
+        self.animacion_skin()
+        self.x += self.vel_x
+        self.y += self.vel_y
+        self.rect.center = (self.x, self.y)
+
+        if self.x < 0 or self.x > 1000:
+             if self.y < 0 or self.y > 1000:
+                  self.viva = False
+
+    def draw(self, screen):
+        screen.blit(self.current_skin, self.rect)
+
+    def colisiona_con(self, otro_objeto):
+        # Calcular diferencia de posiciones (offset)
+        offset_x = int(otro_objeto.x) - int(self.x)
+        offset_y = int(otro_objeto.y) - int(self.y)
+        return self.mask.overlap(otro_objeto.mask, (offset_x, offset_y)) is not None
+    
+    def cambiar_spritesheet(self, nuevo_spritesheet): #esto es para cambiar la spritesheet del jugador, por ejemplo cuando se ejecuta una habilidad
+          self.current_spritesheet = nuevo_spritesheet #cambia el spritesheet actual al nuevo
+          self.current_frame = 0  #reinicia el frame actual a 0
+          self.last_update = t.time()     #reinicia el tiempo de la ultima actualizacion para que no se salte frames al cambiar de spritesheet
+    
+    def animacion_skin(self):
+        current_time = t.time()
+        if current_time - self.last_update > 0.3:
+            self.last_update = current_time
+            self.current_frame = (self.current_frame + 1) % self.frame_count
+            self.current_skin = self.current_spritesheet.get_image(
+                self.current_frame, self.width_frame, self.height_frame, self.scale, self.colour)
+            self.mask = pg.mask.from_surface(self.current_skin)
+             
+
 class Boss(Enemigo3):
      def __init__(self, screen, x, y, velocidad, spritesheet_walk, spritesheet_death, sprite_attack, spritehurt, frame_count, frame_w, frame_h, scale, colour, muerte, dir, vida, spritesheet_fly, spritesheet_walk_attack, spritesheet_idle):
           super().__init__(screen, x, y, velocidad, spritesheet_walk, spritesheet_death, sprite_attack, spritehurt, frame_count, frame_w, frame_h, scale, colour, muerte, dir, vida)
           self.spritesheet_fly = spritesheet_fly
           self.spritesheet_walk_attack = spritesheet_walk_attack
           self.spritesheet_idle = spritesheet_idle
+          self.sprite_attack = sprite_attack
+          self.habilidad_actual = ""
+          self.cooldown_boss = 0
+          self.tiempo_habilidad_boss = 0
+          self.error_de_capa_8 = 120000
+          self.tiempo = pg.time.get_ticks()
+          self.ejecutando_habilidad = False
+          self.velocidad_buff = False
+          self.pyline = False
+          self.pyline_pendiente = []
+          self.pyline_ultima_bomba = 0
+          self.pyline_delay = 200  # milisegundos
+          self.original_velocidad = velocidad
+          self.john_bool_activa = False
+          self.tiempo_inicio_john = 0
+          self.ultima_bomba_john = 0
+          self.delay_john = 200
+          self.interrupcion13h = False
+          self.int13henemigos = [
+               [2, 0, 0],
+               [3, 1, 0],
+               [4, 2, 0],
+               [5, 2, 1],
+               [6, 3, 2],
+               [0, 0, 0],
+               [1, 0, 0],
+               [6, 0, 0],
+               [2, 0, 1],
+               [1, 1, 1],
+               [0, 0, 5],
+               [0, 1, 0],
+               [0, 2, 0],
+               [0, 0, 1],
+               [0, 1, 1]
+               ]
+          
+          self.lista_balas_enemigas = []
+          self.kugel_activa = False
+          self.kugel_inicio_tiempo = 0
+          self.kugel_duracion = 3000  # 3 segundos en milisegundos
+          self.kugel_delay_entre_balas = 150  # tiempo entre disparos (ejemplo 300 ms)
+          self.kugel_ultimo_disparo = 0
+
+          self.represa_activa = False
+          self.represa_cargando = False
+          self.represa_tiempo_inicio = 0
+          self.represa_duracion_carga = 3000
+          self.represa_duracion_disparo = 3000
+          self.represa_laser = None
+
+     def escoger_habilidad(self):
+         self.habilidad_actual = random.choice([
+           'Kugelblitz', 'La_Pyline','013h','La_venganza_de_John_Bool', 'El_Turing_Bus'
+          ])
+         
+     
+
 
      def puede_ver_jugador(self, jugador_pos, obstáculos=None, vision_radio=1000000000000000):
           
@@ -986,8 +1103,92 @@ class Boss(Enemigo3):
                     self.current_skin.set_colorkey('black')
                self.mask = pg.mask.from_surface(self.current_skin)
                self.screen.blit(self.current_skin, (self.x, self.y))
+          
+          
 
      def perseguir_jugador(self, pos_jugador): 
+         
+          tiempo = pg.time.get_ticks()
+          if not self.ejecutando_habilidad:
+               if tiempo - self.cooldown_boss >= 10000:
+                    self.escoger_habilidad()
+                    print(self.habilidad_actual)
+                    self.ejecutar_habilidad()
+
+          if self.habilidad_actual == 'El_Turing_Bus' and self.velocidad_buff:
+               if tiempo - self.tiempo_habilidad_boss > 3000:
+                    self.velocidad = self.velocidad/1.5
+                    self.velocidad_buff = False
+                    self.habilidad_actual = ""
+                    self.cambiar_spritesheet(self.spritesheet_walk)
+                    self.cooldown_boss = pg.time.get_ticks()
+
+          if self.habilidad_actual == 'La_Pyline' and self.pyline:   
+               if self.pyline_pendiente:
+                    tiempo_actual = pg.time.get_ticks()
+                    if tiempo_actual - self.pyline_ultima_bomba >= self.pyline_delay:
+                         fila, col = self.pyline_pendiente.pop(0)
+                         matriz[fila][col] = 6
+                         self.pyline_ultima_bomba = tiempo_actual
+               else:
+                         self.pyline = False  
+                         self.habilidad_actual = ""
+                         self.velocidad = self.original_velocidad
+                         self.cambiar_spritesheet(self.spritesheet_walk)
+                         self.cooldown_boss = pg.time.get_ticks()
+          
+          if self.john_bool_activa:
+              
+               tiempo_actual = pg.time.get_ticks()
+
+               # Cada 0.5s pone un 6 en la celda donde está el jugador
+               if tiempo_actual - self.ultima_bomba_john >= self.delay_john:
+                    fila = int((pos_jugador[1]+16) // 48)
+                    col = int((pos_jugador[0]+16) // 48)
+                    if 0 <= fila < len(matriz) and 0 <= col < len(matriz[0]):
+                         matriz[fila][col] = 6
+                    self.ultima_bomba_john = tiempo_actual
+
+               # Después de 3 segundos termina la habilidad
+               if tiempo_actual - self.tiempo_inicio_john >= 3000:
+                    self.john_bool_activa = False
+                    self.habilidad_actual = ""
+                    self.cambiar_spritesheet(self.spritesheet_walk)
+                    self.cooldown_boss = pg.time.get_ticks()
+                    self.velocidad = self.original_velocidad
+
+          if self.interrupcion13h:
+                    self.habilidad_actual = ""
+                    self.cooldown_boss = pg.time.get_ticks()
+                    self.velocidad = self.original_velocidad
+                    self.cambiar_spritesheet(self.spritesheet_walk)
+                    self.interrupcion13h = False
+                    limpiar_enemigos()
+
+          if self.kugel_activa:
+                tiempo_actual = pg.time.get_ticks()
+                tiempo_pasado = tiempo_actual - self.kugel_inicio_tiempo
+               
+                if tiempo_pasado > self.kugel_duracion:
+                    # Fin de la habilidad
+                    self.kugel_activa = False
+                    self.habilidad_actual = ""
+                    self.cooldown_boss = tiempo_actual
+                    self.velocidad = self.original_velocidad
+                    self.cambiar_spritesheet(self.spritesheet_walk)
+
+                else:
+            # Disparar balas cada 'kugel_delay_entre_balas' milisegundos
+                    if tiempo_actual - self.kugel_ultimo_disparo >= self.kugel_delay_entre_balas:
+                         self.kugel_ultimo_disparo = tiempo_actual
+                         self.disparar()
+
+
+               
+          
+          self.actualizar_kugels()
+          for bala in self.lista_balas_enemigas:
+            bala.draw(self.screen)
           dx = pos_jugador[0] - self.x - 192
           dy = pos_jugador[1] - self.y - 192
           distancia = math.hypot(dx, dy)
@@ -1002,6 +1203,155 @@ class Boss(Enemigo3):
           self.y += dy_norm * self.velocidad
 
           self.animacion_skin()  
+
+     def ejecutar_habilidad(self):
+          self.cooldown_boss = pg.time.get_ticks()
+          self.tiempo_habilidad_boss = pg.time.get_ticks()
+
+          if self.habilidad_actual == 'El_Turing_Bus':
+               self.velocidad *= 1.5
+               self.cambiar_spritesheet(self.spritesheet_walk_attack)
+               self.velocidad_buff = True
+
+          if self.habilidad_actual == 'La_Pyline':
+               self.velocidad = 0
+               self.cambiar_spritesheet(self.spritesheet_fly)
+               self.pyline = True
+               self.ejecutar_pyline()
+
+          if self.habilidad_actual == 'La_venganza_de_John_Bool':
+                self.john_bool_activa = True
+                self.velocidad = 0
+                self.cambiar_spritesheet(self.spritesheet_fly)
+
+                self.tiempo_inicio_john = pg.time.get_ticks()
+                self.ultima_bomba_john = pg.time.get_ticks()
+
+          if self.habilidad_actual == '013h':
+
+               self.interrupcion13h = True
+               self.velocidad = 0
+               self.cambiar_spritesheet(self.spritesheet_idle)
+               config = random.choice(self.int13henemigos)
+               print(config)
+               cant_1, cant_2, cant_3 = config
+               self.spawn_enemigos_013h(cant_1, cant_2, cant_3)
+          
+          if self.habilidad_actual == 'Kugelblitz':
+            self.velocidad = 0
+            self.cambiar_spritesheet(self.sprite_attack)
+            self.kugel_activa = True
+            self.kugel_inicio_tiempo = pg.time.get_ticks()
+            self.kugel_ultimo_disparo = 0
+            
+            
+          
+     def disparar(self):
+            global pos_jugador, spritesheet_BB
+            self.velocidad = 0
+            self.cambiar_spritesheet(self.sprite_attack)
+            
+            origen_x = self.x + self.current_skin.get_width() // 2
+            origen_y = self.y + self.current_skin.get_height() // 2
+
+            objetivo_x = pos_jugador[0] 
+            objetivo_y = pos_jugador[1] 
+
+            dx = objetivo_x - origen_x
+            dy = objetivo_y - origen_y
+            
+            distancia = math.hypot(dx, dy)
+            if distancia == 0:
+                distancia = 1 
+
+            vel_x = dx / distancia * 8  
+            vel_y = dy / distancia * 8
+
+            bala = BalaKugel(origen_x, origen_y, vel_x, vel_y, spritesheet_BB, 5, 48, 48, 2, 'black')
+            self.lista_balas_enemigas.append(bala)
+          
+     def spawn_enemigos_013h(self, cant_1, cant_2, cant_3):
+          global matriz, Lista_Enemigos_1, Lista_Enemigos_2, Lista_Enemigos_3
+          filas = len(matriz)
+          columnas = len(matriz[0])
+
+          # Paso 1: Crear una lista de posiciones válidas
+          celdas_validas = [
+               (f, c)
+               for f in range(filas)
+               for c in range(columnas)
+               if matriz[f][c] not in ['#', 4, 6, 1, 2, 3]  # celda libre
+          ]
+
+          # Paso 2: Aleatorizar la lista de celdas
+          random.shuffle(celdas_validas)
+
+          # Paso 3: Definir cuántos enemigos en total colocar
+          total = cant_1 + cant_2 + cant_3
+          contador = {1: cant_1, 2: cant_2, 3: cant_3}
+
+          # Paso 4: Colocar en orden hasta que se acabe la lista o los enemigos
+          for f, c in celdas_validas:
+               if total <= 0:
+                    break
+
+               for tipo in [1, 2, 3]:
+                    if contador[tipo] > 0:
+                         matriz[f][c] = tipo
+                         if tipo == 1:
+                              Enemigo_perro = Enemigos(self.screen, (c*48), (f*48), 1.1, spritesheet_perro_cañon, spritesheet_perro_muerte, 3, 48, 48, 1, 'black', False, random.randint(0,3))
+                              Lista_Enemigos_1 += [Enemigo_perro]
+
+                         if tipo == 2:
+                              Enemigo_Moreno = Enemigo2(self.screen, (c*48), (f*48), 1.1, spritesheet_Moreno, spritesheet_moreno_muerte,spritesheet_moreno_hurt, 5, 48, 48, 1, 'black', False, random.randint(0,3),50) 
+                              Lista_Enemigos_2 += [Enemigo_Moreno]
+
+                         if tipo == 3:
+                              Enemigo_Volador = Enemigo3(self.screen, (c*48), (f*48), 1.3, spritesheet_volador, spritesheet_volador_muerte,spritesheet_v_a, spritesheet_v_a,3, 72, 72, 0.8, 'black', False, random.randint(0,3),70) 
+                              Lista_Enemigos_3 += [Enemigo_Volador]
+
+                         contador[tipo] -= 1
+                         total -= 1
+                         break
+     
+     def actualizar_kugels(self):
+          for bala in self.lista_balas_enemigas[:]:
+               bala.update()
+               if not bala.viva:
+                    self.lista_balas_enemigas.remove(bala)
+          
+
+
+     
+     def ejecutar_pyline(self):
+          global Fuerza_exp_boss
+          
+
+          self.pyline_pendiente.clear()
+          self.pyline_activa = True
+          self.pyline_ultima_bomba = pg.time.get_ticks()
+
+          escogencia = random.randint(0, 1)
+
+          if escogencia == 0:
+               fila = random.choice([0, 10])
+               for col in range(0, 17):
+                    self.pyline_pendiente.append((fila, col))
+          else:
+               col = random.choice([0, 16])
+               for fila in range(0, 11):
+                    self.pyline_pendiente.append((fila, col))
+                    
+
+
+
+
+def limpiar_enemigos():
+     global matriz
+     for fil in range(len(matriz)):
+             for col in range(len(matriz[fil])):
+                       if matriz[fil][col] in (1,2,3):
+                            matriz[fil][col] = 0    
 #Class Bomba_sprite
 class Bomba:
     
@@ -1399,12 +1749,12 @@ estado_anterior=""
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
-nivel = 0 #nivel inicial
+nivel = 3 #nivel inicial
 matriz = [] #la matriz extraida del nivel inicial
 items_en_nivel=[]  #lista de objetos items . se renderizan en el inicio del juego pero aparecen ocultos hasta la puta 
 Lista_Enemigos_1 = [] #la lista de los enemigos, esta solo posee los enemigos del nivel 1 o los mas sencillos
 Fuerza_exp = 1 #Esto dice la fuerza de la explosion, se va a expandir en casillas en forma de cruz, si es 1 es una casilla extra
-Fuerza_exp_boss = 2
+Fuerza_exp_boss = 20
 lista_B = [] #lista de bombas, solo para multiples animaciones a la vez
 lista_E = [] #lista de explosiones, solo para multiples 
 lista_EL = [] #lista para las explosiones extra o de lado o de borde
@@ -1895,7 +2245,7 @@ def bombastic_pos (screen): #guarda posicion de manejo de bombas
 
                   if matriz[fil][col] == 6:
                        Bomba_R = Bomba_Matriz_boss(screen, (col*48), (fil*48), spritesheet_Bomba_boss, 5, 64, 64, 0.75, 'black',True)
-                       lista_B_boss += [Bomba_R]
+                       lista_B_Boss += [Bomba_R]
                        matriz[fil][col] = 0
 
                   if matriz[fil][col] == 7:
@@ -2542,7 +2892,7 @@ def dibujar_gui() :
 llave = None  # Variable global para la llave
 candado= None
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO  
-    global matriz, puntaje_nivel,puntaje_final, estado, llave, candado, powerups
+    global matriz, puntaje_nivel,puntaje_final, estado, llave, candado, powerups, pos_jugador
     screen.fill("white")        
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantallag
     dibujar_gui()      
@@ -2550,7 +2900,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
         powerups = generar_powerups(screen, powerups_img, map_cols=11, map_rows=17)
         save_positions(game_surface)
         llave = ubicar_llave(matriz, 48, 48) if nivel<3 else None  #Ubica la llave en una posicion aleatoria de la matriz
-        print(f"llave: {llave.x}, {llave.y}") if llave else print("No hay llave en este nivel")
+       # print(f"llave: {llave.x}, {llave.y}") if llave else print("No hay llave en este nivel")
         candado= llave_candado (100, 100, False , True ,candado_img) if nivel<3 else None #Ubica el candado en la posicion del candado
         
 
@@ -2559,6 +2909,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     bombastic_pos(game_surface)
     bombastic_hitbox()
     pos_jugador = (Player_1.x,Player_1.y)
+    
 
     
     for boss in Lista_Boss:
