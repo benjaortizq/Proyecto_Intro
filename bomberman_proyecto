@@ -3,8 +3,6 @@
 #                  STEADMAN MURILLO 2025097768
 #           IC-1802 INTRODUCCION A LA PROGRAMACION 
 #                     I SEMESTRE DE 2025
-
-
 import time as t
 import threading as th
 import random 
@@ -241,7 +239,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         self.barra_habilidad = 0  # Tiempo de recarga de la habilidad
         self.color_bajada=color_bajada
         self.powerups= {"dano" : 0 , "vida":0}
-        self.items = {"bombas":30, "velocidad" : 10 ,"escudo":10 }
+        self.items = {"bombas":30, "velocidad" : 0 ,"escudo":0 }
         self.powerup_en_uso={"dano": False, "vida": False}
         self.item_en_uso={"bombas":False, "velocidad" : False ,"escudo":False }
         self.tiene_llave=False
@@ -1776,7 +1774,7 @@ estado_anterior=""
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
-nivel = 3 #nivel inicial
+nivel = 0 #nivel inicial-1
 matriz = [] #la matriz extraida del nivel inicial
 items_en_nivel=[]  #lista de objetos items . se renderizan en el inicio del juego pero aparecen ocultos hasta la puta 
 Lista_Enemigos_1 = [] #la lista de los enemigos, esta solo posee los enemigos del nivel 1 o los mas sencillos
@@ -2884,11 +2882,10 @@ def pantalla_puntajes() :
      max_display = min(len(mejores), 5)    #solo top5
      top_cinco = mejores[:max_display]
      dibujar_scoreboard(screen , top_cinco, font, x=100, y=150, line_height=40 )
-
+lista_pw_uso = [] #lista de powerups usados
 def dibujar_gui() :
-    global tiempo_juego, puntaje_nivel, estado
+    global tiempo_juego, puntaje_nivel, estado, Lista_Boss, lista_pw_uso
     screen.fill((24,24,24))
-    lista_pw_uso = ["vida","dano"]
     texto_tiempo=font0.render(f"Tiempo : {tiempo_juego.tiempo}", False , "white")
     texto_puntaje_nivel = font0.render(f"Puntaje : {puntaje_nivel}",False,"white")
     if Player_1.vida <= 1 : 
@@ -2920,8 +2917,12 @@ def dibujar_gui() :
     vida_jugador.draw(screen)  # Dibuja la barra de salud en la superficie del juego
     vida_jugador.draw_atributes(screen)  # Dibuja los atributos de la barra de salud en la superficie del juego
     habilidad_jugador= HealthBar(73, 55, 110, 20, Player_1.barra_habilidad,100, (129, 133, 137), Player_1.color_habilidad)  # Dibuja la barra de habilidad del jugador
+    vida_boss= HealthBar(300, 70, 170,20,Lista_Boss[0].vida, 1500, "red", "yellow") if len(Lista_Boss)==1 else None  # Dibuja la barra de habilidad del boss
     habilidad_jugador.draw(screen)  # Dibuja la barra de habilidad en la superficie del juego
+    vida_boss.draw(screen) if vida_boss else None  # Dibuja la barra de habilidad del boss si existe
     icono_habilidad= spritesheet_habilidades_prev.get_image(skin_seleccionada, 128,128,0.5,"black")
+    texto_boss= font0.render("Maquiavelo", False, (69, 229, 222)) if len(Lista_Boss) == 1 else None
+    screen.blit(texto_boss, (330, 50)) if texto_boss else None
     bombas_img=spritecheet_items.get_image(0,64,64,1.5,"black")
     velocidad_img=spritecheet_items.get_image(1,64,64,1.5,"black")
     escudo_img=spritecheet_items.get_image(2,64,64,1.5,"black")
@@ -3210,7 +3211,7 @@ prev_comprar_dano = False
 prev_comprar_pts = False
 prev_siguiente_nivel = False
 def pantalla_compra_powerups() : 
-     global  global_fade, estado, prev_atras, estado_anterior, prev_comprar_vidas, prev_comprar_dano, prev_comprar_pts, puntaje_final, Fuerza_exp, prev_siguiente_nivel, start_time_pantalla
+     global  global_fade, estado, prev_atras, estado_anterior, prev_comprar_vidas, prev_comprar_dano, prev_comprar_pts, puntaje_final, Fuerza_exp, prev_siguiente_nivel, start_time_pantalla, lista_pw_uso
      if not global_fade :     
           fade_in_from_white()
           global_fade = True
@@ -3251,12 +3252,14 @@ def pantalla_compra_powerups() :
           if Player_1.puntos_compra >= 2:
                Player_1.vida_max_actual += 25
                Player_1.puntos_compra -= 2
+               lista_pw_uso.append("vida") if not "vida" in lista_pw_uso else None  # Agrega el powerup de vida a la lista de powerups usados
      prev_comprar_vidas = boton_comprar_vidas.check_click()
 
      if prev_comprar_dano and not boton_comprar_dano.check_click():
           if Player_1.puntos_compra >= 3:
                Fuerza_exp += 1
                Player_1.puntos_compra -= 3
+               lista_pw_uso.append("dano") if not "dano" in lista_pw_uso else None
      prev_comprar_dano = boton_comprar_dano.check_click()
 
      if prev_siguiente_nivel and not boton_continuar_nivel.check_click():
