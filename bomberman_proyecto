@@ -1906,6 +1906,7 @@ benja=pg.transform.scale(benja, (138, 184)) #redimensiona la imagen de Benja a 1
 pos_jugador = None
 estado = "menu" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 estado_anterior=""
+start_time_pantalla=0
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
@@ -1927,14 +1928,15 @@ Lista_Enemigos_3 = []
 Lista_Boss = [] #solo boss
 traps = []
 hielo = []
-
+lista_pw_uso = [] #lista de powerups usados
 #___________________Enemigos y Aparicion de obstaculos________________________
 CELL_SIZE = 48 #tamaño por celda para la aparicion de todo XDXDXDXDX
 W_GRID = 17 #debido a que no es un cuadrado se debe definir un tamaño por ancho y alto
 H_GRID = 13
 
 primera_vez = True #debido a que ciertas cosas SOLO se deben generar una vez por nivel, como ver sus posiciones, se hace este booleano
-
+llave = None  # Variable global para la llave
+candado= None
 #-----------------------GLOBALES Y CARACTERISTICAS DEL JUEGO------------------------------
 puntaje_nivel=0
 puntaje_final=0
@@ -1943,6 +1945,7 @@ global_cuadrado=False
 bara_texto =""
 nombre_jugador=""
 jugadas =[]
+powerups=None
 #-------------area de juego-----------
 game_surface = pg.Surface((816,528)) #*! ya cambie el tamano del frame enves de 624 a 524, estaba pintando el frame 100 pix hacia abajo y hacia que pete todo
 
@@ -2044,6 +2047,11 @@ Boton_ingresar = Boton (320,320,150,30,"Empezar", "fonts/Pixeltype.ttf", 28,(133
 Boton_mejores_p = Boton (320,360,150,30,"Ver Puntajes", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
 Boton_opciones = Boton (320,400,150,30,"Opciones", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
 Boton_creditos = Boton (100,594,130,30,"Ver Creditos", "fonts/Pixeltype.ttf", 28,(133, 146, 158) ,(153, 163, 164))
+boton_aceptar_trato= Boton(300, 60, 150, 30, "Aceptar", "fonts/Pixeltype.ttf", 28, ("red"), ("green")) #crea un boton de aceptar trato
+boton_comprar_vidas= Boton(300, 420, 210, 30, "+25 Vida (2 creditos)", "fonts/Pixeltype.ttf", 28, ("gray"), ("green")) #crea un boton de comprar vidas
+boton_comprar_dano= Boton(300, 370, 210, 30, "+1 Dano (3 creditos)", "fonts/Pixeltype.ttf", 28, ("gray"), ("green")) #crea un boton de comprar dano
+boton_comprar_pts= Boton(300, 320, 210, 30, "+1 credito (500 puntos)", "fonts/Pixeltype.ttf", 28, ("gray"), ("green")) #crea un boton de comprar puntos
+boton_continuar_nivel= Boton(300, 470, 210, 30, "Siguiente nivel", "fonts/Pixeltype.ttf", 28, ("red"), ("green")) #crea un boton de continuar
 prev_siguiente = False #variable para controlar si se ha hecho clic en el botón de siguiente opción
 prev_seleccion = False  #variable para controlar si se ha hecho clic en el botón de seleccionar
 prev_ing=False
@@ -2051,6 +2059,16 @@ prev_mejor_p=False
 prev_opc=False
 prev_atras=False
 prev_creditos=False
+prev_aceptar_trato = False #variable para controlar si se ha hecho clic en el botón de aceptar trato
+prev_comprar_vidas = False
+prev_comprar_dano = False
+prev_comprar_pts = False
+prev_siguiente_nivel = False
+#!PANTALLAS DE HABILIDAD 
+escojio = False #variable para controlar que pantalla de habilidad se muestra
+vidas_choice = 0 #vidas por bombas
+bombas_choice = 0 #bombas por vidas
+choice= 0
 
 #----------------------MUSICA--------------------
 musica_menu=pg.mixer.Sound("sounds\music\Main_menu.mp3")
@@ -2276,9 +2294,7 @@ def save_positions(screen):
                   if matriz[fil][col] == 4:
                        Enemigo_Boss = Boss(screen, (col*48), (fil*48), 2, spritesheet_walk_boss, spritesheet_boss_death,spritesheet_boss_attack, spritesheet_boss_hurt,3, 96, 96, 3, 'black', False, random.randint(0,3),3000,spritesheet_boss_fly,spritesheet_walk_attack_boss,spritesheet_boss_idle,spritesheet_boss_melee)
                        Lista_Boss += [Enemigo_Boss]
-                  
-                  
-               
+                                    
 def generar_powerups(screen, imagenes, map_cols, map_rows):
     powerups = []
     n_items = random.randint(1, 12)
@@ -2302,7 +2318,6 @@ def generar_powerups(screen, imagenes, map_cols, map_rows):
 
     return powerups
 
-
 def encontrar_posiciones_llave(matriz, tile_width, tile_height):
 
     posiciones = []
@@ -2322,7 +2337,6 @@ def ubicar_llave(matriz, tile_width, tile_height):
     x, y = random.choice(posiciones)
     return llave_candado(x, y, True, False, llave_img)
 
-powerups=None
 #Este genera las texturas inamovibles, los enemigos se dibujan y se tratan dentro de su propia clase
 def generate(screen):
     global obstacles, matriz, powerups, nivel, llave, candado, estado, start_time_pantalla, global_fade, puntaje_final, puntaje_nivel
@@ -2947,14 +2961,6 @@ def star_wars_crawl(surface, text_lines, images, font, color, speed):
         img_y = star_wars_crawl.offset_y + y_offset
         surface.blit(img_surf, (img_x, img_y))
 
-boton_aceptar_trato= Boton(300, 60, 150, 30, "Aceptar", "fonts/Pixeltype.ttf", 28, ("red"), ("green")) #crea un boton de aceptar trato
-prev_aceptar_trato = False #variable para controlar si se ha hecho clic en el botón de aceptar trato
-#!PANTALLAS DE HABILIDAD 
-escojio = False #variable para controlar que pantalla de habilidad se muestra
-vidas_choice = 0 #vidas por bombas
-bombas_choice = 0 #bombas por vidas
-choice= 0
-
 def pantalla_habilidad_kam () : 
      global escojio, vidas_choice, bombas_choice, choice, prev_aceptar_trato
      #background = screen.copy()
@@ -3058,7 +3064,7 @@ def pantalla_puntajes() :
      max_display = min(len(mejores), 5)    #solo top5
      top_cinco = mejores[:max_display]
      dibujar_scoreboard(screen , top_cinco, font, x=100, y=150, line_height=40 )
-lista_pw_uso = [] #lista de powerups usados
+
 def dibujar_gui() :
     global tiempo_juego, puntaje_nivel, estado, Lista_Boss, lista_pw_uso, puntaje_final, puntaje_nivel
     screen.fill((24,24,24))
@@ -3129,8 +3135,6 @@ def dibujar_gui() :
     screen.blit(texto_puntaje_nivel,(332,25))
     #screen.blit(texto_puntaje_nivel, (425,5))
 
-llave = None  # Variable global para la llave
-candado= None
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO  
     global matriz, puntaje_nivel,puntaje_final, estado, llave, candado, powerups, pos_jugador,traps
     screen.fill("white")        
@@ -3228,7 +3232,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
      
     screen.blit(game_surface,(0, 100))  # Dibuja la superficie del juego en la pantalla
 
-start_time_pantalla=0
+
 def pantalla_seleccion_jugador () : 
     global skin_seleccionada, skin_viendo, Player_1, prev_siguiente, prev_seleccion, estado, Player_1, start_time_pantalla, global_fade, Fuerza_exp
 
@@ -3384,16 +3388,6 @@ def pantalla_g_o () :
           estado = "menu"
      prev_atras = click_atras
 
-
-boton_comprar_vidas= Boton(300, 420, 210, 30, "+25 Vida (2 creditos)", "fonts/Pixeltype.ttf", 28, ("gray"), ("green")) #crea un boton de comprar vidas
-boton_comprar_dano= Boton(300, 370, 210, 30, "+1 Dano (3 creditos)", "fonts/Pixeltype.ttf", 28, ("gray"), ("green")) #crea un boton de comprar dano
-boton_comprar_pts= Boton(300, 320, 210, 30, "+1 credito (500 puntos)", "fonts/Pixeltype.ttf", 28, ("gray"), ("green")) #crea un boton de comprar puntos
-boton_continuar_nivel= Boton(300, 470, 210, 30, "Siguiente nivel", "fonts/Pixeltype.ttf", 28, ("red"), ("green")) #crea un boton de continuar
-
-prev_comprar_vidas = False
-prev_comprar_dano = False
-prev_comprar_pts = False
-prev_siguiente_nivel = False
 def pantalla_compra_powerups() : 
      global  global_fade, estado, prev_atras, estado_anterior, prev_comprar_vidas, prev_comprar_dano, prev_comprar_pts, puntaje_final, Fuerza_exp, prev_siguiente_nivel, start_time_pantalla, lista_pw_uso
      if not global_fade :     
