@@ -2429,6 +2429,7 @@ def bombastic_hitbox ():
           exp_l_b.auto_animate()
           if Player_1.colisiona_con(exp_l_b) and not Player_1.item_en_uso["escudo"]:
                Player_1.vida-=0.25
+          matriz[exp_l_b.y//48][exp_l_b.x//48] = 0
           for obsR in obstacles_R:  
                if Explosion_Matriz_Lados_Boss.colisiona_con(exp_l_b, obsR):
                     matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
