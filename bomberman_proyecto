@@ -346,6 +346,47 @@ class Obstaculo:
      offset_y = int(otro_objeto.y) - int(self.y)
      return self.mask.overlap(otro_objeto.mask, (offset_x, offset_y)) is not None
 
+class Trampa:
+    def __init__(self, screen, x, y, texture, frame_count, frame_w,frame_h, scale, colour):
+        self.screen = screen
+        self.x = x
+        self.y = y
+        
+        self.current_spritesheet = texture
+        self.frame_count = frame_count          #CAANTIDAD DE FRAMES DE LA SKIN DEL JUGAODR
+        self.width_frame = frame_w
+        self.height_frame = frame_h   #esto siempre es estatico. como las spritesheets son horizontales entonces esto que qeuda asi . 
+        self.scale = scale                              #multiplicador de escala para el sprite
+        self.colour = colour                  #color de fondo del sprite que se va a eliminar
+        self.last_update = t.time()     #tiempo de la ultima actualizacion del frame
+        self.current_frame = 0        #numero de frame que esta actualmente dibujandose.
+        self.current_skin = self.current_spritesheet.get_image(0, 48, 48, self.scale, self.colour)
+        self.mask= pg.mask.from_surface(self.current_skin)
+        self.activo = False
+        
+    
+    def animation(self):
+         self.animacion_skin()
+         self.screen.blit(self.current_skin, (self.x, self.y))
+    def colisiona_con(self, otro_objeto):
+     # Calcular diferencia de posiciones (offset)
+     offset_x = int(otro_objeto.x) - int(self.x)
+     offset_y = int(otro_objeto.y) - int(self.y)
+     return self.mask.overlap(otro_objeto.mask, (offset_x, offset_y)) is not None
+    
+    def animacion_skin(self) : 
+        current_time = t.time()
+        if current_time - self.last_update > 0.1 : # Cambio de frame cada 0.2 segundos
+               self.last_update = current_time
+               self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
+        self.current_skin = self.current_spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
+        self.mask = pg.mask.from_surface(self.current_skin)
+        if self.frame_count in (8,9,10,11):
+             self.activo = True
+        else:
+             self.activo = False
+
+
 #Class Enemigos
 #Variable globales enemigos
 def tiene_linea_vision(origen, destino, obstaculos):
@@ -1866,7 +1907,7 @@ estado_anterior=""
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
-nivel = 3 #nivel inicial-1
+nivel = 1 #nivel inicial-1
 matriz = [] #la matriz extraida del nivel inicial
 items_en_nivel=[]  #lista de objetos items . se renderizan en el inicio del juego pero aparecen ocultos hasta la puta 
 Lista_Enemigos_1 = [] #la lista de los enemigos, esta solo posee los enemigos del nivel 1 o los mas sencillos
@@ -1882,6 +1923,8 @@ bomba_in_bounds = False
 Lista_Enemigos_2 = [] #para los enemigos morenos
 Lista_Enemigos_3 = []
 Lista_Boss = [] #solo boss
+traps = []
+hielo = []
 
 #___________________Enemigos y Aparicion de obstaculos________________________
 CELL_SIZE = 48 #tamaño por celda para la aparicion de todo XDXDXDXDX
@@ -2064,6 +2107,11 @@ spritesheet_v_a = SpriteSheet(sps_v_a)
 sps_volador_muerte = pg.image.load("assets\sprites\enemies\Volador\BOOM_death.png")
 spritesheet_volador_muerte = SpriteSheet(sps_volador_muerte)
 
+#Trampa
+sps_trampa = pg.image.load("assets\Textures\Trap.png")
+spritesheet_trampa = SpriteSheet(sps_trampa)
+
+
 #Kugel boss
 #_______________________________________________________________________
 #Attack
@@ -2135,7 +2183,6 @@ sps_melee_boss = pg.image.load("assets\sprites\enemies\Boss\melee.png")
 spritesheet_boss_melee = SpriteSheet(sps_melee_boss)
 
 
-
 #--------------------------------------------------------FUNCIONES GET PLAYS---------------------------
 def cargar_partidas() : 
      global RUTA_PLAYS 
@@ -2186,7 +2233,7 @@ def dibujar_scoreboard(screen, partidas, font, x=50, y=50, line_height=35):
 #------------------------------------------------------FUNCIONES SECUNDARIAS PARA NIVEL---------------------------------------- 
 #Funcion que ha partir de la matriz lee las posiciones iniciales 
 def save_positions(screen):
-        global obstacles, matriz, Lista_Enemigos_1, obstacles_R, Lista_Enemigos_2, Lista_Enemigos_3, Lista_Boss
+        global obstacles, matriz, Lista_Enemigos_1, obstacles_R, Lista_Enemigos_2, Lista_Enemigos_3, Lista_Boss, traps
         for fil in range(len(matriz)):
              for col in range(len(matriz[fil])):
                   if matriz[fil][col] == '#': 
@@ -2199,6 +2246,11 @@ def save_positions(screen):
                        obs = Obstaculo(screen, (col*48),(fil*48) , texture)
                        obstacles += [obs]
                        obstacles_R += [obs]
+
+                  if matriz[fil][col] == 'Q':
+                       trap = Trampa(screen,(col*48), (fil*48),spritesheet_trampa,13, 32,32,1.5,'black')
+                       traps += [trap]
+                       
 
                   if matriz[fil][col] == 1:
                        Enemigo_perro = Enemigos(screen, (col*48), (fil*48), 1.1, spritesheet_perro_cañon, spritesheet_perro_muerte, 3, 48, 48, 1, 'black', False, random.randint(0,3))
@@ -2215,6 +2267,8 @@ def save_positions(screen):
                   if matriz[fil][col] == 4:
                        Enemigo_Boss = Boss(screen, (col*48), (fil*48), 2, spritesheet_walk_boss, spritesheet_boss_death,spritesheet_boss_attack, spritesheet_boss_hurt,3, 96, 96, 3, 'black', False, random.randint(0,3),3000,spritesheet_boss_fly,spritesheet_walk_attack_boss,spritesheet_boss_idle,spritesheet_boss_melee)
                        Lista_Boss += [Enemigo_Boss]
+                  
+                  
                
 def generar_powerups(screen, imagenes, map_cols, map_rows):
     powerups = []
@@ -2270,7 +2324,7 @@ def generate(screen):
             y = fil * 48
             celda = matriz[fil][col]
 
-            if celda in (0,1,8,9,'u','d','l','r','w','a','s','f','c','U','D','L','R','W','A','S','D','F','C',2,3,4):
+            if celda in (0,1,8,9,'u','d','l','r','w','a','s','f','c','U','D','L','R','W','A','S','D','F','C',2,3,4,'Q'):
                 if fil == 0 and col == 0:
                     texture = Floor_corner0
                 elif fil == 0 and col == 16:
@@ -3051,7 +3105,7 @@ def dibujar_gui() :
 llave = None  # Variable global para la llave
 candado= None
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO  
-    global matriz, puntaje_nivel,puntaje_final, estado, llave, candado, powerups, pos_jugador
+    global matriz, puntaje_nivel,puntaje_final, estado, llave, candado, powerups, pos_jugador,traps
     screen.fill("white")        
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantallag
     dibujar_gui()      
@@ -3070,7 +3124,8 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     pos_jugador = (Player_1.x,Player_1.y)
     
 
-    
+    for trampa in traps:
+         trampa.animation()
     for boss in Lista_Boss:
          if boss.puede_ver_jugador(pos_jugador,obstacles):
               boss.perseguir_jugador(pos_jugador)
