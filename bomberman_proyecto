@@ -921,8 +921,9 @@ class BalaKugel:
              
 
 class Boss(Enemigo3):
-     def __init__(self, screen, x, y, velocidad, spritesheet_walk, spritesheet_death, sprite_attack, spritehurt, frame_count, frame_w, frame_h, scale, colour, muerte, dir, vida, spritesheet_fly, spritesheet_walk_attack, spritesheet_idle):
+     def __init__(self, screen, x, y, velocidad, spritesheet_walk, spritesheet_death, sprite_attack, spritehurt, frame_count, frame_w, frame_h, scale, colour, muerte, dir, vida, spritesheet_fly, spritesheet_walk_attack, spritesheet_idle,spritesheet_melee):
           super().__init__(screen, x, y, velocidad, spritesheet_walk, spritesheet_death, sprite_attack, spritehurt, frame_count, frame_w, frame_h, scale, colour, muerte, dir, vida)
+          self.spritesheet_melee = spritesheet_melee
           self.spritesheet_fly = spritesheet_fly
           self.spritesheet_walk_attack = spritesheet_walk_attack
           self.spritesheet_idle = spritesheet_idle
@@ -969,16 +970,12 @@ class Boss(Enemigo3):
           self.kugel_delay_entre_balas = 150  # tiempo entre disparos (ejemplo 300 ms)
           self.kugel_ultimo_disparo = 0
 
-          self.represa_activa = False
-          self.represa_cargando = False
-          self.represa_tiempo_inicio = 0
-          self.represa_duracion_carga = 3000
-          self.represa_duracion_disparo = 3000
-          self.represa_laser = None
+          self.tiempo_melee = 5000
+          self.melee = False
 
      def escoger_habilidad(self):
          self.habilidad_actual = random.choice([
-           'Kugelblitz', 'La_Pyline','013h','La_venganza_de_John_Bool', 'El_Turing_Bus'
+           'Kugelblitz', 'La_Pyline','013h','La_venganza_de_John_Bool', 'El_Turing_Bus','El_Bombazo','Error_de_Capa_8','Ups'
           ])
          
      
@@ -1183,6 +1180,17 @@ class Boss(Enemigo3):
                          self.kugel_ultimo_disparo = tiempo_actual
                          self.disparar()
 
+          if self.melee:
+               tiempo_actual = pg.time.get_ticks()
+               #aca colisiones del bombazo
+               
+               if tiempo_actual - self.tiempo_habilidad_boss >= 3000 :
+                    # Fin de la habilidad
+                    self.habilidad_actual = ""
+                    self.cooldown_boss = tiempo_actual
+                    self.velocidad = self.original_velocidad
+                    self.cambiar_spritesheet(self.spritesheet_walk)
+                    self.melee = False
 
                
           
@@ -1243,6 +1251,12 @@ class Boss(Enemigo3):
             self.kugel_activa = True
             self.kugel_inicio_tiempo = pg.time.get_ticks()
             self.kugel_ultimo_disparo = 0
+
+          if self.habilidad_actual == 'El_Bombazo':
+               self.velocidad = 1.5
+               self.cambiar_spritesheet(self.spritesheet_melee)
+               self.melee = True
+               
             
             
           
@@ -2013,6 +2027,10 @@ spritesheet_exp_b_boss = SpriteSheet(sps_exp_borde_boss)
 sps_exp_lado_boss = pg.image.load("assets\sprites\enemies\Boss\Bomba\explosion_l.png")
 spritesheet_exp_l_boss = SpriteSheet(sps_exp_lado_boss)
 
+#melee
+sps_melee_boss = pg.image.load("assets\sprites\enemies\Boss\melee.png")
+spritesheet_boss_melee = SpriteSheet(sps_melee_boss)
+
 
 
 #--------------------------------------------------------FUNCIONES GET PLAYS---------------------------
@@ -2092,7 +2110,7 @@ def save_positions(screen):
                        Lista_Enemigos_3 += [Enemigo_Volador]
 
                   if matriz[fil][col] == 4:
-                       Enemigo_Boss = Boss(screen, (col*48), (fil*48), 2, spritesheet_walk_boss, spritesheet_boss_death,spritesheet_boss_attack, spritesheet_boss_hurt,3, 96, 96, 3, 'black', False, random.randint(0,3),1500,spritesheet_boss_fly,spritesheet_walk_attack_boss,spritesheet_boss_idle)
+                       Enemigo_Boss = Boss(screen, (col*48), (fil*48), 2, spritesheet_walk_boss, spritesheet_boss_death,spritesheet_boss_attack, spritesheet_boss_hurt,3, 96, 96, 3, 'black', False, random.randint(0,3),1500,spritesheet_boss_fly,spritesheet_walk_attack_boss,spritesheet_boss_idle,spritesheet_boss_melee)
                        Lista_Boss += [Enemigo_Boss]
                
 def generar_powerups(screen, imagenes, map_cols, map_rows):
