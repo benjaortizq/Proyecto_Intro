@@ -3450,7 +3450,6 @@ def pantalla_compra_powerups() :
 
      return
 
-
 boton_guardar_puntaje= Boton(300, 470, 210, 30, "Guardar Puntaje", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de continuar
 anterior_puntaje_guardar=False
 
@@ -3494,6 +3493,17 @@ def pantalla_guardar_partida() :
      screen.blit(texto_entrada, (rectangulo_entrada.x + 5, rectangulo_entrada.y + 5))
      texto_ingrese_Tu_nombre = font0.render("Ingrese su nombre:", False, "white")
      screen.blit(texto_ingrese_Tu_nombre, (rectangulo_entrada.x -25, rectangulo_entrada.y +30))
+
+     titulo= font_tit1.render("PARTIDAS ", False, "white")
+     screen.blit(titulo,(320,70))
+     data=cargar_partidas()
+     todas= data.get("partidas",[])
+     mejores= sorted(todas, key=lambda p: p["puntaje"],reverse=True)
+     max_display = min(len(mejores), 7)    #solo top5
+     top_cinco = mejores[:max_display]
+     dibujar_scoreboard(screen , top_cinco, font, x=100, y=150, line_height=40 )
+
+     guardar_partida
 
      return
 
