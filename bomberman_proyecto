@@ -973,6 +973,12 @@ class Boss(Enemigo3):
           self.tiempo_melee = 5000
           self.melee = False
 
+          self.tiempo_hurt = 0
+          self.time = 0
+          
+          
+          
+
      def escoger_habilidad(self):
          self.habilidad_actual = random.choice([
            'Kugelblitz', 'La_Pyline','013h','La_venganza_de_John_Bool', 'El_Turing_Bus','El_Bombazo','Error_de_Capa_8','Ups'
@@ -996,21 +1002,23 @@ class Boss(Enemigo3):
      
      def animacion_skin(self):
           current_time = t.time()
+          
+          
 
           if self.muerte:
-               self.frame_count = 7
+               self.frame_count = 5
                if current_time - self.last_update > 0.3:
                     self.last_update = current_time
                     self.current_frame = (self.current_frame + 1) % self.frame_count
                self.current_skin = self.current_spritesheet.get_image(
                     self.current_frame, self.width_frame, self.height_frame, self.scale, self.colour)
                self.mask = pg.mask.from_surface(self.current_skin)
-               if self.current_frame == 6:
+               if self.current_frame == 4:
                     try:
-                         Lista_Enemigos_3.remove(self)
+                         Lista_Boss.remove(self)
                     except:
                          pass
-               self.screen.blit(self.current_skin, (self.x+10, self.y+10))
+               self.screen.blit(self.current_skin, (self.x, self.y))
 
           elif self.attack:
                
@@ -1104,7 +1112,12 @@ class Boss(Enemigo3):
           
 
      def perseguir_jugador(self, pos_jugador): 
-         
+          if self.current_spritesheet == self.spritehurt:
+               
+               self.tiempo_hurt = pg.time.get_ticks()
+               
+               if self.tiempo_hurt - self.time >= 2000:
+                     self.cambiar_spritesheet(self.spritesheet_walk)
           tiempo = pg.time.get_ticks()
           if not self.ejecutando_habilidad:
                if tiempo - self.cooldown_boss >= 10000:
@@ -1294,7 +1307,7 @@ class Boss(Enemigo3):
                (f, c)
                for f in range(filas)
                for c in range(columnas)
-               if matriz[f][c] not in ['#', 4, 6, 1, 2, 3]  # celda libre
+               if matriz[f][c] not in ['#', 4, 6, 1, 2, 3,'*']  # celda libre
           ]
 
           # Paso 2: Aleatorizar la lista de celdas
@@ -2308,6 +2321,11 @@ def bombastic_hitbox ():
           exp_b.auto_animate()
           if Player_1.colisiona_con(exp_b) and not Player_1.item_en_uso["escudo"]:
                Player_1.vida-=0.25
+          for obsR in obstacles_R:
+               if Explosion_Matriz_boss.colisiona_con(exp_b, obsR):
+                   matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
+                   obstacles_R.remove(obsR)
+                   obstacles.remove(obsR)
           
     
           x = exp_b.x // 48
@@ -2411,6 +2429,11 @@ def bombastic_hitbox ():
           exp_l_b.auto_animate()
           if Player_1.colisiona_con(exp_l_b) and not Player_1.item_en_uso["escudo"]:
                Player_1.vida-=0.25
+          for obsR in obstacles_R:  
+               if Explosion_Matriz_Lados_Boss.colisiona_con(exp_l_b, obsR):
+                    matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
+                    obstacles_R.remove(obsR)
+                    obstacles.remove(obsR)
 
           limpiar_boss()
 
@@ -2442,6 +2465,16 @@ def bombastic_hitbox ():
                     else:
                          ene_3.vida -= 1
                          ene_3.animacion_hurt()
+          for boss in Lista_Boss:
+               if Explosion_Matriz.colisiona_con(exp,boss):
+                    if boss.vida <= 0:
+                         print(boss.vida)
+                         boss.animacion_muerte()
+                    else:
+                         boss.vida -= 1
+                         boss.time = pg.time.get_ticks()
+                         boss.animacion_hurt()
+
           
           
           if Player_1.colisiona_con(exp) and not Player_1.item_en_uso["escudo"]:
@@ -2574,6 +2607,17 @@ def bombastic_hitbox ():
                     else:
                          ene_3.vida -= 1
                          ene_3.animacion_hurt()
+
+          for boss in Lista_Boss:
+               if Explosion_Matriz.colisiona_con(exp_l,boss):
+                    if boss.vida <= 0:
+                         boss.animacion_muerte()
+                    else:
+                         
+                         boss.vida -= 1
+                         print(boss.vida)
+                         boss.time = pg.time.get_ticks()
+                         boss.animacion_hurt()
 
           limpiar()          
 #Funcion para leer la matriz de nivel
