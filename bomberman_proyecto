@@ -2485,7 +2485,7 @@ def bombastic_hitbox ():
                          print(boss.vida)
                          boss.animacion_muerte()
                     else:
-                         boss.vida -= 1
+                         boss.vida -= 5 #daño al boss
                          boss.time = pg.time.get_ticks()
                          boss.animacion_hurt()
 
@@ -2900,7 +2900,7 @@ def pantalla_puntajes() :
      dibujar_scoreboard(screen , top_cinco, font, x=100, y=150, line_height=40 )
 lista_pw_uso = [] #lista de powerups usados
 def dibujar_gui() :
-    global tiempo_juego, puntaje_nivel, estado, Lista_Boss, lista_pw_uso
+    global tiempo_juego, puntaje_nivel, estado, Lista_Boss, lista_pw_uso, puntaje_final, puntaje_nivel
     screen.fill((24,24,24))
     texto_tiempo=font0.render(f"Tiempo : {tiempo_juego.tiempo}", False , "white")
     texto_puntaje_nivel = font0.render(f"Puntaje : {puntaje_nivel}",False,"white")
@@ -2911,6 +2911,7 @@ def dibujar_gui() :
     default_pw = spritesheet_powerups.get_image(2, 64, 64, 1, "black")
     default_pw_p = spritesheet_powerups.get_image(2, 64, 64, 0.5, "black")
     if Player_1.muerto and Player_1.current_frame == Player_1.frames_muerte-1 : 
+        puntaje_final= puntaje_nivel 
         estado = "GameOver"
 
     powerup_sprites = {"vida": [spritesheet_powerups.get_image(0, 64, 64, 1, "black"),spritesheet_powerups.get_image(0, 64, 64, 0.5, "black")],"dano": [spritesheet_powerups.get_image(1, 64, 64, 1, "black"),spritesheet_powerups.get_image(1, 64, 64, 0.5, "black")]}
@@ -2933,7 +2934,7 @@ def dibujar_gui() :
     vida_jugador.draw(screen)  # Dibuja la barra de salud en la superficie del juego
     vida_jugador.draw_atributes(screen)  # Dibuja los atributos de la barra de salud en la superficie del juego
     habilidad_jugador= HealthBar(73, 55, 110, 20, Player_1.barra_habilidad,100, (129, 133, 137), Player_1.color_habilidad)  # Dibuja la barra de habilidad del jugador
-    vida_boss= HealthBar(300, 70, 170,20,Lista_Boss[0].vida, 1500, "red", "yellow") if len(Lista_Boss)==1 else None  # Dibuja la barra de habilidad del boss
+    vida_boss= HealthBar(300, 70, 170,20,Lista_Boss[0].vida, 3009, "red", "yellow") if len(Lista_Boss)==1 else None  # Dibuja la barra de habilidad del boss
     habilidad_jugador.draw(screen)  # Dibuja la barra de habilidad en la superficie del juego
     vida_boss.draw(screen) if vida_boss else None  # Dibuja la barra de habilidad del boss si existe
     icono_habilidad= spritesheet_habilidades_prev.get_image(skin_seleccionada, 128,128,0.5,"black")
@@ -3013,8 +3014,6 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
                         matriz[int(obst.y/48)][int(obst.x/48)] = 0
                         obstacles_R.remove(obst)
                         obstacles.remove(obst)
-
-
          ene_3.move()
     for ene_2 in Lista_Enemigos_2:
          if Player_1.colisiona_con(ene_2) and not Player_1.item_en_uso["escudo"]:
