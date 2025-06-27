@@ -9,7 +9,9 @@ import random
 import sys 
 import json
 import pygame as pg
+from pygame import mixer 
 import math
+
 #pinche benja
 #Aqui epiezan las clases del juego  
 #----------------------------------------------------------CLASES UTILES DE PYGAME---------------------------------------
@@ -936,12 +938,12 @@ class Boss(Enemigo3):
           self.pyline = False
           self.pyline_pendiente = []
           self.pyline_ultima_bomba = 0
-          self.pyline_delay = 200  # milisegundos
+          self.pyline_delay = 300  # milisegundos
           self.original_velocidad = velocidad
           self.john_bool_activa = False
           self.tiempo_inicio_john = 0
           self.ultima_bomba_john = 0
-          self.delay_john = 200
+          self.delay_john = 300
           self.interrupcion13h = False
           self.int13henemigos = [
                [2, 0, 0],
@@ -973,6 +975,7 @@ class Boss(Enemigo3):
 
           self.tiempo_hurt = 0
           self.time = 0
+          self.healing = False
           
           
           
@@ -1118,7 +1121,7 @@ class Boss(Enemigo3):
                      self.cambiar_spritesheet(self.spritesheet_walk)
           tiempo = pg.time.get_ticks()
           if not self.ejecutando_habilidad:
-               if tiempo - self.cooldown_boss >= 10000:
+               if tiempo - self.cooldown_boss >= 5000:
                     self.escoger_habilidad()
                     print(self.habilidad_actual)
                     self.ejecutar_habilidad()
@@ -1158,7 +1161,7 @@ class Boss(Enemigo3):
                     self.ultima_bomba_john = tiempo_actual
 
                # Después de 3 segundos termina la habilidad
-               if tiempo_actual - self.tiempo_inicio_john >= 3000:
+               if tiempo_actual - self.tiempo_inicio_john >= 10000:
                     self.john_bool_activa = False
                     self.habilidad_actual = ""
                     self.cambiar_spritesheet(self.spritesheet_walk)
@@ -1202,12 +1205,23 @@ class Boss(Enemigo3):
                     self.velocidad = self.original_velocidad
                     self.cambiar_spritesheet(self.spritesheet_walk)
                     self.melee = False
+          
+          if self.healing:
+               tiempo_actual = pg.time.get_ticks()
+               self.vida += 70
+               boss_healing.play()
+               self.habilidad_actual = ""
+               self.cooldown_boss = tiempo_actual
+               self.velocidad = self.original_velocidad
+               self.cambiar_spritesheet(self.spritesheet_walk)
+               self.healing = False
 
                
           
           self.actualizar_kugels()
           for bala in self.lista_balas_enemigas:
             bala.draw(self.screen)
+
           dx = pos_jugador[0] - self.x - 192
           dy = pos_jugador[1] - self.y - 192
           distancia = math.hypot(dx, dy)
@@ -1267,6 +1281,9 @@ class Boss(Enemigo3):
                self.velocidad = 1.5
                self.cambiar_spritesheet(self.spritesheet_melee)
                self.melee = True
+          
+          if self.habilidad_actual == 'Error_de_Capa_8':
+               self.healing = True
                
             
             
@@ -1280,7 +1297,7 @@ class Boss(Enemigo3):
             origen_y = self.y + self.current_skin.get_height() // 2
 
             objetivo_x = pos_jugador[0] 
-            objetivo_y = pos_jugador[1] 
+            objetivo_y = pos_jugador[1] - 2
 
             dx = objetivo_x - origen_x
             dy = objetivo_y - origen_y
@@ -1347,7 +1364,6 @@ class Boss(Enemigo3):
           
 
 
-     
      def ejecutar_pyline(self):
           global Fuerza_exp_boss
           
@@ -1749,7 +1765,9 @@ class Explosion_Matriz_Lados_Boss(Explosion_Matriz):
      def auto_animate(self):
                     self.animate_matriz()
 #-----------------------pygame------------------------------
-
+#SONIDOS DEL JUEGO
+mixer.init()
+boss_healing = mixer.Sound("sounds\sfx\healing.mp3")
 #commons de pygame (literalmente el inicio de pygame)
 pg.init()
 screen= pg.display.set_mode((816, 624)) #tamano de pantalla
@@ -2121,7 +2139,7 @@ def save_positions(screen):
                        Lista_Enemigos_3 += [Enemigo_Volador]
 
                   if matriz[fil][col] == 4:
-                       Enemigo_Boss = Boss(screen, (col*48), (fil*48), 2, spritesheet_walk_boss, spritesheet_boss_death,spritesheet_boss_attack, spritesheet_boss_hurt,3, 96, 96, 3, 'black', False, random.randint(0,3),1500,spritesheet_boss_fly,spritesheet_walk_attack_boss,spritesheet_boss_idle,spritesheet_boss_melee)
+                       Enemigo_Boss = Boss(screen, (col*48), (fil*48), 2, spritesheet_walk_boss, spritesheet_boss_death,spritesheet_boss_attack, spritesheet_boss_hurt,3, 96, 96, 3, 'black', False, random.randint(0,3),3000,spritesheet_boss_fly,spritesheet_walk_attack_boss,spritesheet_boss_idle,spritesheet_boss_melee)
                        Lista_Boss += [Enemigo_Boss]
                
 def generar_powerups(screen, imagenes, map_cols, map_rows):
@@ -2424,17 +2442,18 @@ def bombastic_hitbox ():
                     matriz[yi][xi] = 'A' if i == Fuerza_exp_boss else 'L'
 
      for exp_l_b in lista_EL_Boss:
-          exp_l_b.auto_animate()
-          if Player_1.colisiona_con(exp_l_b) and not Player_1.item_en_uso["escudo"]:
-               Player_1.vida-=0.25
-          matriz[exp_l_b.y//48][exp_l_b.x//48] = 0
-          for obsR in obstacles_R:  
-               if Explosion_Matriz_Lados_Boss.colisiona_con(exp_l_b, obsR):
-                    matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
-                    obstacles_R.remove(obsR)
-                    obstacles.remove(obsR)
+               
+               exp_l_b.auto_animate()
+               if Player_1.colisiona_con(exp_l_b) and not Player_1.item_en_uso["escudo"]:
+                    Player_1.vida-=0.25
+               matriz[exp_l_b.y//48][exp_l_b.x//48] = 0
+               for obsR in obstacles_R:  
+                    if Explosion_Matriz_Lados_Boss.colisiona_con(exp_l_b, obsR):
+                         matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
+                         obstacles_R.remove(obsR)
+                         obstacles.remove(obsR)
 
-          limpiar_boss()
+               limpiar_boss()
 
      for bomba in lista_B:
           bomba.auto_animate()
