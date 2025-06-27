@@ -47,6 +47,30 @@
       "puntaje": 0,
       "personaje": "Kamikaze",
       "nivel": 1
+    },
+    {
+      "usuario": "nigga\r",
+      "puntaje": 710,
+      "personaje": "Invencible",
+      "nivel": 4
+    },
+    {
+      "usuario": "Elpele",
+      "puntaje": 11549,
+      "personaje": "Invencible",
+      "nivel": 4
+    },
+    {
+      "usuario": "xd",
+      "puntaje": 11835,
+      "personaje": "Invencible",
+      "nivel": 4
+    },
+    {
+      "usuario": "XD",
+      "puntaje": 9585,
+      "personaje": "Invencible",
+      "nivel": 4
     }
   ]
 }

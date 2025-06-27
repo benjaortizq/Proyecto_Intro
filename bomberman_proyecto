@@ -1935,13 +1935,13 @@ benja=pg.transform.scale(benja, (138, 184)) #redimensiona la imagen de Benja a 1
 
 #*!-----------------------GLOBALES------------------------------
 pos_jugador = None
-estado = "good_ending" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
+estado = "menu" #se inicializa el estado del juego como "start", que representa el menu de inicio (ahorita esta en seleccion de pers por unas pruebas q taba haciendo)
 estado_anterior=""
 start_time_pantalla=0
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
-nivel = 0 #nivel inicial-1
+nivel = 3 #nivel inicial-1
 matriz = [] #la matriz extraida del nivel inicial
 items_en_nivel=[]  #lista de objetos items . se renderizan en el inicio del juego pero aparecen ocultos hasta la puta 
 Lista_Enemigos_1 = [] #la lista de los enemigos, esta solo posee los enemigos del nivel 1 o los mas sencillos
@@ -2109,6 +2109,7 @@ musica_seleccion_personaje=pg.mixer.Sound("sounds\music\player_selection.mp3")
 musica_ending=pg.mixer.Sound("sounds\music\good_ending.mp3")
 musica_compra=pg.mixer.Sound("sounds\music\compra.mp3")
 musica_name_selection=pg.mixer.Sound("sounds\music\\name_selection.mp3")
+musica_cambio_nivel=pg.mixer.Sound("sounds\sfx\\cambio_lvl.mp3")
 #----------------------------SFX------------------------------
 sfx_bomba= pg.mixer.Sound("sounds\sfx\Bomba.mp3") #sonido de la bomba
 #-----------------------SPRITES------------------------------
@@ -2370,7 +2371,7 @@ def ubicar_llave(matriz, tile_width, tile_height):
 
 #Este genera las texturas inamovibles, los enemigos se dibujan y se tratan dentro de su propia clase
 def generate(screen):
-    global obstacles, matriz, powerups, nivel, llave, candado, estado, start_time_pantalla, global_fade, puntaje_final, puntaje_nivel, nivel, pos_jugador, FOV_RADIUS
+    global obstacles, matriz, powerups, nivel, llave, candado, estado, start_time_pantalla, global_fade, puntaje_final, puntaje_nivel, nivel, pos_jugador, FOV_RADIUS, hielo
     
     for fil in range(len(matriz)):
         for col in range(len(matriz[fil])):
@@ -2454,7 +2455,7 @@ def generate(screen):
         if Player_1.colisiona_con(candado) and Player_1.tiene_llave:
             candado = None
             puntaje_final= puntaje_nivel + 500 #puntaje por abrir el candado
-            estado ="comprar_powerups" #SIEMPRE BAMCIAR EL ESTADO AML SIGUIENTE ANTES DE JUEGO O NO SE 
+            estado ="comprar_powerups" if nivel < 3 else "good_ending"
             start_time_pantalla = pg.time.get_ticks()
             global_fade = False  # Reiniciar el fade global
 
@@ -2495,6 +2496,9 @@ def generate(screen):
                        texture = Hielo_xd
                        obs = Hielo(screen, (col*48),(fil*48) , texture)
                        obs.draw()
+    for hielos in hielo : 
+         if Player_1.colisiona_con(hielos):
+              Player_1.velocidad=0.5
 
 #funciones para la generacion y manejo de bombas
 def bombastic_pos (screen): #guarda posicion de manejo de bombas 
@@ -3226,7 +3230,7 @@ def is_in_fov_circle(player_pos, obj_pos, radius):
 
 
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO  
-    global matriz, puntaje_nivel,puntaje_final, estado, llave, candado, powerups, pos_jugador,traps
+    global matriz, puntaje_nivel,puntaje_final, estado, llave, candado, powerups, pos_jugador,traps,Lista_Boss
     screen.fill("white")        
     game_surface.fill("black")  # Llama al método mover del jugador 1 para dibujarlo en la pantallag
 
@@ -3234,9 +3238,16 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     if primera_vez:
         powerups = generar_powerups(screen, powerups_img, map_cols=11, map_rows=17)
         save_positions(game_surface)
-        llave = ubicar_llave(matriz, 48, 48) if nivel<3 else None  #Ubica la llave en una posicion aleatoria de la matriz
+        llave = ubicar_llave(matriz, 48, 48) if nivel<3 or nivel == 4 and len(Lista_Boss)==0 else None #Ubica la llave en una posicion aleatoria de la matriz
        # print(f"llave: {llave.x}, {llave.y}") if llave else print("No hay llave en este nivel")
-        candado= llave_candado (100, 100, False , True ,candado_img) if nivel<3 else None #Ubica el candado en la posicion del candado
+        candado= llave_candado (100, 100, False , True ,candado_img) if nivel<3 or nivel == 4 and len(Lista_Boss)==0 else None #Ubica el candado en la posicion del candado
+
+    if nivel==4 : 
+         if len(Lista_Boss) == 0:
+              llave = ubicar_llave(matriz, 48, 48) if llave is None else None #Ubica la llave en una posicion aleatoria de la matriz
+              candado= llave_candado (100, 100, False , True ,candado_img) if candado is None else None #Ubica el candado en la posicion del candado
+              
+              
      
     pos_jugador = (Player_1.x,Player_1.y)
     if nivel == 1:
@@ -3472,7 +3483,7 @@ def pantalla_cargar_lvl() :
 
 def pantalla_g_o () : 
      global estado, puntaje_final, prev_atras, global_fade, nivel, powerups, primera_vez, matriz
-     global Lista_Enemigos_1 , Lista_Enemigos_2, Lista_Enemigos_3, obstacles, obstacles_R, lista_B , lista_E , lista_EL
+     global Lista_Enemigos_1 , Lista_Enemigos_2, Lista_Enemigos_3, obstacles, obstacles_R, lista_B , lista_E , lista_EL, lista_B_Boss, lista_E_Boss, lista_EL_Boss, Lista_Boss
      if not global_fade : 
           fade_in_from_white()
           global_fade = True
@@ -3484,10 +3495,8 @@ def pantalla_g_o () :
      click_atras = boton_back.check_click()
      boton_back.draw(screen)
      if click_atras and not prev_atras:
-          puntaje_final = 0
           global_fade = False
           powerups = None
-          nivel=0
           primera_vez= False
           matriz=[]
           Lista_Enemigos_1=[]
@@ -3498,11 +3507,15 @@ def pantalla_g_o () :
           lista_EL = []
           obstacles = []
           obstacles_R = []
+          Lista_Boss=[]
+          lista_B_Boss = []
+          lista_E_Boss = []
+          lista_EL_Boss = []
           Player_1.tiene_llave = False
           Player_1.puntos_compra = 0
           Player_1.cant_vidas = 3
 
-          estado = "menu"
+          estado = "guardar_puntaje"
      prev_atras = click_atras
 
 def pantalla_compra_powerups() : 
@@ -3595,14 +3608,13 @@ def pantalla_win() :
      boton_guardar_puntaje.draw(screen)  # Dibuja el botón en la pantalla
 
 boton_scoreboard_puntaje= Boton(300, 510, 210, 30, "Guardar", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de gaurdar_puntaje_en el json
-Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_walk_kam ,spritesheet_habilidad_kam,spritesheet_death_kam,4,7,12,8,48,32,1.35,"black","Kamikaze",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
 def pantalla_guardar_partida() : 
      global global_cuadrado, bara_texto, anterior_puntaje_guardar, estado, puntaje_final, nivel, Player_1, estado_anterior
      bg_men_parallax()
      if not global_cuadrado :
           animar_cuadro(screen)
      
-     rectangulo_entrada= pg.Rect (340, 480, 135, 30)    
+     rectangulo_entrada= pg.Rect (340, 460, 135, 30)    
      pg.draw.rect(screen, "white", rectangulo_entrada, 0, 4)  
      pg.draw.rect(screen, "black", rectangulo_entrada, 2, 4)  
      texto_entrada = font.render(bara_texto, False, "black")
@@ -3619,13 +3631,23 @@ def pantalla_guardar_partida() :
      top_cinco = mejores[:max_display]
      dibujar_scoreboard(screen , top_cinco, font, x=100, y=150, line_height=40 )
 
+     puntaje_final_txt = font0.render(f"Puntaje final: {puntaje_final}", False, "green")
+
+     personaje_actual_txt= font0.render(f"Personaje : {Player_1.habilidad}", False, "green")
+
+     nivel_actual_txt = font0.render(f"Nivel actual: {nivel}", False, "green")
+     screen.blit(puntaje_final_txt, (100, 120))
+     screen.blit(personaje_actual_txt, (280, 120))
+     screen.blit(nivel_actual_txt, (530, 120))
+
      boton_scoreboard_puntaje.draw(screen)  # Dibuja el botón en la pantalla
      if boton_scoreboard_puntaje.check_click() and not anterior_puntaje_guardar:
-          nueva_partida(bara_texto, puntaje_final, Player_1.habilidad,nivel+1)  # Guarda la partida con el nombre ingresado
+          nueva_partida(bara_texto, puntaje_final, Player_1.habilidad,nivel)  # Guarda la partida con el nombre ingresado
           puntaje_final = 0  # Reinicia el puntaje final después de guardar
           global_cuadrado = False  # Reiniciar el estado del cuadrado
           bara_texto = ""  # Reinicia
           Player_1=None
+          nivel= 0
           estado="menu"
 
      anterior_puntaje_guardar = boton_scoreboard_puntaje.check_click()
@@ -3647,6 +3669,8 @@ def boombox() :
                     musica_puntajes.play(-1)
                elif estado=="creditos" : 
                     musica_creditos.play(-1)
+               elif estado=="cargar_nivel" :
+                    musica_cambio_nivel.play(-1)
                elif estado=="seleccion_personaje" :
                     musica_seleccion_personaje.play(-1)
                elif estado=="comprar_powerups" :
