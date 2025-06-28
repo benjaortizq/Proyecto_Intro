@@ -14,4 +14,5 @@ Para los de Powerups se piensa "B" para bomba y "V" para vida.
 Items pues se agregan cualquiera
 
 
-Ahora 'S' se refererira a a las trampas
+Ahora 'Q' se refererira a a las trampas
+Ahora, 'H' son los bloques de hielo
