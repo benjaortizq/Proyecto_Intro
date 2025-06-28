@@ -1941,7 +1941,7 @@ start_time_pantalla=0
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
-nivel = 1 #nivel inicial-1
+nivel = 3 #nivel inicial-1
 matriz = [] #la matriz extraida del nivel inicial
 items_en_nivel=[]  #lista de objetos items . se renderizan en el inicio del juego pero aparecen ocultos hasta la puta 
 Lista_Enemigos_1 = [] #la lista de los enemigos, esta solo posee los enemigos del nivel 1 o los mas sencillos
@@ -2463,7 +2463,7 @@ def generate(screen):
             start_time_pantalla = pg.time.get_ticks()
             global_fade = False  # Reiniciar el fade global
 
-
+    Player_1.velocidad=Player_1.base_speed
 
     for fil in range(len(matriz)):
         for col in range(len(matriz[fil])):
@@ -2503,8 +2503,7 @@ def generate(screen):
     for hielos in hielo : 
          if Player_1.colisiona_con(hielos):
               Player_1.velocidad=0.5
-         else : 
-              Player_1.velocidad=Player_1.base_speed
+
 
 #funciones para la generacion y manejo de bombas
 def bombastic_pos (screen): #guarda posicion de manejo de bombas 
@@ -3444,15 +3443,15 @@ def pantalla_seleccion_jugador () :
         skin_seleccionada = prev_seleccion
         skin_seleccionada = skin_viendo
         if skin_seleccionada == 0 : 
-            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_int,spritesheet_walk_int,spritesheet_habilidad_int,spritesheet_death_int,9,8,8,8,32,32,1.5,"black","Invencible",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
+            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_int,spritesheet_walk_int,spritesheet_habilidad_int,spritesheet_death_int,9,8,8,8,32,32,1.5,"black","Invencible",3,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
             Player_1.vida_maxima=150
             Fuerza_exp= 2
         elif skin_seleccionada == 1 : 
-            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_walk_kam ,spritesheet_habilidad_kam,spritesheet_death_kam,4,7,12,8,48,32,1.35,"black","Kamikaze",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
+            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_walk_kam ,spritesheet_habilidad_kam,spritesheet_death_kam,4,7,12,8,48,32,1.35,"black","Kamikaze",3,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
             Player_1.vida_maxima=200
             Fuerza_exp= 1
         elif skin_seleccionada == 2 :
-            Player_1= Jugador_1(game_surface,0,0,1.5,spritesheet_idle_tac,spritesheet_walk_tac ,spritesheet_habilidad_tac,spritesheet_death_tac,4,6,9,6,96,96,0.45,"black","Tactico",6,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
+            Player_1= Jugador_1(game_surface,0,0,1.5,spritesheet_idle_tac,spritesheet_walk_tac ,spritesheet_habilidad_tac,spritesheet_death_tac,4,6,9,6,96,96,0.45,"black","Tactico",3,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
             Player_1.vida_maxima = 250
             Fuerza_exp= 3
 
@@ -3765,7 +3764,10 @@ while True:
             pg.quit()
             sys.exit()
         elif event.type == pg.KEYDOWN : 
-              if estado== "guardar_puntaje" : 
+              if estado == "juego":
+                    if event.key == pg.K_ESCAPE:
+                         estado = "GameOver"
+              elif estado== "guardar_puntaje" : 
                     if event.key == pg.K_BACKSPACE:
                          bara_texto = bara_texto[:-1]
                     else:
@@ -3782,7 +3784,6 @@ while True:
     reloj.tick(60)
 
 #TODO : benja
-#opciones volumen
 #*!DOCUMENTACION 
 
 #TODO : steadman
