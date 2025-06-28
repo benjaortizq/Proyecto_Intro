@@ -3522,7 +3522,7 @@ def pantalla_cargar_lvl() :
 
 def pantalla_g_o () : 
      global estado, puntaje_final, prev_atras, global_fade, nivel, powerups, primera_vez, matriz
-     global Lista_Enemigos_1 , Lista_Enemigos_2, Lista_Enemigos_3, obstacles, obstacles_R, lista_B , lista_E , lista_EL, lista_B_Boss, lista_E_Boss, lista_EL_Boss, Lista_Boss
+     global Lista_Enemigos_1 , Lista_Enemigos_2, Lista_Enemigos_3, obstacles, obstacles_R, lista_B , lista_E , lista_EL, lista_B_Boss, lista_E_Boss, lista_EL_Boss, Lista_Boss, hielo
      if not global_fade : 
           fade_in_from_white()
           global_fade = True
@@ -3550,6 +3550,7 @@ def pantalla_g_o () :
           lista_B_Boss = []
           lista_E_Boss = []
           lista_EL_Boss = []
+          hielo = []
           Player_1.tiene_llave = False
           Player_1.puntos_compra = 0
           Player_1.cant_vidas = 3
@@ -3768,7 +3769,10 @@ while True:
         elif event.type == pg.KEYDOWN : 
               if estado == "juego":
                     if event.key == pg.K_ESCAPE:
+                         puntaje_final += puntaje_nivel
+                         puntaje_nivel = 0
                          estado = "GameOver"
+
               elif estado== "guardar_puntaje" : 
                     if event.key == pg.K_BACKSPACE:
                          bara_texto = bara_texto[:-1]
