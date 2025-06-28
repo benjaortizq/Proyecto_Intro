@@ -113,6 +113,12 @@
       "puntaje": 3,
       "personaje": "Invencible",
       "nivel": 1
+    },
+    {
+      "usuario": "Hola",
+      "puntaje": 837,
+      "personaje": "Invencible",
+      "nivel": 3
     }
   ]
 }

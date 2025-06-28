@@ -241,12 +241,12 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         self.barra_habilidad = 0  # Tiempo de recarga de la habilidad
         self.color_bajada=color_bajada
         self.powerups= {"dano" : 0 , "vida":0}
-        self.items = {"bombas":50, "velocidad" : 0 ,"escudo":0 }
+        self.items = {"bombas":50, "velocidad" : 5 ,"escudo":0 }
         self.powerup_en_uso={"dano": False, "vida": False}
         self.item_en_uso={"bombas":False, "velocidad" : False ,"escudo":False }
         self.tiene_llave=False
         self.ultima_bomba=0
-        self.base_speed = self.velocidad      # ejemplo
+        self.base_speed = velocidad      # ejemplo
         self.speed = self.base_speed
         self.defensa_activa = False
         
@@ -255,6 +255,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         keys = pg.key.get_pressed()
         current_time = t.time()
         global escojio
+        print (self.velocidad)
         # Iniciar habilidad al presionar espacio
         if keys[pg.K_SPACE] and not self.ejecutando_habilidad and self.barra_habilidad >50:
             self.ejecutando_habilidad = True
@@ -2468,7 +2469,7 @@ def generate(screen):
             start_time_pantalla = pg.time.get_ticks()
             global_fade = False  # Reiniciar el fade global
 
-    Player_1.velocidad=Player_1.base_speed
+
 
     for fil in range(len(matriz)):
         for col in range(len(matriz[fil])):
@@ -2505,9 +2506,9 @@ def generate(screen):
                        texture = Hielo_xd
                        obs = Hielo(screen, (col*48),(fil*48) , texture)
                        obs.draw()
-    for hielos in hielo : 
-         if Player_1.colisiona_con(hielos):
-              Player_1.velocidad=0.5
+            Player_1.velocidad = (0.5 if any(Player_1.colisiona_con(h) for h in hielo) else (Player_1.base_speed * 1.5 if Player_1.item_en_uso["velocidad"] else Player_1.base_speed))
+
+
 
 #funciones para la generacion y manejo de bombas
 def bombastic_pos (screen): #guarda posicion de manejo de bombas 
@@ -3183,14 +3184,19 @@ def pantalla_puntajes() :
      max_display = min(len(mejores), 5)    #solo top5
      top_cinco = mejores[:max_display]
      dibujar_scoreboard(screen , top_cinco, font, x=100, y=150, line_height=40 )
-
+fuerza_aplicada = False
+ultimo_bono_vida = 0
 def dibujar_gui() :
-    global tiempo_juego, puntaje_nivel, estado, Lista_Boss, lista_pw_uso, puntaje_final, puntaje_nivel
+    global tiempo_juego, puntaje_nivel, estado, Lista_Boss, lista_pw_uso, puntaje_final, puntaje_nivel, fuerza_aplicada, ultimo_bono_vida, Fuerza_exp
     screen.fill((24,24,24))
     texto_tiempo=font0.render(f"Tiempo : {tiempo_juego.tiempo}", False , "white")
     texto_puntaje_nivel = font0.render(f"Puntaje : {puntaje_nivel}",False,"white")
     if Player_1.vida <= 1 : 
          Player_1.muerto=True
+
+    if tiempo_juego.tiempo <= 0 : 
+         estado = "GameOver"
+         puntaje_final+= puntaje_nivel     
 
     
     default_pw = spritesheet_powerups.get_image(2, 64, 64, 1, "black")
@@ -3201,6 +3207,7 @@ def dibujar_gui() :
           estado = "GameOver"
         else : 
              Player_1.cant_vidas-=1
+             Player_1.items["bombas"] = 20
              boss_healing.play()
              Player_1.barra_habilidad=0
              Player_1.vida= Player_1.vida_max_actual
@@ -3211,6 +3218,16 @@ def dibujar_gui() :
     powerup_sprites = {"vida": [spritesheet_powerups.get_image(0, 64, 64, 1, "black"),spritesheet_powerups.get_image(0, 64, 64, 0.5, "black")],"dano": [spritesheet_powerups.get_image(1, 64, 64, 1, "black"),spritesheet_powerups.get_image(1, 64, 64, 0.5, "black")]}
     pw_uso_1 = default_pw
     pw_uso_2 = default_pw_p
+
+    if puntaje_nivel >= 500 and not fuerza_aplicada:
+          Fuerza_exp += 1
+          fuerza_aplicada = True
+          lista_pw_uso.append("dano")
+    if puntaje_nivel // 100 > ultimo_bono_vida:
+          Player_1.vida += 25
+          ultimo_bono_vida = puntaje_nivel // 100
+          lista_pw_uso.append("vida")
+
     if len(lista_pw_uso) >= 1:
         nombre1 = lista_pw_uso[0]
         sprites  = powerup_sprites.get(nombre1)
@@ -3524,6 +3541,7 @@ def pantalla_cargar_lvl() :
      Player_1.y=0
      Player_1.vida= Player_1.vida_max_actual
      Player_1.tiene_llave = False
+     Player_1.items["bombas"] = 45
 
 
      primera_vez=True
@@ -3609,7 +3627,6 @@ def pantalla_compra_powerups() :
           if Player_1.puntos_compra >= 2:
                Player_1.vida_max_actual += 25
                Player_1.puntos_compra -= 2
-               lista_pw_uso.append("vida") if not "vida" in lista_pw_uso else None  # Agrega el powerup de vida a la lista de powerups usados
      prev_comprar_vidas = boton_comprar_vidas.check_click()
 
      if prev_comprar_dano and not boton_comprar_dano.check_click():
