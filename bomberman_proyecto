@@ -2504,7 +2504,6 @@ def generate(screen):
          if Player_1.colisiona_con(hielos):
               Player_1.velocidad=0.5
 
-
 #funciones para la generacion y manejo de bombas
 def bombastic_pos (screen): #guarda posicion de manejo de bombas 
      global lista_B, lista_E, bomba_in_bounds, lista_EL, lista_B_Boss, lista_E_Boss, lista_EL_Boss
@@ -3293,10 +3292,6 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     
     bombastic_pos(game_surface)
     bombastic_hitbox()
-    
-    
-    
-
          
     for trampa in traps:
          trampa.animation()
@@ -3790,7 +3785,6 @@ while True:
     reloj.tick(60)
 
 #TODO : benja
-#*!DOCUMENTACION 
 
 #TODO : steadman
 
