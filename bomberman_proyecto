@@ -3301,7 +3301,7 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
         llave = ubicar_llave(matriz, 48, 48) if nivel<=3 or nivel == 4 and len(Lista_Boss)==0 else None #Ubica la llave en una posicion aleatoria de la matriz
         print(f"llave: {llave.x}, {llave.y}") if llave else print("No hay llave en este nivel")
        # print(f"llave: {llave.x}, {llave.y}") if llave else print("No hay llave en este nivel")
-        candado= llave_candado (100, 100, False , True ,candado_img) if nivel<3 or nivel == 4 and len(Lista_Boss)==0 else None #Ubica el candado en la posicion del candado
+        candado= llave_candado (100, 100, False , True ,candado_img) if nivel<=3 or nivel == 4 and len(Lista_Boss)==0 else None #Ubica el candado en la posicion del candado
 
     if nivel==4 : 
          if len(Lista_Boss) == 0:
