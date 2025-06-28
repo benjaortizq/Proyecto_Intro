@@ -2085,7 +2085,6 @@ boton_comprar_dano= Boton(300, 370, 210, 30, "+1 Dano (3 creditos)", "fonts/Pixe
 boton_comprar_pts= Boton(300, 320, 210, 30, "+1 credito (500 puntos)", "fonts/Pixeltype.ttf", 28, ("gray"), ("green")) #crea un boton de comprar puntos
 boton_continuar_nivel= Boton(300, 470, 210, 30, "Siguiente nivel", "fonts/Pixeltype.ttf", 28, ("red"), ("green")) #crea un boton de continuar
 boton_scoreboard_puntaje= Boton(300, 510, 210, 30, "Guardar", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de gaurdar_puntaje_en el json
-boton_scoreboard_puntaje= Boton(300, 510, 210, 30, "Ver Scoreboard", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de gaurdar_puntaje_en el json
 boton_guardar_puntaje= Boton(300, 470, 210, 30, "Guardar Puntaje", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de continuar
 anterior_puntaje_guardar=False
 prev_siguiente = False #variable para controlar si se ha hecho clic en el botón de siguiente opción
@@ -3119,6 +3118,8 @@ def pantalla_opciones() :
      if not global_cuadrado : 
           animar_cuadro(screen)
      click_back= boton_back.check_click() 
+     texto_volumeen_musica = font0.render("Volumen de la musica", False, "white")
+     screen.blit(texto_volumeen_musica, (120, 380))
 
      slider_rect = pg.Rect(100, 450, 300, 8)         # posición y tamaño de la barra
      pg.draw.rect(screen, (180, 180, 180), slider_rect)  # barra
