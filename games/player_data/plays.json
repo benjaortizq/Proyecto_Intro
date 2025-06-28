@@ -107,6 +107,12 @@
       "puntaje": 11267,
       "personaje": "Invencible",
       "nivel": 4
+    },
+    {
+      "usuario": " ",
+      "puntaje": 3,
+      "personaje": "Invencible",
+      "nivel": 1
     }
   ]
 }

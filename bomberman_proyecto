@@ -386,9 +386,21 @@ class Trampa:
         else:
              self.activo = False
 
-class Hielo(Obstaculo):
-     def __init__(self, screen, x, y, texture):
-          super().__init__(screen, x, y, texture)
+class Hielo:
+    def __init__(self, screen, x, y, texture):
+        self.screen = screen
+        self.x = x
+        self.y = y
+        self.texture = texture
+        self.mask    = pg.mask.from_surface(self.texture)
+        self.rect = self.texture.get_rect(topleft=(self.x, self.y))  
+    def draw(self):
+        self.screen.blit(self.texture, (self.x, self.y))
+    def colisiona_con(self, otro_objeto):
+     # Calcular diferencia de posiciones (offset)
+     offset_x = int(otro_objeto.x) - int(self.x)
+     offset_y = int(otro_objeto.y) - int(self.y)
+     return self.mask.overlap(otro_objeto.mask, (offset_x, offset_y)) is not None
 #Class Enemigos
 #Variable globales enemigos
 def tiene_linea_vision(origen, destino, obstaculos):
@@ -1915,7 +1927,7 @@ class Explosion_Matriz_Lados_Boss(Explosion_Matriz):
 #-----------------------pygame------------------------------
 #SONIDOS DEL JUEGO
 mixer.init()
-boss_healing = mixer.Sound("sounds\sfx\healing.mp3")
+
 #commons de pygame (literalmente el inicio de pygame)
 pg.init()
 screen= pg.display.set_mode((816, 624)) #tamano de pantalla
@@ -1941,7 +1953,7 @@ start_time_pantalla=0
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
-nivel = 0  #nivel inicial-1
+nivel = 2  #nivel inicial-1
 #cuando
 matriz = [] #la matriz extraida del nivel inicial
 items_en_nivel=[]  #lista de objetos items . se renderizan en el inicio del juego pero aparecen ocultos hasta la puta 
@@ -2108,6 +2120,7 @@ choice= 0
 #----------------------MUSICA--------------------
 #----------------------------SFX------------------------------
 sfx_bomba= pg.mixer.Sound("sounds\sfx\Bomba.mp3") #sonido de la bomba
+boss_healing = mixer.Sound("sounds\sfx\healing.mp3")
 #-----------------------SPRITES------------------------------
 #Obstaculos
 sps_obstacles = pg.image.load("assets\Textures\Bricks.png")
@@ -2564,7 +2577,7 @@ def limpiar_boss():
                             matriz[fil][col] = 0
                        
 def bombastic_hitbox ():
-     global star_up, star_right, star_left, star_down,puntaje_nivel, obstacles, obstacles_R
+     global star_up, star_right, star_left, star_down,puntaje_nivel, obstacles, obstacles_R, hielo
      for bomba_boss in lista_B_Boss:
           bomba_boss.auto_animate()
      for exp_b in lista_E_Boss:
@@ -2576,8 +2589,7 @@ def bombastic_hitbox ():
                    matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
                    obstacles_R.remove(obsR)
                    obstacles.remove(obsR)
-          
-    
+
           x = exp_b.x // 48
           y = exp_b.y // 48
           max_filas = len(matriz)
@@ -2699,6 +2711,10 @@ def bombastic_hitbox ():
                    matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
                    obstacles_R.remove(obsR)
                    obstacles.remove(obsR)
+          for hielitos in hielo:
+               if Explosion_Matriz.colisiona_con(exp, hielitos):
+                   matriz[int(hielitos.y//48)][int(hielitos.x//48)] = 0
+                   hielo.remove(hielitos)
           for enemies in Lista_Enemigos_1:
               if Explosion_Matriz.colisiona_con(exp, enemies):
                    puntaje_nivel+=1
@@ -2848,6 +2864,10 @@ def bombastic_hitbox ():
                    matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
                    obstacles_R.remove(obsR)
                    obstacles.remove(obsR)
+          for hielitos in hielo:
+               if Explosion_Matriz.colisiona_con(exp_l, hielitos):
+                   matriz[int(hielitos.y//48)][int(hielitos.x//48)] = 0
+                   hielo.remove(hielitos)
           for enemies in Lista_Enemigos_1:
               if Explosion_Matriz_Lados.colisiona_con(exp_l, enemies):
                    puntaje_nivel+=1
@@ -3181,6 +3201,8 @@ def dibujar_gui() :
           estado = "GameOver"
         else : 
              Player_1.cant_vidas-=1
+             boss_healing.play()
+             Player_1.barra_habilidad=0
              Player_1.vida= Player_1.vida_max_actual
              Player_1.muerto=False
              Player_1.x= 0
@@ -3699,8 +3721,18 @@ def boombox() :
             elif estado == "guardar_puntaje":
                 pg.mixer.music.load("sounds/music/name_selection.mp3")
             elif estado=="juego" : 
-                 lista_musica = ["sounds\music\Nose.mp3", "sounds\music\elkpepe.wav", "sounds/music/juego_3.mp3"]
-                 musica_random = random.choice(lista_musica)
+                 lista_musica_1 = ["sounds\music\lvl_1_1.mp3", "sounds\music\lvl_1_2.mp3", "sounds\music\lvl_1_3.mp3"]
+                 lista_musica_2 = ["sounds\music\lvl_2_1.mp3", "sounds\music\lvl_2_2.mp3", "sounds\music\lvl_2_3.mp3"]
+                 lista_musica_3 = ["sounds\music\lvl_3_1.mp3", "sounds\music\lvl_3_2.mp3", "sounds\music\lvl_3_3.mp3"]
+                 lista_musica_boss=["sounds\music\\boss_1.mp3", "sounds\music\\boss_2.mp3", "sounds\music\\nose.mp3"]
+                 if nivel== 1 : 
+                      musica_random = random.choice(lista_musica_1)
+                 elif nivel == 2 :
+                      musica_random = random.choice(lista_musica_2)
+                 elif nivel == 3 :
+                      musica_random = random.choice(lista_musica_3)
+                 elif nivel == 4 and len(lista_musica_boss) > 0:  # Si hay un boss en el nivel
+                      musica_random = random.choice(lista_musica_boss)
                  pg.mixer.music.load(musica_random)
 
             pg.mixer.music.set_volume(volumen)
