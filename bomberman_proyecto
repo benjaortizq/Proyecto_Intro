@@ -1954,7 +1954,7 @@ start_time_pantalla=0
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
-nivel = 2  #nivel inicial-1
+nivel = 0  #nivel inicial-1
 #cuando
 matriz = [] #la matriz extraida del nivel inicial
 items_en_nivel=[]  #lista de objetos items . se renderizan en el inicio del juego pero aparecen ocultos hasta la puta 
