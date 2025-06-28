@@ -1954,7 +1954,7 @@ start_time_pantalla=0
 #Globales Steadman
 obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
-nivel = 0  #nivel inicial-1
+nivel = 0 #nivel inicial-1
 #cuando
 matriz = [] #la matriz extraida del nivel inicial
 items_en_nivel=[]  #lista de objetos items . se renderizan en el inicio del juego pero aparecen ocultos hasta la puta 
@@ -2465,7 +2465,7 @@ def generate(screen):
         if Player_1.colisiona_con(candado) and Player_1.tiene_llave:
             candado = None
             puntaje_final= puntaje_nivel + 500 #puntaje por abrir el candado
-            estado ="comprar_powerups" if nivel < 3 else "good_ending"
+            estado ="comprar_powerups" if nivel < 4 else "good_ending"
             start_time_pantalla = pg.time.get_ticks()
             global_fade = False  # Reiniciar el fade global
 
@@ -3223,8 +3223,8 @@ def dibujar_gui() :
           Fuerza_exp += 1
           fuerza_aplicada = True
           lista_pw_uso.append("dano")
-    if puntaje_nivel // 100 > ultimo_bono_vida:
-          Player_1.vida += 25
+    if puntaje_nivel // 250 > ultimo_bono_vida:
+          Player_1.vida = (max(Player_1.vida + 10, Player_1.vida_max_actual))
           ultimo_bono_vida = puntaje_nivel // 100
           lista_pw_uso.append("vida")
 
