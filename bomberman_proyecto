@@ -241,12 +241,12 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         self.barra_habilidad = 0  # Tiempo de recarga de la habilidad
         self.color_bajada=color_bajada
         self.powerups= {"dano" : 0 , "vida":0}
-        self.items = {"bombas":50, "velocidad" : 0 ,"escudo":0 }
+        self.items = {"bombas":50, "velocidad" : 5 ,"escudo":0 }
         self.powerup_en_uso={"dano": False, "vida": False}
         self.item_en_uso={"bombas":False, "velocidad" : False ,"escudo":False }
         self.tiene_llave=False
         self.ultima_bomba=0
-        self.base_speed = self.velocidad      # ejemplo
+        self.base_speed = velocidad      # ejemplo
         self.speed = self.base_speed
         self.defensa_activa = False
         
@@ -255,6 +255,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         keys = pg.key.get_pressed()
         current_time = t.time()
         global escojio
+        #print (self.velocidad)
         # Iniciar habilidad al presionar espacio
         if keys[pg.K_SPACE] and not self.ejecutando_habilidad and self.barra_habilidad >50:
             self.ejecutando_habilidad = True
@@ -381,14 +382,26 @@ class Trampa:
                self.current_frame = ((self.current_frame + 1) % self.frame_count)          #El digamos asi "numero" de frame que esta actualmente dibujandose. 
         self.current_skin = self.current_spritesheet.get_image( self.current_frame, self.width_frame,  self.height_frame, self.scale, self.colour)
         self.mask = pg.mask.from_surface(self.current_skin)
-        if self.frame_count in (8,9,10,11):
+        if self.current_frame in (8,9,10,11):
              self.activo = True
         else:
              self.activo = False
 
-class Hielo(Obstaculo):
-     def __init__(self, screen, x, y, texture):
-          super().__init__(screen, x, y, texture)
+class Hielo:
+    def __init__(self, screen, x, y, texture):
+        self.screen = screen
+        self.x = x
+        self.y = y
+        self.texture = texture
+        self.mask    = pg.mask.from_surface(self.texture)
+        self.rect = self.texture.get_rect(topleft=(self.x, self.y))  
+    def draw(self):
+        self.screen.blit(self.texture, (self.x, self.y))
+    def colisiona_con(self, otro_objeto):
+     # Calcular diferencia de posiciones (offset)
+     offset_x = int(otro_objeto.x) - int(self.x)
+     offset_y = int(otro_objeto.y) - int(self.y)
+     return self.mask.overlap(otro_objeto.mask, (offset_x, offset_y)) is not None
 #Class Enemigos
 #Variable globales enemigos
 def tiene_linea_vision(origen, destino, obstaculos):
@@ -1915,7 +1928,7 @@ class Explosion_Matriz_Lados_Boss(Explosion_Matriz):
 #-----------------------pygame------------------------------
 #SONIDOS DEL JUEGO
 mixer.init()
-boss_healing = mixer.Sound("sounds\sfx\healing.mp3")
+
 #commons de pygame (literalmente el inicio de pygame)
 pg.init()
 screen= pg.display.set_mode((816, 624)) #tamano de pantalla
@@ -1942,6 +1955,7 @@ start_time_pantalla=0
 obstacles = [] #lista de colisiones con obstaculos
 obstacles_R = [] #lista de los rompibles
 nivel = 0 #nivel inicial-1
+#cuando
 matriz = [] #la matriz extraida del nivel inicial
 items_en_nivel=[]  #lista de objetos items . se renderizan en el inicio del juego pero aparecen ocultos hasta la puta 
 Lista_Enemigos_1 = [] #la lista de los enemigos, esta solo posee los enemigos del nivel 1 o los mas sencillos
@@ -2083,6 +2097,9 @@ boton_comprar_vidas= Boton(300, 420, 210, 30, "+25 Vida (2 creditos)", "fonts/Pi
 boton_comprar_dano= Boton(300, 370, 210, 30, "+1 Dano (3 creditos)", "fonts/Pixeltype.ttf", 28, ("gray"), ("green")) #crea un boton de comprar dano
 boton_comprar_pts= Boton(300, 320, 210, 30, "+1 credito (500 puntos)", "fonts/Pixeltype.ttf", 28, ("gray"), ("green")) #crea un boton de comprar puntos
 boton_continuar_nivel= Boton(300, 470, 210, 30, "Siguiente nivel", "fonts/Pixeltype.ttf", 28, ("red"), ("green")) #crea un boton de continuar
+boton_scoreboard_puntaje= Boton(300, 510, 210, 30, "Guardar", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de gaurdar_puntaje_en el json
+boton_guardar_puntaje= Boton(300, 470, 210, 30, "Guardar Puntaje", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de continuar
+anterior_puntaje_guardar=False
 prev_siguiente = False #variable para controlar si se ha hecho clic en el botón de siguiente opción
 prev_seleccion = False  #variable para controlar si se ha hecho clic en el botón de seleccionar
 prev_ing=False
@@ -2102,16 +2119,9 @@ bombas_choice = 0 #bombas por vidas
 choice= 0
 
 #----------------------MUSICA--------------------
-musica_menu=pg.mixer.Sound("sounds\music\Main_menu.mp3")
-musica_puntajes=pg.mixer.Sound("sounds\music\puntajes.mp3")
-musica_creditos=pg.mixer.Sound("sounds\music\credits.mp3")
-musica_seleccion_personaje=pg.mixer.Sound("sounds\music\player_selection.mp3")
-musica_ending=pg.mixer.Sound("sounds\music\good_ending.mp3")
-musica_compra=pg.mixer.Sound("sounds\music\compra.mp3")
-musica_name_selection=pg.mixer.Sound("sounds\music\\name_selection.mp3")
-musica_cambio_nivel=pg.mixer.Sound("sounds\sfx\\cambio_lvl.mp3")
 #----------------------------SFX------------------------------
 sfx_bomba= pg.mixer.Sound("sounds\sfx\Bomba.mp3") #sonido de la bomba
+boss_healing = mixer.Sound("sounds\sfx\healing.mp3")
 #-----------------------SPRITES------------------------------
 #Obstaculos
 sps_obstacles = pg.image.load("assets\Textures\Bricks.png")
@@ -2455,7 +2465,7 @@ def generate(screen):
         if Player_1.colisiona_con(candado) and Player_1.tiene_llave:
             candado = None
             puntaje_final= puntaje_nivel + 500 #puntaje por abrir el candado
-            estado ="comprar_powerups" if nivel < 3 else "good_ending"
+            estado ="comprar_powerups" if nivel < 4 else "good_ending"
             start_time_pantalla = pg.time.get_ticks()
             global_fade = False  # Reiniciar el fade global
 
@@ -2496,9 +2506,9 @@ def generate(screen):
                        texture = Hielo_xd
                        obs = Hielo(screen, (col*48),(fil*48) , texture)
                        obs.draw()
-    for hielos in hielo : 
-         if Player_1.colisiona_con(hielos):
-              Player_1.velocidad=0.5
+            Player_1.velocidad = (0.5 if any(Player_1.colisiona_con(h) for h in hielo) else (Player_1.base_speed * 1.5 if Player_1.item_en_uso["velocidad"] else Player_1.base_speed))
+
+
 
 #funciones para la generacion y manejo de bombas
 def bombastic_pos (screen): #guarda posicion de manejo de bombas 
@@ -2568,7 +2578,7 @@ def limpiar_boss():
                             matriz[fil][col] = 0
                        
 def bombastic_hitbox ():
-     global star_up, star_right, star_left, star_down,puntaje_nivel, obstacles, obstacles_R
+     global star_up, star_right, star_left, star_down,puntaje_nivel, obstacles, obstacles_R, hielo
      for bomba_boss in lista_B_Boss:
           bomba_boss.auto_animate()
      for exp_b in lista_E_Boss:
@@ -2580,8 +2590,7 @@ def bombastic_hitbox ():
                    matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
                    obstacles_R.remove(obsR)
                    obstacles.remove(obsR)
-          
-    
+
           x = exp_b.x // 48
           y = exp_b.y // 48
           max_filas = len(matriz)
@@ -2703,6 +2712,10 @@ def bombastic_hitbox ():
                    matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
                    obstacles_R.remove(obsR)
                    obstacles.remove(obsR)
+          for hielitos in hielo:
+               if Explosion_Matriz.colisiona_con(exp, hielitos):
+                   matriz[int(hielitos.y//48)][int(hielitos.x//48)] = 0
+                   hielo.remove(hielitos)
           for enemies in Lista_Enemigos_1:
               if Explosion_Matriz.colisiona_con(exp, enemies):
                    puntaje_nivel+=1
@@ -2852,6 +2865,10 @@ def bombastic_hitbox ():
                    matriz[int(obsR.y/48)][int(obsR.x/48)] = 0
                    obstacles_R.remove(obsR)
                    obstacles.remove(obsR)
+          for hielitos in hielo:
+               if Explosion_Matriz.colisiona_con(exp_l, hielitos):
+                   matriz[int(hielitos.y//48)][int(hielitos.x//48)] = 0
+                   hielo.remove(hielitos)
           for enemies in Lista_Enemigos_1:
               if Explosion_Matriz_Lados.colisiona_con(exp_l, enemies):
                    puntaje_nivel+=1
@@ -3106,13 +3123,31 @@ def pantalla_titulo () :
      Boton_opciones.draw(screen)
      screen.blit(credit,(5,605))
      screen.blit(titulo3,(200,150))
-
+volumen = 1.0  # variable global
 def pantalla_opciones() : 
-     global global_cuadrado, prev_atras, estado, estado_anterior
+     global global_cuadrado, prev_atras, estado, estado_anterior, volumen
      bg_men_parallax()
      if not global_cuadrado : 
           animar_cuadro(screen)
      click_back= boton_back.check_click() 
+     texto_volumeen_musica = font0.render("Volumen de la musica", False, "white")
+     screen.blit(texto_volumeen_musica, (120, 380))
+
+     slider_rect = pg.Rect(100, 450, 300, 8)         # posición y tamaño de la barra
+     pg.draw.rect(screen, (180, 180, 180), slider_rect)  # barra
+
+     # dibuja el “handle” según el nivel actual
+     handle_x = slider_rect.x + int(volumen * slider_rect.width)
+     handle_rect = pg.Rect(handle_x - 6, slider_rect.y - 6, 12, slider_rect.height + 12)
+     pg.draw.rect(screen, (220, 220, 220), handle_rect)
+
+     # detectar click y mover handle (sin usar eventos dentro):
+     if pg.mouse.get_pressed()[0]:
+          mx, my = pg.mouse.get_pos()
+          if slider_rect.collidepoint(mx, my):
+               volumen = (mx - slider_rect.x) / slider_rect.width
+               # actualiza volumen en el mixer de forma inmediata:
+               pg.mixer.music.set_volume(volumen)
      if click_back and not prev_atras : 
           estado= "menu"
           global_cuadrado= False
@@ -3149,25 +3184,50 @@ def pantalla_puntajes() :
      max_display = min(len(mejores), 5)    #solo top5
      top_cinco = mejores[:max_display]
      dibujar_scoreboard(screen , top_cinco, font, x=100, y=150, line_height=40 )
-
+fuerza_aplicada = False
+ultimo_bono_vida = 0
 def dibujar_gui() :
-    global tiempo_juego, puntaje_nivel, estado, Lista_Boss, lista_pw_uso, puntaje_final, puntaje_nivel
+    global tiempo_juego, puntaje_nivel, estado, Lista_Boss, lista_pw_uso, puntaje_final, puntaje_nivel, fuerza_aplicada, ultimo_bono_vida, Fuerza_exp
     screen.fill((24,24,24))
     texto_tiempo=font0.render(f"Tiempo : {tiempo_juego.tiempo}", False , "white")
     texto_puntaje_nivel = font0.render(f"Puntaje : {puntaje_nivel}",False,"white")
     if Player_1.vida <= 1 : 
          Player_1.muerto=True
 
+    if tiempo_juego.tiempo <= 0 : 
+         estado = "GameOver"
+         puntaje_final+= puntaje_nivel     
+
     
     default_pw = spritesheet_powerups.get_image(2, 64, 64, 1, "black")
     default_pw_p = spritesheet_powerups.get_image(2, 64, 64, 0.5, "black")
     if Player_1.muerto and Player_1.current_frame == Player_1.frames_muerte-1 : 
-        puntaje_final= puntaje_nivel 
-        estado = "GameOver"
+        if Player_1.cant_vidas <= 0:
+          puntaje_final= puntaje_nivel 
+          estado = "GameOver"
+        else : 
+             Player_1.cant_vidas-=1
+             Player_1.items["bombas"] = 20
+             boss_healing.play()
+             Player_1.barra_habilidad=0
+             Player_1.vida= Player_1.vida_max_actual
+             Player_1.muerto=False
+             Player_1.x= 0
+             Player_1.y= 0
 
     powerup_sprites = {"vida": [spritesheet_powerups.get_image(0, 64, 64, 1, "black"),spritesheet_powerups.get_image(0, 64, 64, 0.5, "black")],"dano": [spritesheet_powerups.get_image(1, 64, 64, 1, "black"),spritesheet_powerups.get_image(1, 64, 64, 0.5, "black")]}
     pw_uso_1 = default_pw
     pw_uso_2 = default_pw_p
+
+    if puntaje_nivel >= 500 and not fuerza_aplicada:
+          Fuerza_exp += 1
+          fuerza_aplicada = True
+          lista_pw_uso.append("dano")
+    if puntaje_nivel // 250 > ultimo_bono_vida:
+          Player_1.vida = (max(Player_1.vida + 10, Player_1.vida_max_actual))
+          ultimo_bono_vida = puntaje_nivel // 100
+          lista_pw_uso.append("vida")
+
     if len(lista_pw_uso) >= 1:
         nombre1 = lista_pw_uso[0]
         sprites  = powerup_sprites.get(nombre1)
@@ -3189,7 +3249,7 @@ def dibujar_gui() :
     habilidad_jugador.draw(screen)  # Dibuja la barra de habilidad en la superficie del juego
     vida_boss.draw(screen) if vida_boss else None  # Dibuja la barra de habilidad del boss si existe
     icono_habilidad= spritesheet_habilidades_prev.get_image(skin_seleccionada, 128,128,0.5,"black")
-    texto_boss= font0.render("Maquiavelo", False, (69, 229, 222)) if len(Lista_Boss) == 1 else None
+    texto_boss= font0.render("La maquina de Turing", False, (69, 229, 222)) if len(Lista_Boss) == 1 else None
     screen.blit(texto_boss, (330, 50)) if texto_boss else None
     bombas_img=spritecheet_items.get_image(0,64,64,1.5,"black")
     velocidad_img=spritecheet_items.get_image(1,64,64,1.5,"black")
@@ -3223,11 +3283,11 @@ def dibujar_gui() :
 #________________Auxiliar para pantalla_juego___________
 #para el FOV lo pongo aca por mientras
 FOV_RADIUS = 100
+
 def is_in_fov_circle(player_pos, obj_pos, radius):
     dx = player_pos[0] - obj_pos[0]
     dy = player_pos[1] - obj_pos[1]
     return dx*dx + dy*dy <= radius * radius
-
 
 def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUEGO  
     global matriz, puntaje_nivel,puntaje_final, estado, llave, candado, powerups, pos_jugador,traps,Lista_Boss
@@ -3238,9 +3298,10 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     if primera_vez:
         powerups = generar_powerups(screen, powerups_img, map_cols=11, map_rows=17)
         save_positions(game_surface)
-        llave = ubicar_llave(matriz, 48, 48) if nivel<3 or nivel == 4 and len(Lista_Boss)==0 else None #Ubica la llave en una posicion aleatoria de la matriz
+        llave = ubicar_llave(matriz, 48, 48) if nivel<=3 or nivel == 4 and len(Lista_Boss)==0 else None #Ubica la llave en una posicion aleatoria de la matriz
+        print(f"llave: {llave.x}, {llave.y}") if llave else print("No hay llave en este nivel")
        # print(f"llave: {llave.x}, {llave.y}") if llave else print("No hay llave en este nivel")
-        candado= llave_candado (100, 100, False , True ,candado_img) if nivel<3 or nivel == 4 and len(Lista_Boss)==0 else None #Ubica el candado en la posicion del candado
+        candado= llave_candado (100, 100, False , True ,candado_img) if nivel<=3 or nivel == 4 and len(Lista_Boss)==0 else None #Ubica el candado en la posicion del candado
 
     if nivel==4 : 
          if len(Lista_Boss) == 0:
@@ -3263,10 +3324,6 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     
     bombastic_pos(game_surface)
     bombastic_hitbox()
-    
-    
-    
-
          
     for trampa in traps:
          trampa.animation()
@@ -3415,15 +3472,15 @@ def pantalla_seleccion_jugador () :
         skin_seleccionada = prev_seleccion
         skin_seleccionada = skin_viendo
         if skin_seleccionada == 0 : 
-            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_int,spritesheet_walk_int,spritesheet_habilidad_int,spritesheet_death_int,9,8,8,8,32,32,1.5,"black","Invencible",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
+            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_int,spritesheet_walk_int,spritesheet_habilidad_int,spritesheet_death_int,9,8,8,8,32,32,1.5,"black","Invencible",3,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
             Player_1.vida_maxima=150
             Fuerza_exp= 2
         elif skin_seleccionada == 1 : 
-            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_walk_kam ,spritesheet_habilidad_kam,spritesheet_death_kam,4,7,12,8,48,32,1.35,"black","Kamikaze",6,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
+            Player_1= Jugador_1(game_surface,0,0,4,spritesheet_idle_kam,spritesheet_walk_kam ,spritesheet_habilidad_kam,spritesheet_death_kam,4,7,12,8,48,32,1.35,"black","Kamikaze",3,(3, 240, 252),"yellow") #GENERAR PLAYER INVENCIBLE
             Player_1.vida_maxima=200
             Fuerza_exp= 1
         elif skin_seleccionada == 2 :
-            Player_1= Jugador_1(game_surface,0,0,1.5,spritesheet_idle_tac,spritesheet_walk_tac ,spritesheet_habilidad_tac,spritesheet_death_tac,4,6,9,6,96,96,0.5,"black","Tactico",6,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
+            Player_1= Jugador_1(game_surface,0,0,1.5,spritesheet_idle_tac,spritesheet_walk_tac ,spritesheet_habilidad_tac,spritesheet_death_tac,4,6,9,6,96,96,0.45,"black","Tactico",3,(3, 240, 252),"yellow")   #GENERAR PLAYER TACTICO
             Player_1.vida_maxima = 250
             Fuerza_exp= 3
 
@@ -3462,7 +3519,7 @@ def pantalla_creditos() :
      star_wars_crawl(screen,texto, imagenes,font,(255,255,255),0.5)
 
 def pantalla_cargar_lvl() : 
-     global estado, prev_atras, global_fade, nivel, start_time_pantalla, matriz, lista_B, lista_E, lista_EL, Lista_Enemigos_1, Lista_Enemigos_2, Lista_Enemigos_3, obstacles, obstacles_R, primera_vez
+     global estado, prev_atras, global_fade, nivel, start_time_pantalla, matriz, lista_B, lista_E, lista_EL, Lista_Enemigos_1, Lista_Enemigos_2, Lista_Enemigos_3, obstacles, obstacles_R, primera_vez, hielo, traps,Fuerza_exp
 
      if not global_fade : 
           fade_in_from_white()
@@ -3479,16 +3536,21 @@ def pantalla_cargar_lvl() :
      lista_EL = []
      obstacles = []
      obstacles_R = []
+     hielo = []
+     traps=[]
      Player_1.x=0
      Player_1.y=0
      Player_1.vida= Player_1.vida_max_actual
      Player_1.tiene_llave = False
+     Player_1.items["bombas"] = 45
+
+
      primera_vez=True
      tiempo_juego.tiempo=300
 
 def pantalla_g_o () : 
      global estado, puntaje_final, prev_atras, global_fade, nivel, powerups, primera_vez, matriz
-     global Lista_Enemigos_1 , Lista_Enemigos_2, Lista_Enemigos_3, obstacles, obstacles_R, lista_B , lista_E , lista_EL, lista_B_Boss, lista_E_Boss, lista_EL_Boss, Lista_Boss
+     global Lista_Enemigos_1 , Lista_Enemigos_2, Lista_Enemigos_3, obstacles, obstacles_R, lista_B , lista_E , lista_EL, lista_B_Boss, lista_E_Boss, lista_EL_Boss, Lista_Boss, hielo
      if not global_fade : 
           fade_in_from_white()
           global_fade = True
@@ -3502,7 +3564,7 @@ def pantalla_g_o () :
      if click_atras and not prev_atras:
           global_fade = False
           powerups = None
-          primera_vez= False
+          primera_vez= True
           matriz=[]
           Lista_Enemigos_1=[]
           Lista_Enemigos_2=[]
@@ -3516,6 +3578,7 @@ def pantalla_g_o () :
           lista_B_Boss = []
           lista_E_Boss = []
           lista_EL_Boss = []
+          hielo = []
           Player_1.tiene_llave = False
           Player_1.puntos_compra = 0
           Player_1.cant_vidas = 3
@@ -3565,7 +3628,6 @@ def pantalla_compra_powerups() :
           if Player_1.puntos_compra >= 2:
                Player_1.vida_max_actual += 25
                Player_1.puntos_compra -= 2
-               lista_pw_uso.append("vida") if not "vida" in lista_pw_uso else None  # Agrega el powerup de vida a la lista de powerups usados
      prev_comprar_vidas = boton_comprar_vidas.check_click()
 
      if prev_comprar_dano and not boton_comprar_dano.check_click():
@@ -3582,11 +3644,6 @@ def pantalla_compra_powerups() :
 
 
      return
-
-boton_guardar_puntaje= Boton(300, 470, 210, 30, "Guardar Puntaje", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de continuar
-anterior_puntaje_guardar=False
-
-boton_scoreboard_puntaje= Boton(300, 510, 210, 30, "Ver Scoreboard", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de gaurdar_puntaje_en el json
 
 def pantalla_win() : 
      bg_men_parallax()
@@ -3612,7 +3669,6 @@ def pantalla_win() :
 
      boton_guardar_puntaje.draw(screen)  # Dibuja el botón en la pantalla
 
-boton_scoreboard_puntaje= Boton(300, 510, 210, 30, "Guardar", "fonts/Pixeltype.ttf", 28, (44, 62, 80), (52, 73, 94 )) #crea un boton de gaurdar_puntaje_en el json
 def pantalla_guardar_partida() : 
      global global_cuadrado, bara_texto, anterior_puntaje_guardar, estado, puntaje_final, nivel, Player_1, estado_anterior
      bg_men_parallax()
@@ -3657,8 +3713,6 @@ def pantalla_guardar_partida() :
 
      anterior_puntaje_guardar = boton_scoreboard_puntaje.check_click()
 
-
-
 def boombox() :
      global estado_anterior
      if estado!= estado_anterior : 
@@ -3667,24 +3721,41 @@ def boombox() :
           elif (estado == 'good_ending' or estado == 'guardar_puntaje') and (estado_anterior == 'good_ending' or estado_anterior == 'guardar_puntaje'):
                pass  # No se detiene ni se reinicia la música
           else : 
-               pg.mixer.stop()
-               if estado== 'menu': 
-                    musica_menu.play(-1)  
-               elif estado=="puntajes" : 
-                    musica_puntajes.play(-1)
-               elif estado=="creditos" : 
-                    musica_creditos.play(-1)
-               elif estado=="cargar_nivel" :
-                    musica_cambio_nivel.play(-1)
-               elif estado=="seleccion_personaje" :
-                    musica_seleccion_personaje.play(-1)
-               elif estado=="comprar_powerups" :
-                    musica_compra.play(-1)
-               elif estado=="good_ending" :
-                    musica_ending.play(-1)
-               elif estado=="guardar_puntaje" :
-                    musica_name_selection.play(-1)
-     estado_anterior=estado
+            pg.mixer.music.stop()
+            if estado == 'menu':
+                pg.mixer.music.load("sounds/music/Main_menu.mp3")
+            elif estado == "puntajes":
+                pg.mixer.music.load("sounds/music/puntajes.mp3")
+            elif estado == "creditos":
+                pg.mixer.music.load("sounds/music/credits.mp3")
+            elif estado == "cargar_nivel":
+                pg.mixer.music.load("sounds/sfx/cambio_lvl.mp3")
+            elif estado == "seleccion_personaje":
+                pg.mixer.music.load("sounds/music/player_selection.mp3")
+            elif estado == "comprar_powerups":
+                pg.mixer.music.load("sounds/music/compra.mp3")
+            elif estado == "good_ending":
+                pg.mixer.music.load("sounds/music/good_ending.mp3")
+            elif estado == "guardar_puntaje":
+                pg.mixer.music.load("sounds/music/name_selection.mp3")
+            elif estado=="juego" : 
+                 lista_musica_1 = ["sounds\music\lvl_1_1.mp3", "sounds\music\lvl_1_2.mp3", "sounds\music\lvl_1_3.mp3"]
+                 lista_musica_2 = ["sounds\music\lvl_2_1.mp3", "sounds\music\lvl_2_2.mp3", "sounds\music\lvl_2_3.mp3"]
+                 lista_musica_3 = ["sounds\music\lvl_3_1.mp3", "sounds\music\lvl_3_2.mp3", "sounds\music\lvl_3_3.mp3"]
+                 lista_musica_boss=["sounds\music\\boss_1.mp3", "sounds\music\\boss_2.mp3", "sounds\music\\nose.mp3"]
+                 if nivel== 1 : 
+                      musica_random = random.choice(lista_musica_1)
+                 elif nivel == 2 :
+                      musica_random = random.choice(lista_musica_2)
+                 elif nivel == 3 :
+                      musica_random = random.choice(lista_musica_3)
+                 elif nivel == 4 and len(lista_musica_boss) > 0:  # Si hay un boss en el nivel
+                      musica_random = random.choice(lista_musica_boss)
+                 pg.mixer.music.load(musica_random)
+
+            pg.mixer.music.set_volume(volumen)
+            pg.mixer.music.play(-1)
+     estado_anterior = estado
 
 tiempo_juego.start()
 
@@ -3735,7 +3806,13 @@ while True:
             pg.quit()
             sys.exit()
         elif event.type == pg.KEYDOWN : 
-              if estado== "guardar_puntaje" : 
+              if estado == "juego":
+                    if event.key == pg.K_ESCAPE:
+                         puntaje_final += puntaje_nivel
+                         puntaje_nivel = 0
+                         estado = "GameOver"
+
+              elif estado== "guardar_puntaje" : 
                     if event.key == pg.K_BACKSPACE:
                          bara_texto = bara_texto[:-1]
                     else:
@@ -3752,15 +3829,9 @@ while True:
     reloj.tick(60)
 
 #TODO : benja
-#agregar healthbar de boss
-#PANTALLA DE WIN 
-
-#*!CADA 500 PUNTOS DA 1 PT DE MEJORA . USTED AL FINAL DEL NIVEL PUEDE MEJORAR SU JUGADOR PARA EL SIGUIENTE NIVEL *! PERMANENTE 
-
-#*!DOCUMENTACION 
 
 #TODO : steadman
-#NIVELES
+
 
 
 

@@ -89,6 +89,42 @@
       "puntaje": 9869,
       "personaje": "Invencible",
       "nivel": 4
+    },
+    {
+      "usuario": "Conoutlet",
+      "puntaje": 13450,
+      "personaje": "Invencible",
+      "nivel": 4
+    },
+    {
+      "usuario": "Juan",
+      "puntaje": 11458,
+      "personaje": "Tactico",
+      "nivel": 4
+    },
+    {
+      "usuario": "Yo",
+      "puntaje": 11267,
+      "personaje": "Invencible",
+      "nivel": 4
+    },
+    {
+      "usuario": " ",
+      "puntaje": 3,
+      "personaje": "Invencible",
+      "nivel": 1
+    },
+    {
+      "usuario": "Hola",
+      "puntaje": 837,
+      "personaje": "Invencible",
+      "nivel": 3
+    },
+    {
+      "usuario": "primeroxd",
+      "puntaje": 13544,
+      "personaje": "Invencible",
+      "nivel": 4
     }
   ]
 }
