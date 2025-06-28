@@ -2106,14 +2106,6 @@ bombas_choice = 0 #bombas por vidas
 choice= 0
 
 #----------------------MUSICA--------------------
-musica_menu=pg.mixer.Sound("sounds\music\Main_menu.mp3")
-musica_puntajes=pg.mixer.Sound("sounds\music\puntajes.mp3")
-musica_creditos=pg.mixer.Sound("sounds\music\credits.mp3")
-musica_seleccion_personaje=pg.mixer.Sound("sounds\music\player_selection.mp3")
-musica_ending=pg.mixer.Sound("sounds\music\good_ending.mp3")
-musica_compra=pg.mixer.Sound("sounds\music\compra.mp3")
-musica_name_selection=pg.mixer.Sound("sounds\music\\name_selection.mp3")
-musica_cambio_nivel=pg.mixer.Sound("sounds\sfx\\cambio_lvl.mp3")
 #----------------------------SFX------------------------------
 sfx_bomba= pg.mixer.Sound("sounds\sfx\Bomba.mp3") #sonido de la bomba
 #-----------------------SPRITES------------------------------
@@ -3706,8 +3698,10 @@ def boombox() :
                 pg.mixer.music.load("sounds/music/good_ending.mp3")
             elif estado == "guardar_puntaje":
                 pg.mixer.music.load("sounds/music/name_selection.mp3")
-            else:
-                return  # ningún cambio de música
+            elif estado=="juego" : 
+                 lista_musica = ["sounds\music\Nose.mp3", "sounds\music\elkpepe.wav", "sounds/music/juego_3.mp3"]
+                 musica_random = random.choice(lista_musica)
+                 pg.mixer.music.load(musica_random)
 
             pg.mixer.music.set_volume(volumen)
             pg.mixer.music.play(-1)
