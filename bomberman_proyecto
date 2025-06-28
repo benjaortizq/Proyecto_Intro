@@ -255,7 +255,7 @@ class Jugador_1(Jugador): #clase hija de jugador, que hereda de la clase padre
         keys = pg.key.get_pressed()
         current_time = t.time()
         global escojio
-        print (self.velocidad)
+        #print (self.velocidad)
         # Iniciar habilidad al presionar espacio
         if keys[pg.K_SPACE] and not self.ejecutando_habilidad and self.barra_habilidad >50:
             self.ejecutando_habilidad = True
@@ -3298,7 +3298,8 @@ def pantalla_juego() : #ESTRO ES UN PLACEHOLDER PARA LA CLASE DE PANTALLA DE JUE
     if primera_vez:
         powerups = generar_powerups(screen, powerups_img, map_cols=11, map_rows=17)
         save_positions(game_surface)
-        llave = ubicar_llave(matriz, 48, 48) if nivel<3 or nivel == 4 and len(Lista_Boss)==0 else None #Ubica la llave en una posicion aleatoria de la matriz
+        llave = ubicar_llave(matriz, 48, 48) if nivel<=3 or nivel == 4 and len(Lista_Boss)==0 else None #Ubica la llave en una posicion aleatoria de la matriz
+        print(f"llave: {llave.x}, {llave.y}") if llave else print("No hay llave en este nivel")
        # print(f"llave: {llave.x}, {llave.y}") if llave else print("No hay llave en este nivel")
         candado= llave_candado (100, 100, False , True ,candado_img) if nivel<3 or nivel == 4 and len(Lista_Boss)==0 else None #Ubica el candado en la posicion del candado
 
@@ -3563,7 +3564,7 @@ def pantalla_g_o () :
      if click_atras and not prev_atras:
           global_fade = False
           powerups = None
-          primera_vez= False
+          primera_vez= True
           matriz=[]
           Lista_Enemigos_1=[]
           Lista_Enemigos_2=[]
