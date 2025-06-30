@@ -3739,8 +3739,8 @@ def boombox() :
             elif estado == "guardar_puntaje":
                 pg.mixer.music.load("sounds/music/name_selection.mp3")
             elif estado=="juego" : 
-                 lista_musica_1 = ["sounds\music\lvl_1_1.mp3", "sounds\music\lvl_1_2.mp3", "sounds\music\lvl_1_3.mp3"]
-                 lista_musica_2 = ["sounds\music\lvl_2_1.mp3", "sounds\music\lvl_2_2.mp3", "sounds\music\lvl_2_3.mp3"]
+                 lista_musica_1 = ["sounds\music\lvl_1_1.mp3", "sounds\music\lvl_1_2.mp3"]
+                 lista_musica_2 = ["sounds\music\lvl_2_1.mp3", "sounds\music\lvl_2_2.mp3"]
                  lista_musica_3 = ["sounds\music\lvl_3_1.mp3", "sounds\music\lvl_3_2.mp3", "sounds\music\lvl_3_3.mp3"]
                  lista_musica_boss=["sounds\music\\boss_1.mp3", "sounds\music\\boss_2.mp3", "sounds\music\\nose.mp3"]
                  if nivel== 1 : 
